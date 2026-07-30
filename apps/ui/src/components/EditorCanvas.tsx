@@ -43,6 +43,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 }) => {
   const { sheetEngine } = useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Layout width mode: default is Limited-width (false -> max-w-[45em])
   const [isFullWidth, setIsFullWidth] = useState(false);
@@ -109,22 +110,31 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     handleSelectionChange();
   };
 
-  // Helper to insert formatting syntax into textarea
+  // Helper to insert formatting syntax without dummy placeholder strings
   const insertFormatting = (prefix: string, suffix: string = '') => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
+    const scrollContainer = scrollContainerRef.current;
+    const currentScrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
+
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = content.substring(start, end);
-    const replacement = `${prefix}${selectedText || 'text'}${suffix}`;
+    const replacement = `${prefix}${selectedText}${suffix}`;
 
     const newContent = content.substring(0, start) + replacement + content.substring(end);
     onContentChange(newContent);
 
     setTimeout(() => {
       textarea.focus();
-      textarea.setSelectionRange(start + prefix.length, start + prefix.length + (selectedText.length || 4));
+      const cursorStart = start + prefix.length;
+      const cursorEnd = selectedText ? cursorStart + selectedText.length : cursorStart;
+      textarea.setSelectionRange(cursorStart, cursorEnd);
+
+      if (scrollContainer) {
+        scrollContainer.scrollTop = currentScrollTop;
+      }
       handleSelectionChange();
     }, 10);
   };
@@ -285,12 +295,15 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       <div className={`absolute inset-0 z-10 flex flex-col w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[45em]'}`}>
         {/* 1. Markdown / Plaintext Editor with Pure CSS Counters Line Numbers & Right Separator Border */}
         {category === 'markdown' && !isPreview && (
-          <div className="flex-1 overflow-y-auto relative w-full h-full font-mono text-sm leading-relaxed">
+          <div
+            ref={scrollContainerRef}
+            className="flex-1 overflow-y-auto relative w-full h-full font-mono text-sm leading-relaxed"
+          >
             <div className="relative w-full min-h-full">
               {/* Full-Height Vertical Separator Line to the Right of Line Numbers Gutter */}
               <div
                 aria-hidden="true"
-                className="absolute left-[4rem] top-0 bottom-0 border-r border-white/10 pointer-events-none z-0"
+                className="absolute left-[3.75rem] top-0 bottom-0 border-r border-white/10 pointer-events-none z-0"
               />
 
               {/* Synchronized Line Numbers Gutter + Line Rows (Pure CSS Counters Alignment) */}
@@ -323,7 +336,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   handleSelectionChange();
                 }}
                 placeholder="Write your Markdown notes here..."
-                className={`absolute inset-0 w-full h-full pl-[4.5rem] pr-6 ${topPaddingClass} pb-8 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-mono text-sm leading-relaxed z-10 overflow-hidden`}
+                className={`absolute inset-0 w-full h-full pl-[4.5rem] pr-6 ${topPaddingClass} pb-16 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-mono text-sm leading-relaxed z-10 overflow-hidden`}
               />
             </div>
           </div>
