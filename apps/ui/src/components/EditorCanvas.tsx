@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   FileText,
   AlertCircle,
@@ -43,76 +43,15 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 }) => {
   const { sheetEngine } = useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const lineNumbersRef = useRef<HTMLDivElement>(null);
-  const mirrorRef = useRef<HTMLDivElement>(null);
 
   // Layout width mode: default is Limited-width (false -> max-w-[45em])
   const [isFullWidth, setIsFullWidth] = useState(false);
-  const [lineHeights, setLineHeights] = useState<number[]>([]);
 
   const category = activeFile?.category || 'markdown';
   const evaluatedMarkdown = category === 'markdown' && activeFile ? sheetEngine.evaluateMarkdownFormulas(content) : '';
 
   // Line numbers calculation
   const lines = content.split('\n');
-
-  // Measure pixel height for each line taking soft-wrapping into account with pixel-perfect font synchronization
-  const updateLineHeights = () => {
-    const textarea = textareaRef.current;
-    const mirror = mirrorRef.current;
-    if (!textarea || !mirror) return;
-
-    // Synchronize exact font & text metrics from textarea to mirror
-    const computeStyle = window.getComputedStyle(textarea);
-    mirror.style.fontFamily = computeStyle.fontFamily;
-    mirror.style.fontSize = computeStyle.fontSize;
-    mirror.style.lineHeight = computeStyle.lineHeight;
-    mirror.style.letterSpacing = computeStyle.letterSpacing;
-    mirror.style.wordBreak = computeStyle.wordBreak;
-
-    const paddingLeft = parseFloat(computeStyle.paddingLeft) || 16;
-    const paddingRight = parseFloat(computeStyle.paddingRight) || 16;
-    const usableWidth = textarea.clientWidth - paddingLeft - paddingRight;
-
-    mirror.style.width = `${Math.max(usableWidth, 100)}px`;
-
-    const lineDivs = mirror.children;
-    const heights: number[] = [];
-    for (let i = 0; i < lineDivs.length; i++) {
-      heights.push((lineDivs[i] as HTMLElement).offsetHeight);
-    }
-    setLineHeights(heights);
-  };
-
-  useLayoutEffect(() => {
-    if (category === 'markdown' && !isPreview) {
-      updateLineHeights();
-    }
-  }, [content, isFullWidth, isPreview, category]);
-
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const observer = new ResizeObserver(() => {
-      updateLineHeights();
-    });
-    observer.observe(textarea);
-    return () => observer.disconnect();
-  }, []);
-
-  const handleScroll = () => {
-    if (textareaRef.current && lineNumbersRef.current) {
-      lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
-    }
-  };
-
-  // Forward mouse wheel scrolling from container to textarea
-  const handleContainerWheel = (e: React.WheelEvent) => {
-    if (textareaRef.current) {
-      textareaRef.current.scrollTop += e.deltaY;
-    }
-  };
 
   // Update selected word & character stats
   const handleSelectionChange = () => {
@@ -207,18 +146,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
   return (
     <main className="flex-1 h-full glass-panel rounded-glass-lg border border-white/10 flex flex-col overflow-hidden shadow-2xl relative z-10 transition-all duration-300">
-      {/* Invisible Mirror Element for Accurate Soft-Wrapped Line Height Calculation */}
-      <div
-        ref={mirrorRef}
-        aria-hidden="true"
-        className="absolute opacity-0 pointer-events-none -z-50 font-mono text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden"
-        style={{ top: -9999, left: -9999 }}
-      >
-        {lines.map((line, idx) => (
-          <div key={idx}>{line || '\u200B'}</div>
-        ))}
-      </div>
-
       {/* Floating Translucent Glass Top Header & Toolbar Wrapper */}
       <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none flex flex-col">
         {/* Top Header Toolbar */}
@@ -356,45 +283,43 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
       {/* Editor / Preview Canvas Container (Full Panel Height: Allows text to scroll UNDER top & bottom toolbars) */}
       <div className={`absolute inset-0 z-10 flex flex-col w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[45em]'}`}>
-        {/* 1. Markdown / Plaintext Editor with Full Vertical Height Scroll */}
+        {/* 1. Markdown / Plaintext Editor with Pure CSS Counters Line Numbers & Synchronized Layered Divs */}
         {category === 'markdown' && !isPreview && (
-          <div
-            onWheel={handleContainerWheel}
-            className={`flex-1 flex overflow-hidden px-6 ${topPaddingClass} font-mono text-sm leading-relaxed`}
-          >
-            {/* Line Numbers Gutter Column (Accurately Synced & Zero Top Offset) */}
-            <div
-              ref={lineNumbersRef}
-              className="w-12 select-none pr-4 text-right text-zinc-600 border-r border-white/10 overflow-hidden shrink-0 pt-0 pb-8"
-            >
-              {lines.map((_, i) => (
-                <div
-                  key={i}
-                  style={{ height: lineHeights[i] ? `${lineHeights[i]}px` : 'auto' }}
-                  className="flex items-start justify-end leading-relaxed"
-                >
-                  {i + 1}
-                </div>
-              ))}
-            </div>
+          <div className="flex-1 overflow-y-auto relative w-full h-full font-mono text-sm leading-relaxed">
+            <div className="relative w-full min-h-full">
+              {/* Synchronized Line Numbers Gutter + Line Rows (Pure CSS Counters Alignment) */}
+              <div
+                aria-hidden="true"
+                className={`px-6 ${topPaddingClass} pb-8 select-none pointer-events-none font-mono text-sm leading-relaxed`}
+              >
+                {lines.map((line, idx) => (
+                  <div
+                    key={idx}
+                    data-line={idx + 1}
+                    className="relative pl-12 text-transparent whitespace-pre-wrap break-words font-mono text-sm leading-relaxed border-l border-white/10 before:content-[attr(data-line)] before:absolute before:left-2 before:top-0 before:w-8 before:text-right before:text-zinc-600 before:font-mono before:text-sm before:leading-relaxed"
+                  >
+                    {line || '\u200B'}
+                  </div>
+                ))}
+              </div>
 
-            {/* Textarea Input with Full Vertical Scroll and pb-8 (padding-bottom: 2rem) */}
-            <textarea
-              ref={textareaRef}
-              value={content}
-              onScroll={handleScroll}
-              onKeyDown={handleKeyDown}
-              onDoubleClick={handleDoubleClick}
-              onSelect={handleSelectionChange}
-              onKeyUp={handleSelectionChange}
-              onMouseUp={handleSelectionChange}
-              onChange={(e) => {
-                onContentChange(e.target.value);
-                handleSelectionChange();
-              }}
-              placeholder="Write your Markdown notes here..."
-              className="flex-1 pl-4 pt-0 pb-10 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none overflow-y-auto font-mono text-sm leading-relaxed"
-            />
+              {/* Textarea Input (Pixel-Perfect Overlaid on Top of Line Rows) */}
+              <textarea
+                ref={textareaRef}
+                value={content}
+                onKeyDown={handleKeyDown}
+                onDoubleClick={handleDoubleClick}
+                onSelect={handleSelectionChange}
+                onKeyUp={handleSelectionChange}
+                onMouseUp={handleSelectionChange}
+                onChange={(e) => {
+                  onContentChange(e.target.value);
+                  handleSelectionChange();
+                }}
+                placeholder="Write your Markdown notes here..."
+                className={`absolute inset-0 w-full h-full pl-[4.5rem] pr-6 ${topPaddingClass} pb-8 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-mono text-sm leading-relaxed z-10 overflow-hidden`}
+              />
+            </div>
           </div>
         )}
 
