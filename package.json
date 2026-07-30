@@ -19,6 +19,7 @@
     "d1:execute:prod": "npm run d1:execute:prod --workspace=apps/api"
   },
   "devDependencies": {
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "wrangler": "^4.115.0"
   }
 }

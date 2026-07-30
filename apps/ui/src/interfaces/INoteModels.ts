@@ -1,11 +1,31 @@
-export interface NoteItem {
+export type FileCategory = 'markdown' | 'image' | 'audio' | 'video' | 'binary';
+
+export interface VaultInfo {
   id: string;
-  title: string;
-  content: string;
+  name: string;
+  createdAt: number;
+}
+
+export interface VaultFileItem {
+  id: string;
+  name: string;
+  filename: string;
+  path: string; // e.g. "notes.md" or "assets/image.png"
+  category: FileCategory;
+  mimeType: string;
+  size: number;
+  content: string; // Plaintext content for md/text, or base64/dataURL for binary
   encryptedTitle: string;
+  encryptedPayload: string;
   encryptedDek: string;
+  vaultId: string;
   createdAt: number;
   updatedAt: number;
+  blobUrl?: string;
+}
+
+export interface NoteItem extends VaultFileItem {
+  title: string;
 }
 
 export interface NoteMetadataItem {
@@ -16,11 +36,11 @@ export interface NoteMetadataItem {
   updatedAt: number;
 }
 
-export interface MediaItem {
+export interface FileTreeNode {
   id: string;
-  fileName: string;
-  mimeType: string;
-  encryptedDek: string;
-  size: number;
-  blobUrl?: string;
+  name: string;
+  path: string;
+  isDirectory: boolean;
+  fileItem?: VaultFileItem;
+  children?: FileTreeNode[];
 }
