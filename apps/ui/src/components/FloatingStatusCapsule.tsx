@@ -137,7 +137,6 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
           {/* File Delete Button */}
           {onDeleteCurrentFile && (
             <>
-              <div className="w-px h-4 bg-white/10" />
               <button
                 onClick={onDeleteCurrentFile}
                 className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-blue-300 border border-white/10 transition flex items-center gap-1.5"
