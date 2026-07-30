@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   FileText,
   AlertCircle,
@@ -44,32 +44,73 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const { sheetEngine } = useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
+  const mirrorRef = useRef<HTMLDivElement>(null);
 
   // Layout width mode: default is Limited-width (false -> max-w-[45em])
   const [isFullWidth, setIsFullWidth] = useState(false);
+  const [lineHeights, setLineHeights] = useState<number[]>([]);
 
-  if (!activeFile) {
-    return (
-      <main className="flex-1 h-full glass-panel rounded-glass-lg border border-white/10 flex flex-col items-center justify-center p-8 text-center text-zinc-500 shadow-2xl relative z-10">
-        <FileText className="w-16 h-16 opacity-10 mb-3" />
-        <h3 className="text-lg font-semibold text-zinc-400">No File Selected</h3>
-        <p className="text-xs text-zinc-600 mt-1 max-w-sm">
-          Select a file from the sidebar tree or click <strong>Add File / Add Dir</strong> to import files into your Vault.
-        </p>
-      </main>
-    );
-  }
-
-  const category = activeFile.category || 'markdown';
-  const evaluatedMarkdown = category === 'markdown' ? sheetEngine.evaluateMarkdownFormulas(content) : '';
+  const category = activeFile?.category || 'markdown';
+  const evaluatedMarkdown = category === 'markdown' && activeFile ? sheetEngine.evaluateMarkdownFormulas(content) : '';
 
   // Line numbers calculation
   const lines = content.split('\n');
-  const lineCount = lines.length;
+
+  // Measure pixel height for each line taking soft-wrapping into account with pixel-perfect font synchronization
+  const updateLineHeights = () => {
+    const textarea = textareaRef.current;
+    const mirror = mirrorRef.current;
+    if (!textarea || !mirror) return;
+
+    // Synchronize exact font & text metrics from textarea to mirror
+    const computeStyle = window.getComputedStyle(textarea);
+    mirror.style.fontFamily = computeStyle.fontFamily;
+    mirror.style.fontSize = computeStyle.fontSize;
+    mirror.style.lineHeight = computeStyle.lineHeight;
+    mirror.style.letterSpacing = computeStyle.letterSpacing;
+    mirror.style.wordBreak = computeStyle.wordBreak;
+
+    const paddingLeft = parseFloat(computeStyle.paddingLeft) || 16;
+    const paddingRight = parseFloat(computeStyle.paddingRight) || 16;
+    const usableWidth = textarea.clientWidth - paddingLeft - paddingRight;
+
+    mirror.style.width = `${Math.max(usableWidth, 100)}px`;
+
+    const lineDivs = mirror.children;
+    const heights: number[] = [];
+    for (let i = 0; i < lineDivs.length; i++) {
+      heights.push((lineDivs[i] as HTMLElement).offsetHeight);
+    }
+    setLineHeights(heights);
+  };
+
+  useLayoutEffect(() => {
+    if (category === 'markdown' && !isPreview) {
+      updateLineHeights();
+    }
+  }, [content, isFullWidth, isPreview, category]);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const observer = new ResizeObserver(() => {
+      updateLineHeights();
+    });
+    observer.observe(textarea);
+    return () => observer.disconnect();
+  }, []);
 
   const handleScroll = () => {
     if (textareaRef.current && lineNumbersRef.current) {
       lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
+    }
+  };
+
+  // Forward mouse wheel scrolling from container to textarea
+  const handleContainerWheel = (e: React.WheelEvent) => {
+    if (textareaRef.current) {
+      textareaRef.current.scrollTop += e.deltaY;
     }
   };
 
@@ -149,156 +190,195 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     }, 10);
   };
 
+  if (!activeFile) {
+    return (
+      <main className="flex-1 h-full glass-panel rounded-glass-lg border border-white/10 flex flex-col items-center justify-center p-8 text-center text-zinc-500 shadow-2xl relative z-10">
+        <FileText className="w-16 h-16 opacity-10 mb-3" />
+        <h3 className="text-lg font-semibold text-zinc-400">No File Selected</h3>
+        <p className="text-xs text-zinc-600 mt-1 max-w-sm">
+          Select a file from the sidebar tree or click <strong>Add File / Add Dir</strong> to import files into your Vault.
+        </p>
+      </main>
+    );
+  }
+
+  // Calculate top padding based on whether formatting toolbar is visible
+  const topPaddingClass = category === 'markdown' && !isPreview ? 'pt-28' : 'pt-16';
+
   return (
     <main className="flex-1 h-full glass-panel rounded-glass-lg border border-white/10 flex flex-col overflow-hidden shadow-2xl relative z-10 transition-all duration-300">
-      {/* Top Header Toolbar */}
-      <div className="px-8 py-4 border-b border-white/10 flex items-center justify-between">
-        <div className="flex items-center gap-3 flex-1">
-          <span className="text-xs font-mono text-zinc-500 px-2.5 py-1 rounded bg-white/5 border border-white/10">
-            {activeFile.path}
-          </span>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => onTitleChange(e.target.value)}
-            placeholder="Untitled Note"
-            className="text-xl font-bold bg-transparent text-white placeholder-zinc-600 focus:outline-none flex-1 truncate"
-            disabled={category !== 'markdown'}
-          />
-        </div>
-
-        {/* Layout Width Toggle Button (Limited-width 45em vs Full-width) */}
-        <button
-          onClick={() => setIsFullWidth(!isFullWidth)}
-          className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition flex items-center gap-1.5 text-xs font-mono"
-          title={isFullWidth ? 'Switch to Limited Width (45em)' : 'Switch to Full Width'}
-        >
-          {isFullWidth ? (
-            <>
-              <Minimize2 className="w-3.5 h-3.5 text-blue-400" />
-              <span>45em Width</span>
-            </>
-          ) : (
-            <>
-              <Maximize2 className="w-3.5 h-3.5 text-blue-400" />
-              <span>Full Width</span>
-            </>
-          )}
-        </button>
+      {/* Invisible Mirror Element for Accurate Soft-Wrapped Line Height Calculation */}
+      <div
+        ref={mirrorRef}
+        aria-hidden="true"
+        className="absolute opacity-0 pointer-events-none -z-50 font-mono text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden"
+        style={{ top: -9999, left: -9999 }}
+      >
+        {lines.map((line, idx) => (
+          <div key={idx}>{line || '\u200B'}</div>
+        ))}
       </div>
 
-      {/* Markdown Formatting Helper Toolbar */}
-      {category === 'markdown' && !isPreview && (
-        <div className="px-6 py-2 bg-white/5 border-b border-white/10 flex items-center gap-1.5 overflow-x-auto text-zinc-400">
-          <button
-            onClick={() => insertFormatting('**', '**')}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
-            title="Bold (**text**)"
-          >
-            <Bold className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => insertFormatting('*', '*')}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
-            title="Italic (*text*)"
-          >
-            <Italic className="w-3.5 h-3.5" />
-          </button>
+      {/* Floating Translucent Glass Top Header & Toolbar Wrapper */}
+      <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none flex flex-col">
+        {/* Top Header Toolbar */}
+        <div className="px-8 py-3.5 backdrop-blur-xl bg-[#09090B]/75 border-b border-white/10 flex items-center justify-between pointer-events-auto">
+          <div className="flex items-center gap-3 flex-1">
+            <span className="text-xs font-mono text-zinc-500 px-2.5 py-1 rounded bg-white/5 border border-white/10">
+              {activeFile.path}
+            </span>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => onTitleChange(e.target.value)}
+              placeholder="Untitled Note"
+              className="text-xl font-bold bg-transparent text-white placeholder-zinc-600 focus:outline-none flex-1 truncate"
+              disabled={category !== 'markdown'}
+            />
+          </div>
 
-          <div className="w-px h-4 bg-white/10 mx-1" />
-
+          {/* Layout Width Toggle Button (Limited-width 45em vs Full-width) */}
           <button
-            onClick={() => insertFormatting('# ')}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
-            title="Heading 1 (#)"
+            onClick={() => setIsFullWidth(!isFullWidth)}
+            className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition flex items-center gap-1.5 text-xs font-mono"
+            title={isFullWidth ? 'Switch to Limited Width (45em)' : 'Switch to Full Width'}
           >
-            <Heading1 className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => insertFormatting('## ')}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
-            title="Heading 2 (##)"
-          >
-            <Heading2 className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => insertFormatting('### ')}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
-            title="Heading 3 (###)"
-          >
-            <Heading3 className="w-3.5 h-3.5" />
-          </button>
-
-          <div className="w-px h-4 bg-white/10 mx-1" />
-
-          <button
-            onClick={() => insertFormatting('- ')}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
-            title="Bullet List (-)"
-          >
-            <List className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => insertFormatting('> ')}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
-            title="Quote (>)"
-          >
-            <Quote className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => insertFormatting('```\n', '\n```')}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
-            title="Code Block (```)"
-          >
-            <Code className="w-3.5 h-3.5" />
-          </button>
-
-          <div className="w-px h-4 bg-white/10 mx-1" />
-
-          <button
-            onClick={() => insertFormatting('\n| Header 1 | Header 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |\n')}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition flex items-center gap-1 text-[11px]"
-            title="Insert Table"
-          >
-            <TableIcon className="w-3.5 h-3.5" />
-            <span>Table</span>
-          </button>
-
-          <button
-            onClick={() => insertFormatting('[', '](https://)')}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
-            title="Insert Link ([Title](url))"
-          >
-            <LinkIcon className="w-3.5 h-3.5" />
-          </button>
-
-          <button
-            onClick={() => insertFormatting('=SUM(A1:A5)')}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-blue-400 hover:text-blue-300 transition flex items-center gap-1 text-[11px] font-mono"
-            title="Insert Formula (=SUM(A1:A5))"
-          >
-            <Calculator className="w-3.5 h-3.5 text-blue-400" />
-            <span>Formula</span>
+            {isFullWidth ? (
+              <>
+                <Minimize2 className="w-3.5 h-3.5 text-blue-400" />
+                <span>45em Width</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-3.5 h-3.5 text-blue-400" />
+                <span>Full Width</span>
+              </>
+            )}
           </button>
         </div>
-      )}
 
-      {/* Editor / Preview Canvas Container */}
-      <div className={`flex-1 overflow-hidden flex flex-col relative w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[45em]'}`}>
-        {/* 1. Markdown / Plaintext Editor with Line Numbers */}
+        {/* Markdown Formatting Helper Toolbar */}
         {category === 'markdown' && !isPreview && (
-          <div className="flex-1 flex overflow-hidden p-6 font-mono text-sm leading-relaxed">
-            {/* Line Numbers Gutter Column */}
+          <div className="px-6 py-2 backdrop-blur-xl bg-[#09090B]/65 border-b border-white/10 flex items-center gap-1.5 overflow-x-auto text-zinc-400 pointer-events-auto">
+            <button
+              onClick={() => insertFormatting('**', '**')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
+              title="Bold (**text**)"
+            >
+              <Bold className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => insertFormatting('*', '*')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
+              title="Italic (*text*)"
+            >
+              <Italic className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="w-px h-4 bg-white/10 mx-1" />
+
+            <button
+              onClick={() => insertFormatting('# ')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
+              title="Heading 1 (#)"
+            >
+              <Heading1 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => insertFormatting('## ')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
+              title="Heading 2 (##)"
+            >
+              <Heading2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => insertFormatting('### ')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
+              title="Heading 3 (###)"
+            >
+              <Heading3 className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="w-px h-4 bg-white/10 mx-1" />
+
+            <button
+              onClick={() => insertFormatting('- ')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
+              title="Bullet List (-)"
+            >
+              <List className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => insertFormatting('> ')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
+              title="Quote (>)"
+            >
+              <Quote className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => insertFormatting('```\n', '\n```')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
+              title="Code Block (```)"
+            >
+              <Code className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="w-px h-4 bg-white/10 mx-1" />
+
+            <button
+              onClick={() => insertFormatting('\n| Header 1 | Header 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |\n')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition flex items-center gap-1 text-[11px]"
+              title="Insert Table"
+            >
+              <TableIcon className="w-3.5 h-3.5" />
+              <span>Table</span>
+            </button>
+
+            <button
+              onClick={() => insertFormatting('[', '](https://)')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
+              title="Insert Link ([Title](url))"
+            >
+              <LinkIcon className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              onClick={() => insertFormatting('=SUM(A1:A5)')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-blue-400 hover:text-blue-300 transition flex items-center gap-1 text-[11px] font-mono"
+              title="Insert Formula (=SUM(A1:A5))"
+            >
+              <Calculator className="w-3.5 h-3.5 text-blue-400" />
+              <span>Formula</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Editor / Preview Canvas Container (Full Panel Height: Allows text to scroll UNDER top & bottom toolbars) */}
+      <div className={`absolute inset-0 z-10 flex flex-col w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[45em]'}`}>
+        {/* 1. Markdown / Plaintext Editor with Full Vertical Height Scroll */}
+        {category === 'markdown' && !isPreview && (
+          <div
+            onWheel={handleContainerWheel}
+            className={`flex-1 flex overflow-hidden px-6 ${topPaddingClass} font-mono text-sm leading-relaxed`}
+          >
+            {/* Line Numbers Gutter Column (Accurately Synced & Zero Top Offset) */}
             <div
               ref={lineNumbersRef}
-              className="w-12 select-none pr-4 text-right text-zinc-600 border-r border-white/10 overflow-hidden shrink-0 py-1"
+              className="w-12 select-none pr-4 text-right text-zinc-600 border-r border-white/10 overflow-hidden shrink-0 pt-0 pb-8"
             >
-              {Array.from({ length: lineCount }).map((_, i) => (
-                <div key={i}>{i + 1}</div>
+              {lines.map((_, i) => (
+                <div
+                  key={i}
+                  style={{ height: lineHeights[i] ? `${lineHeights[i]}px` : 'auto' }}
+                  className="flex items-start justify-end leading-relaxed"
+                >
+                  {i + 1}
+                </div>
               ))}
             </div>
 
-            {/* Textarea Input with Selection Tracking */}
+            {/* Textarea Input with Full Vertical Scroll and pb-8 (padding-bottom: 2rem) */}
             <textarea
               ref={textareaRef}
               value={content}
@@ -313,14 +393,14 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 handleSelectionChange();
               }}
               placeholder="Write your Markdown notes here..."
-              className="flex-1 pl-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none overflow-y-auto font-mono text-sm leading-relaxed"
+              className="flex-1 pl-4 pt-0 pb-10 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none overflow-y-auto font-mono text-sm leading-relaxed"
             />
           </div>
         )}
 
         {/* 2. Live Markdown Preview */}
         {category === 'markdown' && isPreview && (
-          <div className="flex-1 overflow-y-auto p-8 w-full mx-auto">
+          <div className={`flex-1 overflow-y-auto px-8 ${topPaddingClass} pb-24 w-full mx-auto`}>
             <div className="prose prose-invert max-w-none space-y-4 text-zinc-200">
               {evaluatedMarkdown ? (
                 <div
@@ -338,7 +418,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
         {/* 3. Image Preview */}
         {category === 'image' && (
-          <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center space-y-4">
+          <div className={`flex-1 overflow-y-auto px-8 ${topPaddingClass} pb-24 flex flex-col items-center justify-center space-y-4`}>
             <div className="p-2 rounded-2xl glass-panel border border-white/10 max-w-2xl overflow-hidden shadow-2xl">
               <img
                 src={activeFile.blobUrl || content}
@@ -352,7 +432,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
         {/* 4. Audio Preview */}
         {category === 'audio' && (
-          <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center space-y-6">
+          <div className={`flex-1 overflow-y-auto px-8 ${topPaddingClass} pb-24 flex flex-col items-center justify-center space-y-6`}>
             <div className="p-6 rounded-3xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
               <Music className="w-16 h-16 animate-bounce text-blue-400" />
             </div>
@@ -363,7 +443,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
         {/* 5. Video Preview */}
         {category === 'video' && (
-          <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center space-y-4">
+          <div className={`flex-1 overflow-y-auto px-8 ${topPaddingClass} pb-24 flex flex-col items-center justify-center space-y-4`}>
             <div className="p-2 rounded-2xl glass-panel border border-white/10 max-w-3xl overflow-hidden shadow-2xl">
               <video controls src={activeFile.blobUrl || content} className="max-h-[500px] w-full rounded-xl" />
             </div>
@@ -373,7 +453,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
         {/* 6. Non-viewable Binary File Fallback */}
         {category === 'binary' && (
-          <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center text-center space-y-6 glass-panel rounded-glass-lg border border-white/10 my-8 max-w-2xl mx-auto">
+          <div className={`flex-1 overflow-y-auto px-8 ${topPaddingClass} pb-24 flex flex-col items-center justify-center text-center space-y-6 glass-panel rounded-glass-lg border border-white/10 my-8 max-w-2xl mx-auto`}>
             <div className="p-5 rounded-3xl bg-white/5 border border-white/10 text-blue-400 shadow-inner">
               <AlertCircle className="w-16 h-16 text-blue-400 animate-pulse" />
             </div>

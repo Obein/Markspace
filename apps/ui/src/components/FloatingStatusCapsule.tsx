@@ -42,7 +42,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   const hasSelection = selectedCharCount > 0;
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-5 py-2.5 glass-capsule rounded-capsule flex items-center gap-4 text-xs text-zinc-300 border border-white/10 shadow-2xl transition-all hover:scale-[1.02]">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-5 py-2.5 glass-capsule rounded-capsule flex items-center gap-4 text-xs text-zinc-300 border border-white/15 shadow-2xl transition-all hover:scale-[1.02] select-none pointer-events-auto">
       {/* User Profile & Role Link */}
       <button
         onClick={onOpenProfile}
@@ -91,10 +91,10 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
             {hasSelection ? (
               <>
                 <span className="text-blue-400 font-medium">
-                  {selectedWordCount} selected {selectedWordCount === 1 ? 'word' : 'words'} ({wordCount} total)
+                  {selectedWordCount}/{wordCount} selected {selectedWordCount === 1 ? 'word' : 'words'}
                 </span>
                 <span className="text-blue-400 font-medium">
-                  {selectedCharCount} selected {selectedCharCount === 1 ? 'char' : 'chars'} ({charCount} total)
+                  {selectedCharCount}/{charCount} selected {selectedCharCount === 1 ? 'char' : 'chars'}
                 </span>
               </>
             ) : (
