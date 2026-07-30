@@ -55,3 +55,19 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(161, 161, 170, 0.4);
 }
+
+/* Lezer Syntax Highlighting Color Theme (Sapphire Accent Palette) */
+.tok-keyword { color: #60a5fa; font-weight: 600; }
+.tok-string { color: #93c5fd; }
+.tok-number { color: #93c5fd; font-weight: 500; }
+.tok-comment { color: #71717a; font-style: italic; }
+.tok-variableName { color: #f4f4f5; }
+.tok-propertyName { color: #bfdbfe; }
+.tok-typeName { color: #3b82f6; font-weight: 600; }
+.tok-operator { color: #93c5fd; }
+.tok-punctuation { color: #a1a1aa; }
+.tok-atom { color: #60a5fa; }
+.tok-literal { color: #93c5fd; }
+.tok-meta { color: #a1a1aa; }
+
+

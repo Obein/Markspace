@@ -41,7 +41,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   onDownloadFile,
   onSelectionStatsChange,
 }) => {
-  const { sheetEngine } = useApp();
+  const { sheetEngine, highlightService } = useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -350,7 +350,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 <div
                   className="markdown-preview leading-relaxed space-y-4 whitespace-pre-wrap font-sans"
                   dangerouslySetInnerHTML={{
-                    __html: formatBasicMarkdown(evaluatedMarkdown),
+                    __html: formatBasicMarkdown(evaluatedMarkdown, highlightService),
                   }}
                 />
               ) : (
@@ -438,10 +438,16 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   );
 };
 
+import { IHighlightService } from '../interfaces/IHighlightService';
+
 /**
- * Basic Markdown formatting helper
+ * Basic Markdown formatting helper with Lezer code block syntax highlighting
  */
-function formatBasicMarkdown(md: string): string {
+function formatBasicMarkdown(md: string, highlightService?: IHighlightService): string {
+  if (highlightService) {
+    return highlightService.highlightMarkdownCodeBlocks(md);
+  }
+
   let html = md
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
