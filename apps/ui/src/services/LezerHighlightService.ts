@@ -1,4 +1,5 @@
 import { highlightTree, classHighlighter } from '@lezer/highlight';
+import { parser as markdownParser } from '@lezer/markdown';
 import { parser as jsParser } from '@lezer/javascript';
 import { parser as jsonParser } from '@lezer/json';
 import { parser as pythonParser } from '@lezer/python';
@@ -9,6 +10,8 @@ import { IHighlightService } from '../interfaces/IHighlightService';
 
 export class LezerHighlightService implements IHighlightService {
   private parsers: Record<string, Parser> = {
+    markdown: markdownParser,
+    md: markdownParser,
     js: jsParser,
     jsx: jsParser.configure({ dialect: 'jsx' }),
     ts: jsParser.configure({ dialect: 'ts' }),
@@ -86,6 +89,37 @@ export class LezerHighlightService implements IHighlightService {
     });
 
     return html;
+  }
+
+  public highlightEditorLines(content: string): string[] {
+    const lines = content.split('\n');
+    if (!content) return ['\u200B'];
+
+    try {
+      const tree = markdownParser.parse(content);
+      let fullHtml = '';
+      let pos = 0;
+
+      highlightTree(tree, classHighlighter, (from, to, classes) => {
+        if (from > pos) {
+          fullHtml += escapeHtml(content.slice(pos, from));
+        }
+        const tokenText = escapeHtml(content.slice(from, to));
+        fullHtml += `<span class="${classes}">${tokenText}</span>`;
+        pos = to;
+      });
+
+      if (pos < content.length) {
+        fullHtml += escapeHtml(content.slice(pos));
+      }
+
+      // Split AST highlighted HTML back line by line
+      const highlightedLines = fullHtml.split('\n');
+      return highlightedLines.map((line) => line || '\u200B');
+    } catch (err) {
+      console.warn('Lezer Markdown editor line highlight failed, falling back to raw lines', err);
+      return lines.map((l) => escapeHtml(l) || '\u200B');
+    }
   }
 }
 

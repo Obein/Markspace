@@ -70,4 +70,16 @@
 .tok-literal { color: #93c5fd; }
 .tok-meta { color: #a1a1aa; }
 
-
+/* Lezer Markdown Syntax Classes */
+.tok-heading { color: #60a5fa; font-weight: 700; }
+.tok-heading1 { color: #3b82f6; font-weight: 800; }
+.tok-heading2 { color: #60a5fa; font-weight: 700; }
+.tok-heading3 { color: #93c5fd; font-weight: 600; }
+.tok-emphasis { font-style: italic; color: #a1a1aa; }
+.tok-strong { font-weight: 700; color: #60a5fa; }
+.tok-link { color: #3b82f6; text-decoration: underline; }
+.tok-url { color: #93c5fd; }
+.tok-quote { color: #a1a1aa; font-style: italic; }
+.tok-monospace { color: #bfdbfe; background: rgba(255, 255, 255, 0.06); padding: 0.1rem 0.25rem; border-radius: 0.25rem; }
+.tok-processingInstruction { color: #71717a; }
+.tok-processingInstructionMark { color: #60a5fa; }

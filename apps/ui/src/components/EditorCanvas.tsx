@@ -51,9 +51,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const category = activeFile?.category || 'markdown';
   const evaluatedMarkdown = category === 'markdown' && activeFile ? sheetEngine.evaluateMarkdownFormulas(content) : '';
 
-  // Line numbers calculation
-  const lines = content.split('\n');
-
   // Update selected word & character stats
   const handleSelectionChange = () => {
     const textarea = textareaRef.current;
@@ -153,6 +150,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
   // Calculate top padding based on whether formatting toolbar is visible
   const topPaddingClass = category === 'markdown' && !isPreview ? 'pt-28' : 'pt-16';
+
+  // Compute Lezer Markdown AST syntax highlighting for live editor canvas
+  const highlightedEditorLines = highlightService.highlightEditorLines(content);
 
   return (
     <main className="flex-1 h-full glass-panel rounded-glass-lg border border-white/10 flex flex-col overflow-hidden shadow-2xl relative z-10 transition-all duration-300">
@@ -293,7 +293,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
       {/* Editor / Preview Canvas Container (Full Panel Height: Allows text to scroll UNDER top & bottom toolbars) */}
       <div className={`absolute inset-0 z-10 flex flex-col w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[45em]'}`}>
-        {/* 1. Markdown / Plaintext Editor with Pure CSS Counters Line Numbers & Right Separator Border */}
+        {/* 1. Markdown / Plaintext Editor with Pure CSS Counters Line Numbers & Lezer Markdown AST Highlighting */}
         {category === 'markdown' && !isPreview && (
           <div
             ref={scrollContainerRef}
@@ -306,23 +306,22 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 className="absolute left-[3.75rem] top-0 bottom-0 border-r border-white/10 pointer-events-none z-0"
               />
 
-              {/* Synchronized Line Numbers Gutter + Line Rows (Pure CSS Counters Alignment) */}
+              {/* Synchronized Line Numbers Gutter + Lezer Markdown AST Highlighted Line Rows */}
               <div
                 aria-hidden="true"
                 className={`px-6 ${topPaddingClass} pb-16 select-none pointer-events-none font-mono text-sm leading-relaxed`}
               >
-                {lines.map((line, idx) => (
+                {highlightedEditorLines.map((lineHtml, idx) => (
                   <div
                     key={idx}
                     data-line={idx + 1}
-                    className="relative pl-12 text-transparent whitespace-pre-wrap break-words font-mono text-sm leading-relaxed before:content-[attr(data-line)] before:absolute before:left-0 before:top-0 before:w-9 before:text-right before:text-zinc-600 before:font-mono before:text-sm before:leading-relaxed"
-                  >
-                    {line || '\u200B'}
-                  </div>
+                    className="relative pl-12 text-zinc-100 whitespace-pre-wrap break-words font-mono text-sm leading-relaxed before:content-[attr(data-line)] before:absolute before:left-0 before:top-0 before:w-9 before:text-right before:text-zinc-600 before:font-mono before:text-sm before:leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: lineHtml }}
+                  />
                 ))}
               </div>
 
-              {/* Textarea Input (Pixel-Perfect Overlaid on Top of Line Rows) */}
+              {/* Textarea Input (Transparent Text with Visible Caret & Selection Overlaid on Top) */}
               <textarea
                 ref={textareaRef}
                 value={content}
@@ -336,7 +335,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   handleSelectionChange();
                 }}
                 placeholder="Write your Markdown notes here..."
-                className={`absolute inset-0 w-full h-full pl-[4.5rem] pr-6 ${topPaddingClass} pb-16 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-mono text-sm leading-relaxed z-10 overflow-hidden`}
+                className={`absolute inset-0 w-full h-full pl-[4.5rem] pr-6 ${topPaddingClass} pb-16 bg-transparent text-transparent caret-blue-400 selection:bg-blue-500/30 selection:text-white focus:outline-none resize-none font-mono text-sm leading-relaxed z-10 overflow-hidden`}
               />
             </div>
           </div>

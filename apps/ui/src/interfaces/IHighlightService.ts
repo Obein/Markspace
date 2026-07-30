@@ -19,4 +19,13 @@ export interface IHighlightService {
    * @returns Processed Markdown HTML / HTML code blocks with Lezer syntax highlighting
    */
   highlightMarkdownCodeBlocks(markdown: string): string;
+
+  /**
+   * Highlights raw Markdown editor text line by line using @lezer/markdown AST parser.
+   * Returns array of HTML strings corresponding line-by-line to the input document.
+   *
+   * @param content Full Markdown content of the editor
+   * @returns Array of HTML strings for each line with Lezer syntax highlight classes
+   */
+  highlightEditorLines(content: string): string[];
 }
