@@ -283,20 +283,26 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
       {/* Editor / Preview Canvas Container (Full Panel Height: Allows text to scroll UNDER top & bottom toolbars) */}
       <div className={`absolute inset-0 z-10 flex flex-col w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[45em]'}`}>
-        {/* 1. Markdown / Plaintext Editor with Pure CSS Counters Line Numbers & Synchronized Layered Divs */}
+        {/* 1. Markdown / Plaintext Editor with Pure CSS Counters Line Numbers & Right Separator Border */}
         {category === 'markdown' && !isPreview && (
           <div className="flex-1 overflow-y-auto relative w-full h-full font-mono text-sm leading-relaxed">
             <div className="relative w-full min-h-full">
+              {/* Full-Height Vertical Separator Line to the Right of Line Numbers Gutter */}
+              <div
+                aria-hidden="true"
+                className="absolute left-[4rem] top-0 bottom-0 border-r border-white/10 pointer-events-none z-0"
+              />
+
               {/* Synchronized Line Numbers Gutter + Line Rows (Pure CSS Counters Alignment) */}
               <div
                 aria-hidden="true"
-                className={`px-6 ${topPaddingClass} pb-8 select-none pointer-events-none font-mono text-sm leading-relaxed`}
+                className={`px-6 ${topPaddingClass} pb-16 select-none pointer-events-none font-mono text-sm leading-relaxed`}
               >
                 {lines.map((line, idx) => (
                   <div
                     key={idx}
                     data-line={idx + 1}
-                    className="relative pl-12 text-transparent whitespace-pre-wrap break-words font-mono text-sm leading-relaxed border-l border-white/10 before:content-[attr(data-line)] before:absolute before:left-2 before:top-0 before:w-8 before:text-right before:text-zinc-600 before:font-mono before:text-sm before:leading-relaxed"
+                    className="relative pl-12 text-transparent whitespace-pre-wrap break-words font-mono text-sm leading-relaxed before:content-[attr(data-line)] before:absolute before:left-0 before:top-0 before:w-9 before:text-right before:text-zinc-600 before:font-mono before:text-sm before:leading-relaxed"
                   >
                     {line || '\u200B'}
                   </div>
