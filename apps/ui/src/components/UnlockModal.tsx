@@ -1,0 +1,105 @@
+import React, { useState } from 'react';
+import { Lock, ShieldCheck, KeyRound, LogOut } from 'lucide-react';
+import { useApp } from '../context/AppContext';
+
+export const UnlockModal: React.FC = () => {
+  const { cryptoService, setCmk, isAuthenticated, isVaultUnlocked, username, logoutAccount } = useApp();
+  const [dataPassword, setDataPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Show modal only when account is authenticated BUT vault is locked
+  if (!isAuthenticated || isVaultUnlocked) return null;
+
+  const handleUnlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dataPassword) {
+      setErrorMsg('Please enter your data password');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setErrorMsg(null);
+
+      // Step 2: Derive CMK strictly in client memory using Data Password!
+      const { cmk } = await cryptoService.deriveCMK(dataPassword, `markspace-vault-${username}`);
+
+      // Save CMK to browser memory
+      setCmk(cmk);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Vault decryption failed';
+      setErrorMsg(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg">
+      <div className="w-full max-w-md p-8 glass-panel rounded-glass-lg border border-white/10 text-white shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        {/* Glow Background */}
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 mb-3 shadow-inner text-emerald-400">
+            <Lock className="w-8 h-8 animate-pulse" />
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight text-white">Unlock Data Vault</h2>
+          <p className="text-xs text-zinc-400 mt-1 max-w-xs">
+            Logged in as <strong className="text-zinc-200 font-mono">{username}</strong>. Step 2: Enter your Data Password (数据解密密码) to derive CMK in browser memory.
+          </p>
+        </div>
+
+        {errorMsg && (
+          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs text-center">
+            {errorMsg}
+          </div>
+        )}
+
+        <form onSubmit={handleUnlock} className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-zinc-400 mb-1">Data Password (数据解密密码)</label>
+            <input
+              type="password"
+              value={dataPassword}
+              onChange={(e) => setDataPassword(e.target.value)}
+              placeholder="••••••••••••"
+              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium transition shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <KeyRound className="w-4 h-4" />
+                <span>Unlock Vault Data (Derive CMK)</span>
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-zinc-400">
+          <div className="flex items-center gap-1 text-emerald-400">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Never Sent to Server</span>
+          </div>
+          <button
+            onClick={logoutAccount}
+            className="text-red-400 hover:underline transition flex items-center gap-1"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Logout Account</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

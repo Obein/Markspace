@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "markspace-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-10-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "../ui/dist",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "markspace-db",
+      "database_id": "e6c5b44b-fef4-4962-b927-afaea0413ea5"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "markspace-media-bucket"
+    }
+  ],
+  "vars": {
+    "ENVIRONMENT": "development",
+    "JWT_SECRET": "default-markspace-jwt-secret-replace-in-prod"
+  }
+}

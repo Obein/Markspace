@@ -1,0 +1,19 @@
+{
+  "name": "@markspace/api",
+  "version": "1.0.0",
+  "description": "Markspace Cloudflare Worker Backend API Workspace",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "d1:create": "wrangler d1 create markspace-db",
+    "typecheck": "tsc --noEmit",
+    "d1:migrate:local": "wrangler d1 execute markspace-db --local --file=schema.sql",
+    "d1:migrate:prod": "wrangler d1 execute markspace-db --remote --file=schema.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241022.0",
+    "typescript": "^5.6.3",
+    "wrangler": "^3.83.0"
+  }
+}
