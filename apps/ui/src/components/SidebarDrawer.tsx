@@ -271,30 +271,21 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
         </div>
       </div>
 
-      {/* Action Buttons Toolbar (Unified Primary Accent Tints) */}
+      {/* Top Action Buttons Toolbar (Only New Note and Add Dir) */}
       <div className="p-3 space-y-2 border-b border-white/5">
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 gap-2">
           <button
             onClick={onCreateNote}
-            className="py-1.5 px-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-medium flex items-center justify-center gap-1 transition border border-blue-400/20 shadow-md shadow-blue-500/10"
+            className="py-1.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center justify-center gap-1.5 transition border border-blue-400/20 shadow-md shadow-blue-500/10"
             title="Create new Markdown note"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Note</span>
-          </button>
-
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="py-1.5 px-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-[11px] font-medium flex items-center justify-center gap-1 transition border border-blue-500/30"
-            title="Add local file or media"
-          >
-            <Upload className="w-3.5 h-3.5 text-blue-400" />
-            <span>Add File</span>
+            <span>New Note</span>
           </button>
 
           <button
             onClick={() => setShowFolderInput(!showFolderInput)}
-            className="py-1.5 px-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-[11px] font-medium flex items-center justify-center gap-1 transition border border-white/10"
+            className="py-1.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-medium flex items-center justify-center gap-1.5 transition border border-white/10"
             title="Add Directory folder"
           >
             <FolderPlus className="w-3.5 h-3.5 text-blue-400" />
@@ -350,22 +341,33 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
           <div className="p-6 text-center text-zinc-500 text-xs flex flex-col items-center gap-2">
             <FileText className="w-8 h-8 opacity-20" />
             <span>Vault is empty</span>
-            <span className="text-[10px] text-zinc-600">Drag files here or click Add File / Add Dir</span>
+            <span className="text-[10px] text-zinc-600">Drag files here or click Add File at bottom</span>
           </div>
         ) : (
           renderTreeNodes(fileTree)
         )}
       </div>
 
-      {/* Bottom Footer */}
-      <div className="p-3 border-t border-white/10 bg-white/5 flex items-center justify-between text-xs text-zinc-400">
-        <div className="flex items-center gap-2 text-zinc-400 text-xs font-mono">
-          <Folder className="w-3.5 h-3.5 text-blue-400" />
-          <span>{files.length} {files.length === 1 ? 'file' : 'files'}</span>
-        </div>
-        <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-mono">
-          <ShieldAlert className="w-3 h-3 text-blue-400" />
-          <span>E2EE Vault</span>
+      {/* Bottom Footer Section (With Add File Button at Panel Bottom) */}
+      <div className="p-3 border-t border-white/10 bg-white/5 space-y-2">
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="w-full py-2 px-3 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs font-medium flex items-center justify-center gap-2 transition border border-blue-500/30 shadow-sm"
+          title="Add local file or media to Vault"
+        >
+          <Upload className="w-3.5 h-3.5 text-blue-400" />
+          <span>Add File</span>
+        </button>
+
+        <div className="flex items-center justify-between text-xs text-zinc-400 pt-0.5">
+          <div className="flex items-center gap-2 text-zinc-400 text-xs font-mono">
+            <Folder className="w-3.5 h-3.5 text-blue-400" />
+            <span>{files.length} {files.length === 1 ? 'file' : 'files'}</span>
+          </div>
+          <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-mono">
+            <ShieldAlert className="w-3 h-3 text-blue-400" />
+            <span>E2EE Vault</span>
+          </div>
         </div>
       </div>
     </aside>

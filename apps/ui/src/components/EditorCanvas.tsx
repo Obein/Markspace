@@ -28,6 +28,7 @@ interface EditorCanvasProps {
   onContentChange: (content: string) => void;
   isPreview: boolean;
   onDownloadFile: () => void;
+  onSelectionStatsChange?: (selectedWords: number, selectedChars: number) => void;
 }
 
 export const EditorCanvas: React.FC<EditorCanvasProps> = ({
@@ -38,12 +39,13 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   onContentChange,
   isPreview,
   onDownloadFile,
+  onSelectionStatsChange,
 }) => {
   const { sheetEngine } = useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
 
-  // Layout width mode: default is Limited-width (false -> max-w-[90em])
+  // Layout width mode: default is Limited-width (false -> max-w-[45em])
   const [isFullWidth, setIsFullWidth] = useState(false);
 
   if (!activeFile) {
@@ -68,6 +70,24 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const handleScroll = () => {
     if (textareaRef.current && lineNumbersRef.current) {
       lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
+    }
+  };
+
+  // Update selected word & character stats
+  const handleSelectionChange = () => {
+    const textarea = textareaRef.current;
+    if (!textarea || !onSelectionStatsChange) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    if (start !== end) {
+      const selectedText = content.substring(start, end);
+      const selCharCount = selectedText.length;
+      const selWordCount = selectedText.trim() ? selectedText.trim().split(/\s+/).length : 0;
+      onSelectionStatsChange(selWordCount, selCharCount);
+    } else {
+      onSelectionStatsChange(0, 0);
     }
   };
 
@@ -106,6 +126,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     }
 
     textarea.setSelectionRange(start, end);
+    handleSelectionChange();
   };
 
   // Helper to insert formatting syntax into textarea
@@ -124,6 +145,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(start + prefix.length, start + prefix.length + (selectedText.length || 4));
+      handleSelectionChange();
     }, 10);
   };
 
@@ -145,16 +167,16 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           />
         </div>
 
-        {/* Layout Width Toggle Button (Limited-width 90em vs Full-width) */}
+        {/* Layout Width Toggle Button (Limited-width 45em vs Full-width) */}
         <button
           onClick={() => setIsFullWidth(!isFullWidth)}
           className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition flex items-center gap-1.5 text-xs font-mono"
-          title={isFullWidth ? 'Switch to Limited Width (90em)' : 'Switch to Full Width'}
+          title={isFullWidth ? 'Switch to Limited Width (45em)' : 'Switch to Full Width'}
         >
           {isFullWidth ? (
             <>
               <Minimize2 className="w-3.5 h-3.5 text-blue-400" />
-              <span>90em Width</span>
+              <span>45em Width</span>
             </>
           ) : (
             <>
@@ -261,8 +283,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         </div>
       )}
 
-      {/* Editor / Preview Canvas Container (Default Limited-width max-w-[90em] or Full-width max-w-full) */}
-      <div className={`flex-1 overflow-hidden flex flex-col relative w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[90em]'}`}>
+      {/* Editor / Preview Canvas Container */}
+      <div className={`flex-1 overflow-hidden flex flex-col relative w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[45em]'}`}>
         {/* 1. Markdown / Plaintext Editor with Line Numbers */}
         {category === 'markdown' && !isPreview && (
           <div className="flex-1 flex overflow-hidden p-6 font-mono text-sm leading-relaxed">
@@ -276,14 +298,20 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               ))}
             </div>
 
-            {/* Textarea Input with Undo/Redo & Smart Double Click */}
+            {/* Textarea Input with Selection Tracking */}
             <textarea
               ref={textareaRef}
               value={content}
               onScroll={handleScroll}
               onKeyDown={handleKeyDown}
               onDoubleClick={handleDoubleClick}
-              onChange={(e) => onContentChange(e.target.value)}
+              onSelect={handleSelectionChange}
+              onKeyUp={handleSelectionChange}
+              onMouseUp={handleSelectionChange}
+              onChange={(e) => {
+                onContentChange(e.target.value);
+                handleSelectionChange();
+              }}
               placeholder="Write your Markdown notes here..."
               className="flex-1 pl-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none overflow-y-auto font-mono text-sm leading-relaxed"
             />

@@ -52,6 +52,9 @@ export const AppContent: React.FC = () => {
   const [isDark, setIsDark] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  const [selectedWordCount, setSelectedWordCount] = useState(0);
+  const [selectedCharCount, setSelectedCharCount] = useState(0);
+
   const activeVault = vaults.find((v) => v.id === activeVaultId) || vaults[0];
   const activeVaultFiles = files.filter((f) => f.vaultId === activeVaultId);
   const activeFile = files.find((f) => f.id === activeFileId) || null;
@@ -117,6 +120,8 @@ export const AppContent: React.FC = () => {
       setActiveFileId(id);
       setActiveTitle(selected.name);
       setActiveContent(selected.content);
+      setSelectedWordCount(0);
+      setSelectedCharCount(0);
     }
   };
 
@@ -188,6 +193,8 @@ export const AppContent: React.FC = () => {
       setActiveFileId(newFile.id);
       setActiveTitle(defaultTitle);
       setActiveContent(defaultContent);
+      setSelectedWordCount(0);
+      setSelectedCharCount(0);
     } catch (err) {
       console.error('Failed to create note', err);
     } finally {
@@ -279,6 +286,8 @@ export const AppContent: React.FC = () => {
       setActiveFileId(newFileItems[0].id);
       setActiveTitle(newFileItems[0].name);
       setActiveContent(newFileItems[0].content);
+      setSelectedWordCount(0);
+      setSelectedCharCount(0);
     }
   };
 
@@ -378,6 +387,8 @@ export const AppContent: React.FC = () => {
         setActiveTitle('');
         setActiveContent('');
       }
+      setSelectedWordCount(0);
+      setSelectedCharCount(0);
     } catch (err) {
       console.error('Failed to delete file', err);
     }
@@ -419,6 +430,8 @@ export const AppContent: React.FC = () => {
             setActiveTitle('');
             setActiveContent('');
           }
+          setSelectedWordCount(0);
+          setSelectedCharCount(0);
         }}
         onCreateVault={handleCreateVault}
         activeVaultNotes={activeNotesList}
@@ -450,6 +463,10 @@ export const AppContent: React.FC = () => {
             onContentChange={setActiveContent}
             isPreview={isPreview}
             onDownloadFile={handleDownloadActiveFile}
+            onSelectionStatsChange={(selWords, selChars) => {
+              setSelectedWordCount(selWords);
+              setSelectedCharCount(selChars);
+            }}
           />
         </>
       )}
@@ -464,6 +481,8 @@ export const AppContent: React.FC = () => {
           onOpenUnlockModal={() => setIsUnlockModalOpen(true)}
           wordCount={wordCount}
           charCount={charCount}
+          selectedWordCount={selectedWordCount}
+          selectedCharCount={selectedCharCount}
           isPreview={isPreview}
           onTogglePreview={() => setIsPreview(!isPreview)}
           isDark={isDark}

@@ -10,6 +10,8 @@ interface FloatingStatusCapsuleProps {
   onOpenUnlockModal: () => void;
   wordCount: number;
   charCount: number;
+  selectedWordCount?: number;
+  selectedCharCount?: number;
   isPreview: boolean;
   onTogglePreview: () => void;
   isDark: boolean;
@@ -27,6 +29,8 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   onOpenUnlockModal,
   wordCount,
   charCount,
+  selectedWordCount = 0,
+  selectedCharCount = 0,
   isPreview,
   onTogglePreview,
   isDark,
@@ -35,6 +39,8 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   onDownloadCurrentFile,
   onDeleteCurrentFile,
 }) => {
+  const hasSelection = selectedCharCount > 0;
+
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-5 py-2.5 glass-capsule rounded-capsule flex items-center gap-4 text-xs text-zinc-300 border border-white/10 shadow-2xl transition-all hover:scale-[1.02]">
       {/* User Profile & Role Link */}
@@ -80,10 +86,23 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
         <>
           <div className="w-px h-4 bg-white/10" />
 
-          {/* Word & Character Count */}
-          <div className="flex items-center gap-3 text-zinc-400 font-mono text-[11px]">
-            <span>{wordCount} words</span>
-            <span>{charCount} chars</span>
+          {/* Word & Character Count (With Selection Stats) */}
+          <div className="flex items-center gap-3 font-mono text-[11px]">
+            {hasSelection ? (
+              <>
+                <span className="text-blue-400 font-medium">
+                  {selectedWordCount} selected {selectedWordCount === 1 ? 'word' : 'words'} ({wordCount} total)
+                </span>
+                <span className="text-blue-400 font-medium">
+                  {selectedCharCount} selected {selectedCharCount === 1 ? 'char' : 'chars'} ({charCount} total)
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-zinc-400">{wordCount} words</span>
+                <span className="text-zinc-400">{charCount} chars</span>
+              </>
+            )}
           </div>
 
           <div className="w-px h-4 bg-white/10" />
