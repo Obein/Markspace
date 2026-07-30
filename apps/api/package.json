@@ -8,8 +8,10 @@
     "deploy": "wrangler deploy",
     "d1:create": "wrangler d1 create markspace-db",
     "typecheck": "tsc --noEmit",
-    "d1:migrate:local": "wrangler d1 execute markspace-db --local --file=schema.sql",
-    "d1:migrate:prod": "wrangler d1 execute markspace-db --remote --file=schema.sql"
+    "d1:migrate:local": "echo \"y\" | wrangler d1 migrations apply markspace-db --local",
+    "d1:migrate:prod": "echo \"y\" | wrangler d1 migrations apply markspace-db --remote",
+    "d1:execute:local": "echo \"y\" | wrangler d1 execute markspace-db --local",
+    "d1:execute:prod": "echo \"y\" | wrangler d1 execute markspace-db --remote"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241022.0",

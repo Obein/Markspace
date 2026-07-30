@@ -14,7 +14,9 @@
     "deploy": "npm run build:ui && npm run deploy --workspace=apps/api",
     "d1:create": "npm run d1:create --workspace=apps/api",
     "d1:migrate:local": "npm run d1:migrate:local --workspace=apps/api",
-    "d1:migrate:prod": "npm run d1:migrate:prod --workspace=apps/api"
+    "d1:migrate:prod": "npm run d1:migrate:prod --workspace=apps/api",
+    "d1:execute:local": "npm run d1:execute:local --workspace=apps/api",
+    "d1:execute:prod": "npm run d1:execute:prod --workspace=apps/api"
   },
   "devDependencies": {
     "typescript": "^5.6.3"
