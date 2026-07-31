@@ -20,6 +20,7 @@ import {
   Check,
   Download,
   Trash2,
+  Loader2,
 } from 'lucide-react';
 import { FileTreeNode, VaultFileItem, VaultInfo } from '../interfaces/INoteModels';
 import { FileTreeBuilder } from '../utils/FileTreeBuilder';
@@ -39,6 +40,12 @@ interface SidebarDrawerProps {
   activeVault: VaultInfo | null;
   onDeleteNode?: (nodeId: string) => void;
   onDownloadNode?: (nodeId: string) => void;
+
+  // Operation Buffering / Loading States
+  isCreatingNote?: boolean;
+  isCreatingFolderLoading?: boolean;
+  isDeletingNodeId?: string | null;
+  isUploadingFiles?: boolean;
 }
 
 interface ContextMenuState {
@@ -66,6 +73,10 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
   activeVault,
   onDeleteNode,
   onDownloadNode,
+  isCreatingNote = false,
+  isCreatingFolderLoading = false,
+  isDeletingNodeId = null,
+  isUploadingFiles = false,
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
@@ -253,6 +264,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       if (node.isDirectory) {
         const isOpen = expandedFolders[node.path] !== false;
         const isTarget = dragOverFolderPath === node.path;
+        const isDeleting = isDeletingNodeId === node.id;
 
         return (
           <div
@@ -268,12 +280,19 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
               onTouchStart={(e) => handleTouchStart(e, node.id, node.name, node.path, true)}
               onTouchEnd={handleTouchEndOrMove}
               onTouchMove={handleTouchEndOrMove}
+              disabled={isDeleting}
               className={`w-full text-left px-2 py-1.5 rounded-lg flex items-center gap-1.5 text-xs text-zinc-300 font-mono transition border ${
                 isTarget ? 'bg-blue-500/20 border-blue-500/40 text-blue-300' : 'hover:bg-white/5 border-transparent'
-              }`}
+              } ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
               style={{ paddingLeft: `${depth * 12 + 8}px` }}
             >
-              {isOpen ? <ChevronDown className="w-3 h-3 text-zinc-500" /> : <ChevronRight className="w-3 h-3 text-zinc-500" />}
+              {isDeleting ? (
+                <Loader2 className="w-3 h-3 text-red-400 animate-spin" />
+              ) : isOpen ? (
+                <ChevronDown className="w-3 h-3 text-zinc-500" />
+              ) : (
+                <ChevronRight className="w-3 h-3 text-zinc-500" />
+              )}
               {isOpen ? <FolderOpen className="w-3.5 h-3.5 text-blue-400 shrink-0" /> : <Folder className="w-3.5 h-3.5 text-blue-400 shrink-0" />}
               <span className="truncate">{node.name}</span>
             </button>
@@ -287,26 +306,32 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
 
       const fileItem = node.fileItem!;
       const isActive = fileItem.id === activeFileId;
+      const isDeleting = isDeletingNodeId === fileItem.id;
 
       return (
         <button
           key={node.id}
-          draggable
+          draggable={!isDeleting}
           onDragStart={(e) => handleNodeDragStart(e, fileItem.id)}
           onClick={() => onSelectFile(fileItem.id)}
           onContextMenu={(e) => handleContextMenu(e, fileItem.id, fileItem.filename, fileItem.path, false, fileItem)}
           onTouchStart={(e) => handleTouchStart(e, fileItem.id, fileItem.filename, fileItem.path, false, fileItem)}
           onTouchEnd={handleTouchEndOrMove}
           onTouchMove={handleTouchEndOrMove}
+          disabled={isDeleting}
           className={`w-full text-left px-2 py-1.5 rounded-lg transition flex items-center justify-between text-xs font-mono border cursor-grab active:cursor-grabbing ${
             isActive
               ? 'bg-blue-600/20 border-blue-500/40 text-white font-medium'
               : 'bg-white/0 hover:bg-white/5 border-transparent text-zinc-300'
-          }`}
+          } ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
           style={{ paddingLeft: `${depth * 12 + 12}px` }}
         >
           <div className="flex items-center gap-2 truncate pr-2">
-            {getFileIcon(fileItem.category)}
+            {isDeleting ? (
+              <Loader2 className="w-3.5 h-3.5 text-red-400 animate-spin shrink-0" />
+            ) : (
+              getFileIcon(fileItem.category)
+            )}
             <span className="truncate">{fileItem.filename}</span>
           </div>
           <span className="text-[10px] text-zinc-500 shrink-0 font-mono">
@@ -371,22 +396,32 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
           </div>
         </div>
 
-        {/* Action Toolbar: New Note & Add Dir Buttons */}
-        <div className="grid grid-cols-2 gap-2 pt-1">
+        {/* Action Toolbar: New Note (Text) & New Dir (Icon-Only No Text) */}
+        <div className="flex items-center gap-2 pt-1">
           <button
             onClick={onCreateNote}
-            className="py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium font-mono flex items-center justify-center gap-1.5 transition shadow-lg shadow-blue-500/20"
+            disabled={isCreatingNote}
+            className="flex-1 py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white text-xs font-medium font-mono flex items-center justify-center gap-1.5 transition shadow-lg shadow-blue-500/20 disabled:cursor-not-allowed"
           >
-            <Plus className="w-3.5 h-3.5" />
+            {isCreatingNote ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Plus className="w-3.5 h-3.5" />
+            )}
             <span>New Note</span>
           </button>
 
           <button
             onClick={() => setIsCreatingFolder(true)}
-            className="py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs font-medium font-mono flex items-center justify-center gap-1.5 transition border border-white/10"
+            disabled={isCreatingFolderLoading}
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:bg-white/5 text-zinc-300 hover:text-white transition border border-white/10 flex items-center justify-center shrink-0 disabled:cursor-not-allowed"
+            title="Create New Directory"
           >
-            <FolderPlus className="w-3.5 h-3.5 text-blue-400" />
-            <span>Add Dir</span>
+            {isCreatingFolderLoading ? (
+              <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+            ) : (
+              <FolderPlus className="w-4 h-4 text-blue-400" />
+            )}
           </button>
         </div>
 
@@ -403,10 +438,15 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             />
             <button
               type="submit"
-              className="p-1.5 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition"
+              disabled={isCreatingFolderLoading}
+              className="p-1.5 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition disabled:bg-blue-600/50 disabled:cursor-not-allowed flex items-center justify-center"
               title="Confirm Folder Creation"
             >
-              <Check className="w-3.5 h-3.5" />
+              {isCreatingFolderLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Check className="w-3.5 h-3.5" />
+              )}
             </button>
             <button
               type="button"
@@ -451,10 +491,15 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       <div className="p-3 border-t border-white/10 bg-white/[0.02]">
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs font-medium font-mono flex items-center justify-center gap-2 transition border border-white/10"
+          disabled={isUploadingFiles}
+          className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 disabled:bg-white/5 text-zinc-300 hover:text-white text-xs font-medium font-mono flex items-center justify-center gap-2 transition border border-white/10 disabled:cursor-not-allowed"
         >
-          <Upload className="w-3.5 h-3.5 text-blue-400" />
-          <span>Add File / Media</span>
+          {isUploadingFiles ? (
+            <Loader2 className="w-3.5 h-3.5 text-blue-400 animate-spin" />
+          ) : (
+            <Upload className="w-3.5 h-3.5 text-blue-400" />
+          )}
+          <span>{isUploadingFiles ? 'Uploading...' : 'Add File / Media'}</span>
         </button>
       </div>
 
@@ -504,10 +549,15 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
                   onDeleteNode(targetId);
                 }
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 flex items-center gap-2 transition"
+              disabled={isDeletingNodeId === contextMenu.nodeId}
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Trash2 className="w-3.5 h-3.5 text-red-400" />
-              <span>Delete</span>
+              {isDeletingNodeId === contextMenu.nodeId ? (
+                <Loader2 className="w-3.5 h-3.5 text-red-400 animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+              )}
+              <span>{isDeletingNodeId === contextMenu.nodeId ? 'Deleting...' : 'Delete'}</span>
             </button>
           </div>
         </div>

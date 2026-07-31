@@ -3,6 +3,7 @@ import { AuthModal } from './components/AuthModal';
 import { EditorCanvas } from './components/EditorCanvas';
 import { FloatingStatusCapsule } from './components/FloatingStatusCapsule';
 import { SidebarDrawer } from './components/SidebarDrawer';
+import { ToastContainer, ToastMessage } from './components/Toast';
 import { UnlockModal } from './components/UnlockModal';
 import { UserProfileModal } from './components/UserProfileModal';
 import { useApp } from './context/AppContext';
@@ -55,6 +56,24 @@ export const AppContent: React.FC = () => {
   const [isPreview, setIsPreview] = useState(false);
   const [isDark, setIsDark] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Operation Loading / Buffering States
+  const [isCreatingNote, setIsCreatingNote] = useState(false);
+  const [isCreatingFolderLoading, setIsCreatingFolderLoading] = useState(false);
+  const [isDeletingNodeId, setIsDeletingNodeId] = useState<string | null>(null);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+
+  // Toast Notification System State
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const showToast = (message: string, type: 'error' | 'success' | 'info' = 'error') => {
+    const id = `toast_${Date.now()}_${Math.random()}`;
+    setToasts((prev) => [...prev, { id, message, type }]);
+  };
+
+  const dismissToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
 
   const [selectedWordCount, setSelectedWordCount] = useState(0);
   const [selectedCharCount, setSelectedCharCount] = useState(0);
@@ -143,6 +162,7 @@ export const AppContent: React.FC = () => {
         }
       } catch (err) {
         console.error('Failed to load Vault tree from backend', err);
+        showToast('加载文件列表失败，请检查网络设置', 'error');
       }
     };
 
@@ -203,14 +223,16 @@ export const AppContent: React.FC = () => {
       );
     } catch (err) {
       console.error('Failed to move node path', err);
+      showToast(err instanceof Error ? err.message : '移动文件失败，请重试', 'error');
     }
   };
 
   // Create a new encrypted Markdown Note (Stored in R2 Object Storage)
   const handleCreateNote = async () => {
-    if (!cmk) return;
+    if (!cmk || isCreatingNote) return;
 
     try {
+      setIsCreatingNote(true);
       setIsSaving(true);
       const dek = await cryptoService.generateDEK();
       const wrappedDek = await cryptoService.wrapDEK(dek, cmk);
@@ -256,7 +278,9 @@ export const AppContent: React.FC = () => {
       setSelectedCharCount(0);
     } catch (err) {
       console.error('Failed to create note in Object Storage', err);
+      showToast(err instanceof Error ? err.message : '新建笔记失败，请重试', 'error');
     } finally {
+      setIsCreatingNote(false);
       setIsSaving(false);
     }
   };
@@ -264,9 +288,10 @@ export const AppContent: React.FC = () => {
   // Create a new Directory Node in Vault
   const handleCreateFolder = async (folderName: string) => {
     const cleanFolderName = folderName.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
-    if (!cleanFolderName || !cmk) return;
+    if (!cleanFolderName || !cmk || isCreatingFolderLoading) return;
 
     try {
+      setIsCreatingFolderLoading(true);
       const folderPath = `/${cleanFolderName}`;
       const dek = await cryptoService.generateDEK();
       const wrappedDek = await cryptoService.wrapDEK(dek, cmk);
@@ -300,80 +325,89 @@ export const AppContent: React.FC = () => {
       setFiles((prev) => [folderFileItem, ...prev]);
     } catch (err) {
       console.error('Failed to create directory node', err);
+      showToast(err instanceof Error ? err.message : '新建文件夹失败，请重试', 'error');
+    } finally {
+      setIsCreatingFolderLoading(false);
     }
   };
 
   // Add local files / media to Vault & Object Storage
   const handleAddFiles = async (inputFiles: FileList | File[]) => {
-    if (!cmk) return;
+    if (!cmk || isUploadingFiles) return;
 
     const fileList = Array.from(inputFiles);
     const newFileItems: VaultFileItem[] = [];
 
-    for (const file of fileList) {
-      try {
-        const category = FileTreeBuilder.detectCategory(file.name, file.type);
-        const ext = `.${file.name.split('.').pop() || ''}`;
-        const baseName = file.name.replace(/\.[^/.]+$/, '');
-        const filename = getUniqueFilename(baseName, ext);
-        const path = category === 'markdown' ? filename : `assets/${filename}`;
+    try {
+      setIsUploadingFiles(true);
+      for (const file of fileList) {
+        try {
+          const category = FileTreeBuilder.detectCategory(file.name, file.type);
+          const ext = `.${file.name.split('.').pop() || ''}`;
+          const baseName = file.name.replace(/\.[^/.]+$/, '');
+          const filename = getUniqueFilename(baseName, ext);
+          const path = category === 'markdown' ? filename : `assets/${filename}`;
 
-        let textContent = '';
-        let blobUrl = '';
-        let uploadPayload: ArrayBuffer | string = '';
+          let textContent = '';
+          let blobUrl = '';
+          let uploadPayload: ArrayBuffer | string = '';
 
-        const dek = await cryptoService.generateDEK();
-        const wrappedDek = await cryptoService.wrapDEK(dek, cmk);
+          const dek = await cryptoService.generateDEK();
+          const wrappedDek = await cryptoService.wrapDEK(dek, cmk);
 
-        if (category === 'markdown') {
-          textContent = await file.text();
-          uploadPayload = await cryptoService.encryptText(textContent, dek);
-        } else {
-          blobUrl = URL.createObjectURL(file);
-          textContent = blobUrl;
-          uploadPayload = await file.arrayBuffer();
+          if (category === 'markdown') {
+            textContent = await file.text();
+            uploadPayload = await cryptoService.encryptText(textContent, dek);
+          } else {
+            blobUrl = URL.createObjectURL(file);
+            textContent = blobUrl;
+            uploadPayload = await file.arrayBuffer();
+          }
+
+          const createdNode = await apiClient.createVaultNode({
+            path,
+            name: file.name,
+            isDirectory: false,
+            encryptedDek: wrappedDek,
+            size: file.size,
+            mimeType: file.type || 'application/octet-stream',
+            category,
+            contentBlob: uploadPayload,
+          });
+
+          newFileItems.push({
+            id: createdNode.id,
+            name: file.name,
+            filename,
+            path,
+            category,
+            mimeType: file.type || 'application/octet-stream',
+            size: file.size,
+            content: textContent,
+            blobUrl,
+            encryptedTitle: file.name,
+            encryptedPayload: '',
+            encryptedDek: wrappedDek,
+            vaultId: activeVaultId,
+            createdAt: createdNode.createdAt,
+            updatedAt: createdNode.updatedAt,
+          });
+        } catch (err) {
+          console.error('Failed to add file to Object Storage', file.name, err);
+          showToast(`添加文件 ${file.name} 失败`, 'error');
         }
-
-        const createdNode = await apiClient.createVaultNode({
-          path,
-          name: file.name,
-          isDirectory: false,
-          encryptedDek: wrappedDek,
-          size: file.size,
-          mimeType: file.type || 'application/octet-stream',
-          category,
-          contentBlob: uploadPayload,
-        });
-
-        newFileItems.push({
-          id: createdNode.id,
-          name: file.name,
-          filename,
-          path,
-          category,
-          mimeType: file.type || 'application/octet-stream',
-          size: file.size,
-          content: textContent,
-          blobUrl,
-          encryptedTitle: file.name,
-          encryptedPayload: '',
-          encryptedDek: wrappedDek,
-          vaultId: activeVaultId,
-          createdAt: createdNode.createdAt,
-          updatedAt: createdNode.updatedAt,
-        });
-      } catch (err) {
-        console.error('Failed to add file to Object Storage', file.name, err);
       }
-    }
 
-    if (newFileItems.length > 0) {
-      setFiles((prev) => [...newFileItems, ...prev]);
-      setActiveFileId(newFileItems[0].id);
-      setActiveTitle(newFileItems[0].name);
-      setActiveContent(newFileItems[0].content);
-      setSelectedWordCount(0);
-      setSelectedCharCount(0);
+      if (newFileItems.length > 0) {
+        setFiles((prev) => [...newFileItems, ...prev]);
+        setActiveFileId(newFileItems[0].id);
+        setActiveTitle(newFileItems[0].name);
+        setActiveContent(newFileItems[0].content);
+        setSelectedWordCount(0);
+        setSelectedCharCount(0);
+      }
+    } finally {
+      setIsUploadingFiles(false);
     }
   };
 
@@ -458,6 +492,7 @@ export const AppContent: React.FC = () => {
         );
       } catch (err) {
         console.error('Auto save to Object Storage error', err);
+        showToast('自动保存文本失败', 'error');
       } finally {
         setIsSaving(false);
       }
@@ -469,9 +504,10 @@ export const AppContent: React.FC = () => {
   // Generic Node Deletion (File or Folder) for Context Menu
   const handleDeleteNodeByTargetId = async (targetId: string) => {
     const targetNode = files.find((f) => f.id === targetId);
-    if (!targetNode) return;
+    if (!targetNode || isDeletingNodeId) return;
 
     try {
+      setIsDeletingNodeId(targetId);
       await apiClient.deleteVaultNode(targetId);
 
       // Filter out deleted node (or descendants if folder)
@@ -504,6 +540,9 @@ export const AppContent: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to delete node via context menu', err);
+      showToast(err instanceof Error ? err.message : '删除失败，请重试', 'error');
+    } finally {
+      setIsDeletingNodeId(null);
     }
   };
 
@@ -517,6 +556,10 @@ export const AppContent: React.FC = () => {
       const childFiles = files.filter(
         (f) => f.path.startsWith(`${targetNode.path}/`) && f.mimeType !== 'inode/directory'
       );
+      if (childFiles.length === 0) {
+        showToast('该目录下无可下载的文件', 'info');
+        return;
+      }
       childFiles.forEach((file) => {
         downloadSingleFile(file);
       });
@@ -542,6 +585,9 @@ export const AppContent: React.FC = () => {
 
   return (
     <div className={`flex w-full h-screen p-4 gap-4 overflow-hidden ${isDark ? 'dark bg-[#09090B]' : 'bg-[#F4F4F5]'}`}>
+      {/* Toast Notification Container */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
       {/* Step 1: Account Login / Register Modal */}
       {!isAuthenticated && <AuthModal />}
 
@@ -593,6 +639,10 @@ export const AppContent: React.FC = () => {
             activeVault={activeVault}
             onDeleteNode={handleDeleteNodeByTargetId}
             onDownloadNode={handleDownloadNodeByTargetId}
+            isCreatingNote={isCreatingNote}
+            isCreatingFolderLoading={isCreatingFolderLoading}
+            isDeletingNodeId={isDeletingNodeId}
+            isUploadingFiles={isUploadingFiles}
           />
 
           <section className="flex-1 flex flex-col h-full relative overflow-hidden">
