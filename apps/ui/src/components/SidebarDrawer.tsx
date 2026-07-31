@@ -1,11 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Plus,
   Search,
   FileText,
   Lock,
   LogOut,
-  ShieldAlert,
   Database,
   Folder,
   FolderOpen,
@@ -19,6 +18,8 @@ import {
   FolderPlus,
   X,
   Check,
+  Download,
+  Trash2,
 } from 'lucide-react';
 import { FileTreeNode, VaultFileItem, VaultInfo } from '../interfaces/INoteModels';
 import { FileTreeBuilder } from '../utils/FileTreeBuilder';
@@ -36,6 +37,18 @@ interface SidebarDrawerProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   activeVault: VaultInfo | null;
+  onDeleteNode?: (nodeId: string) => void;
+  onDownloadNode?: (nodeId: string) => void;
+}
+
+interface ContextMenuState {
+  x: number;
+  y: number;
+  nodeId: string;
+  nodeName: string;
+  nodePath: string;
+  isDirectory: boolean;
+  fileItem?: VaultFileItem;
 }
 
 export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
@@ -51,55 +64,56 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
   searchQuery,
   onSearchChange,
   activeVault,
+  onDeleteNode,
+  onDownloadNode,
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [showFolderInput, setShowFolderInput] = useState(false);
+  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
   const [dragOverFolderPath, setDragOverFolderPath] = useState<string | null>(null);
 
-  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
-    assets: true,
-    documents: true,
-  });
+  // Floating Context Menu State for Right-Click & Touch Long-Press
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const toggleFolder = (path: string) => {
-    setExpandedFolders((prev) => ({ ...prev, [path]: !prev[path] }));
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Close context menu on Esc key or window resize
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setContextMenu(null);
+    };
+    const handleResize = () => setContextMenu(null);
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const toggleFolder = (folderPath: string) => {
+    setExpandedFolders((prev) => ({
+      ...prev,
+      [folderPath]: prev[folderPath] === undefined ? false : !prev[folderPath],
+    }));
   };
-
-  const handleCreateFolderSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newFolderName.trim()) {
-      onCreateFolder(newFolderName.trim());
-      setNewFolderName('');
-      setShowFolderInput(false);
-    }
-  };
-
-  const filteredFiles = files.filter(
-    (f) =>
-      f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      f.path.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const fileTree = FileTreeBuilder.buildTree(filteredFiles);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setIsDragOver(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setIsDragOver(false);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setIsDragOver(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       onAddFiles(e.dataTransfer.files);
@@ -111,6 +125,26 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       onAddFiles(e.target.files);
     }
   };
+
+  const handleCreateFolderSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newFolderName.trim()) {
+      onCreateFolder(newFolderName.trim());
+      setNewFolderName('');
+      setIsCreatingFolder(false);
+    }
+  };
+
+  // Filter files by search query
+  const filteredFiles = searchQuery.trim()
+    ? files.filter(
+        (f) =>
+          f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          f.path.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : files;
+
+  const fileTree = FileTreeBuilder.buildTree(filteredFiles);
 
   const getFileIcon = (category: string) => {
     switch (category) {
@@ -150,6 +184,70 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
     }
   };
 
+  // Right-Click Context Menu Trigger
+  const handleContextMenu = (
+    e: React.MouseEvent,
+    nodeId: string,
+    nodeName: string,
+    nodePath: string,
+    isDirectory: boolean,
+    fileItem?: VaultFileItem
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const x = Math.min(e.clientX, window.innerWidth - 200);
+    const y = Math.min(e.clientY, window.innerHeight - 160);
+
+    setContextMenu({
+      x,
+      y,
+      nodeId,
+      nodeName,
+      nodePath,
+      isDirectory,
+      fileItem,
+    });
+  };
+
+  // Touch Screen Long-Press Context Menu Trigger (500ms)
+  const handleTouchStart = (
+    e: React.TouchEvent,
+    nodeId: string,
+    nodeName: string,
+    nodePath: string,
+    isDirectory: boolean,
+    fileItem?: VaultFileItem
+  ) => {
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+
+    const touch = e.touches[0];
+    const clientX = touch.clientX;
+    const clientY = touch.clientY;
+
+    touchTimerRef.current = setTimeout(() => {
+      const x = Math.min(clientX, window.innerWidth - 200);
+      const y = Math.min(clientY, window.innerHeight - 160);
+
+      setContextMenu({
+        x,
+        y,
+        nodeId,
+        nodeName,
+        nodePath,
+        isDirectory,
+        fileItem,
+      });
+    }, 500);
+  };
+
+  const handleTouchEndOrMove = () => {
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
+    }
+  };
+
   const renderTreeNodes = (nodes: FileTreeNode[], depth = 0) => {
     return nodes.map((node) => {
       if (node.isDirectory) {
@@ -166,6 +264,10 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
           >
             <button
               onClick={() => toggleFolder(node.path)}
+              onContextMenu={(e) => handleContextMenu(e, node.id, node.name, node.path, true)}
+              onTouchStart={(e) => handleTouchStart(e, node.id, node.name, node.path, true)}
+              onTouchEnd={handleTouchEndOrMove}
+              onTouchMove={handleTouchEndOrMove}
               className={`w-full text-left px-2 py-1.5 rounded-lg flex items-center gap-1.5 text-xs text-zinc-300 font-mono transition border ${
                 isTarget ? 'bg-blue-500/20 border-blue-500/40 text-blue-300' : 'hover:bg-white/5 border-transparent'
               }`}
@@ -192,6 +294,10 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
           draggable
           onDragStart={(e) => handleNodeDragStart(e, fileItem.id)}
           onClick={() => onSelectFile(fileItem.id)}
+          onContextMenu={(e) => handleContextMenu(e, fileItem.id, fileItem.filename, fileItem.path, false, fileItem)}
+          onTouchStart={(e) => handleTouchStart(e, fileItem.id, fileItem.filename, fileItem.path, false, fileItem)}
+          onTouchEnd={handleTouchEndOrMove}
+          onTouchMove={handleTouchEndOrMove}
           className={`w-full text-left px-2 py-1.5 rounded-lg transition flex items-center justify-between text-xs font-mono border cursor-grab active:cursor-grabbing ${
             isActive
               ? 'bg-blue-600/20 border-blue-500/40 text-white font-medium'
@@ -229,147 +335,183 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
         className="hidden"
       />
 
-      {/* Drag & Drop Banner Overlay */}
-      {isDragOver && (
-        <div className="absolute inset-0 z-50 bg-blue-600/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center text-white space-y-2 animate-in fade-in">
-          <Upload className="w-12 h-12 animate-bounce" />
-          <h3 className="text-lg font-bold">Drop files to add to Vault</h3>
-          <p className="text-xs text-blue-200">Supports Markdown, Media & Binary files</p>
-        </div>
-      )}
-
-      {/* Top Brand Header */}
-      <div className="p-4 border-b border-white/10 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-xs shadow-md">
-            M
-          </div>
-          <div>
-            <h1 className="font-semibold text-sm tracking-tight text-white">Markspace</h1>
-            <div className="flex items-center gap-1 text-[10px] text-blue-400 font-mono">
-              <Database className="w-3 h-3" />
-              <span>{activeVault?.name || 'Vault'}</span>
+      {/* Vault Header & Action Buttons */}
+      <div className="p-4 border-b border-white/10 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+              <Database className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white font-mono truncate max-w-[140px]">
+                {activeVault ? activeVault.name : 'Main Vault'}
+              </h2>
+              <p className="text-[11px] text-zinc-500 font-mono flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                Encrypted Vault
+              </p>
             </div>
           </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onLockVault}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition border border-white/10"
+              title="Lock Vault"
+            >
+              <Lock className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={onLogoutAccount}
+              className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition border border-red-500/20"
+              title="Logout Account"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <button
-            onClick={onLockVault}
-            title="Lock Data Vault (Wipe CMK Memory)"
-            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-blue-300 transition border border-white/5"
-          >
-            <Lock className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={onLogoutAccount}
-            title="Logout Account"
-            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-blue-300 transition border border-white/5"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {/* Top Action Buttons Toolbar (Only New Note and Add Dir) */}
-      <div className="p-3 space-y-2 border-b border-white/5">
-        <div className="grid grid-cols-2 gap-2">
+        {/* Action Toolbar: New Note & Add Dir Buttons */}
+        <div className="grid grid-cols-2 gap-2 pt-1">
           <button
             onClick={onCreateNote}
-            className="py-1.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center justify-center gap-1.5 transition border border-blue-400/20 shadow-md shadow-blue-500/10"
-            title="Create new Markdown note"
+            className="py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium font-mono flex items-center justify-center gap-1.5 transition shadow-lg shadow-blue-500/20"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Note</span>
           </button>
 
           <button
-            onClick={() => setShowFolderInput(!showFolderInput)}
-            className="py-1.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-medium flex items-center justify-center gap-1.5 transition border border-white/10"
-            title="Add Directory folder"
+            onClick={() => setIsCreatingFolder(true)}
+            className="py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs font-medium font-mono flex items-center justify-center gap-1.5 transition border border-white/10"
           >
             <FolderPlus className="w-3.5 h-3.5 text-blue-400" />
             <span>Add Dir</span>
           </button>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-zinc-500" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search Vault files..."
-            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 transition font-mono"
-          />
-        </div>
-      </div>
-
-      {/* Inline Add Directory Form */}
-      {showFolderInput && (
-        <div className="px-3 pt-2">
-          <form onSubmit={handleCreateFolderSubmit} className="flex gap-1.5 p-2 bg-white/5 rounded-xl border border-blue-500/40 animate-in fade-in">
+        {/* Inline Create Folder Input Form */}
+        {isCreatingFolder && (
+          <form onSubmit={handleCreateFolderSubmit} className="flex items-center gap-1.5 pt-1">
             <input
               type="text"
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder="Folder name (e.g. documents)..."
-              className="flex-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs text-white placeholder-zinc-500 focus:outline-none font-mono"
+              placeholder="folder_name"
+              className="flex-1 px-3 py-1.5 rounded-xl bg-white/5 border border-blue-500/50 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none"
               autoFocus
             />
             <button
               type="submit"
-              className="p-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white"
+              className="p-1.5 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition"
+              title="Confirm Folder Creation"
             >
               <Check className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
-              onClick={() => setShowFolderInput(false)}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400"
+              onClick={() => {
+                setIsCreatingFolder(false);
+                setNewFolderName('');
+              }}
+              className="p-1.5 rounded-xl bg-white/5 text-zinc-400 hover:text-white transition"
+              title="Cancel"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           </form>
-        </div>
-      )}
+        )}
 
-      {/* File System Tree List */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
-        {fileTree.length === 0 ? (
-          <div className="p-6 text-center text-zinc-500 text-xs flex flex-col items-center gap-2">
-            <FileText className="w-8 h-8 opacity-20" />
-            <span>Vault is empty</span>
-            <span className="text-[10px] text-zinc-600">Drag files here or click Add File at bottom</span>
-          </div>
-        ) : (
+        {/* Search Bar Input */}
+        <div className="relative pt-1">
+          <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-3.5" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search notes & files..."
+            className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500/50 transition"
+          />
+        </div>
+      </div>
+
+      {/* File Tree Items Area */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-1">
+        {fileTree.length > 0 ? (
           renderTreeNodes(fileTree)
+        ) : (
+          <div className="p-8 text-center text-zinc-600 text-xs font-mono space-y-2">
+            <FileText className="w-8 h-8 opacity-20 mx-auto" />
+            <p>No files found</p>
+          </div>
         )}
       </div>
 
-      {/* Bottom Footer Section (With Add File Button at Panel Bottom) */}
-      <div className="p-3 border-t border-white/10 bg-white/5 space-y-2">
+      {/* Panel Footer: Add File Button */}
+      <div className="p-3 border-t border-white/10 bg-white/[0.02]">
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-full py-2 px-3 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs font-medium flex items-center justify-center gap-2 transition border border-blue-500/30 shadow-sm"
-          title="Add local file or media to Vault"
+          className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs font-medium font-mono flex items-center justify-center gap-2 transition border border-white/10"
         >
           <Upload className="w-3.5 h-3.5 text-blue-400" />
-          <span>Add File</span>
+          <span>Add File / Media</span>
         </button>
+      </div>
 
-        <div className="flex items-center justify-between text-xs text-zinc-400 pt-0.5">
-          <div className="flex items-center gap-2 text-zinc-400 text-xs font-mono">
-            <Folder className="w-3.5 h-3.5 text-blue-400" />
-            <span>{files.length} {files.length === 1 ? 'file' : 'files'}</span>
-          </div>
-          <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-mono">
-            <ShieldAlert className="w-3 h-3 text-blue-400" />
-            <span>E2EE Vault</span>
+      {/* Right-Click & Touch Long-Press Floating Context Menu */}
+      {contextMenu && (
+        <div
+          className="fixed inset-0 z-50 pointer-events-auto"
+          onClick={() => setContextMenu(null)}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            setContextMenu(null);
+          }}
+        >
+          <div
+            style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }}
+            className="fixed w-48 backdrop-blur-xl bg-[#09090B]/95 border border-white/10 rounded-xl shadow-2xl p-1.5 z-50 text-xs font-mono animate-in fade-in zoom-in-95 duration-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-3 py-1.5 border-b border-white/10 text-[11px] text-zinc-400 font-semibold truncate flex items-center gap-1.5">
+              {contextMenu.isDirectory ? (
+                <Folder className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+              ) : (
+                getFileIcon(contextMenu.fileItem?.category || 'markdown')
+              )}
+              <span className="truncate">{contextMenu.nodeName}</span>
+            </div>
+
+            <button
+              onClick={() => {
+                const targetId = contextMenu.nodeId;
+                setContextMenu(null);
+                if (onDownloadNode) {
+                  onDownloadNode(targetId);
+                }
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-zinc-200 hover:text-white flex items-center gap-2 transition my-0.5"
+            >
+              <Download className="w-3.5 h-3.5 text-blue-400" />
+              <span>Download</span>
+            </button>
+
+            <button
+              onClick={() => {
+                const targetId = contextMenu.nodeId;
+                setContextMenu(null);
+                if (onDeleteNode) {
+                  onDeleteNode(targetId);
+                }
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 flex items-center gap-2 transition"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-red-400" />
+              <span>Delete</span>
+            </button>
           </div>
         </div>
-      </div>
+      )}
     </aside>
   );
 };

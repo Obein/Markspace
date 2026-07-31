@@ -19,7 +19,11 @@ function generateRandom4Chars(): string {
 }
 
 function sanitizeFilename(title: string): string {
-  const clean = title.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_').replace(/_+/g, '_');
+  let nameWithoutExt = title.trim();
+  if (nameWithoutExt.toLowerCase().endsWith('.md')) {
+    nameWithoutExt = nameWithoutExt.substring(0, nameWithoutExt.length - 3);
+  }
+  const clean = nameWithoutExt.toLowerCase().replace(/[^a-z0-9_-]/g, '_').replace(/_+/g, '_');
   return clean || 'note';
 }
 
@@ -159,8 +163,14 @@ export const AppContent: React.FC = () => {
 
   // Ensure unique filename rule
   const getUniqueFilename = (baseTitle: string, ext = '.md', currentFileId?: string): string => {
+    const currentFile = files.find((f) => f.id === currentFileId);
+
     const sanitized = sanitizeFilename(baseTitle);
     let candidate = `${sanitized}${ext}`;
+
+    if (currentFile && (currentFile.filename === candidate || currentFile.name === baseTitle)) {
+      return currentFile.filename;
+    }
 
     const isDuplicate = files.some(
       (f) => f.vaultId === activeVaultId && f.id !== currentFileId && f.filename === candidate
@@ -378,27 +388,31 @@ export const AppContent: React.FC = () => {
     setActiveVaultId(newVault.id);
   };
 
-  // Download active file to local disk
-  const handleDownloadActiveFile = () => {
-    if (!activeFile) return;
-
-    if (activeFile.blobUrl) {
+  const downloadSingleFile = (file: VaultFileItem) => {
+    if (file.blobUrl) {
       const a = document.createElement('a');
-      a.href = activeFile.blobUrl;
-      a.download = activeFile.filename;
+      a.href = file.blobUrl;
+      a.download = file.filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     } else {
-      const blob = new Blob([activeContent], { type: activeFile.mimeType || 'text/plain' });
+      const blob = new Blob([file.content], { type: file.mimeType || 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = activeFile.filename;
+      a.download = file.filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    }
+  };
+
+  // Download active file to local disk
+  const handleDownloadActiveFile = () => {
+    if (activeFile) {
+      downloadSingleFile(activeFile);
     }
   };
 
@@ -418,6 +432,15 @@ export const AppContent: React.FC = () => {
 
         await apiClient.updateVaultNodeContent(activeFileId, encryptedPayload, 'text/markdown');
 
+        // Preserve current directory folder path
+        const lastSlash = existing.path.lastIndexOf('/');
+        const dirPrefix = lastSlash >= 0 ? existing.path.substring(0, lastSlash) : '';
+        const updatedPath = dirPrefix ? `${dirPrefix}/${updatedFilename}` : updatedFilename;
+
+        if (updatedPath !== existing.path) {
+          await apiClient.moveVaultNode(activeFileId, updatedPath);
+        }
+
         setFiles((prev) =>
           prev.map((f) =>
             f.id === activeFileId
@@ -425,7 +448,7 @@ export const AppContent: React.FC = () => {
                   ...f,
                   name: activeTitle,
                   filename: updatedFilename,
-                  path: updatedFilename,
+                  path: updatedPath,
                   content: activeContent,
                   size: activeContent.length,
                   updatedAt: Date.now(),
@@ -443,31 +466,69 @@ export const AppContent: React.FC = () => {
     return () => clearTimeout(timer);
   }, [activeTitle, activeContent, activeFileId, cmk, isVaultUnlocked]);
 
-  // Delete file or folder node from Vault and Object Storage
-  const handleDeleteFile = async () => {
-    if (!activeFileId) return;
+  // Generic Node Deletion (File or Folder) for Context Menu
+  const handleDeleteNodeByTargetId = async (targetId: string) => {
+    const targetNode = files.find((f) => f.id === targetId);
+    if (!targetNode) return;
 
     try {
-      await apiClient.deleteVaultNode(activeFileId);
-      const updated = files.filter((f) => f.id !== activeFileId);
+      await apiClient.deleteVaultNode(targetId);
+
+      // Filter out deleted node (or descendants if folder)
+      const isDir = targetNode.mimeType === 'inode/directory';
+      const targetPath = targetNode.path;
+
+      const updated = files.filter((f) => {
+        if (f.id === targetId) return false;
+        if (isDir && f.path.startsWith(`${targetPath}/`)) return false;
+        return true;
+      });
+
       setFiles(updated);
 
-      const remainingInVault = updated.filter(
-        (f) => f.vaultId === activeVaultId && f.mimeType !== 'inode/directory'
-      );
-      if (remainingInVault.length > 0) {
-        setActiveFileId(remainingInVault[0].id);
-        setActiveTitle(remainingInVault[0].name);
-        setActiveContent(remainingInVault[0].content);
-      } else {
-        setActiveFileId(null);
-        setActiveTitle('');
-        setActiveContent('');
+      if (activeFileId === targetId || (isDir && activeFile?.path.startsWith(`${targetPath}/`))) {
+        const remainingInVault = updated.filter(
+          (f) => f.vaultId === activeVaultId && f.mimeType !== 'inode/directory'
+        );
+        if (remainingInVault.length > 0) {
+          setActiveFileId(remainingInVault[0].id);
+          setActiveTitle(remainingInVault[0].name);
+          setActiveContent(remainingInVault[0].content);
+        } else {
+          setActiveFileId(null);
+          setActiveTitle('');
+          setActiveContent('');
+        }
+        setSelectedWordCount(0);
+        setSelectedCharCount(0);
       }
-      setSelectedWordCount(0);
-      setSelectedCharCount(0);
     } catch (err) {
-      console.error('Failed to delete node', err);
+      console.error('Failed to delete node via context menu', err);
+    }
+  };
+
+  // Generic Node Download (File or Folder) for Context Menu
+  const handleDownloadNodeByTargetId = (targetId: string) => {
+    const targetNode = files.find((f) => f.id === targetId);
+    if (!targetNode) return;
+
+    if (targetNode.mimeType === 'inode/directory') {
+      // Download all files inside directory
+      const childFiles = files.filter(
+        (f) => f.path.startsWith(`${targetNode.path}/`) && f.mimeType !== 'inode/directory'
+      );
+      childFiles.forEach((file) => {
+        downloadSingleFile(file);
+      });
+    } else {
+      downloadSingleFile(targetNode);
+    }
+  };
+
+  // Delete active file
+  const handleDeleteFile = async () => {
+    if (activeFileId) {
+      await handleDeleteNodeByTargetId(activeFileId);
     }
   };
 
@@ -530,6 +591,8 @@ export const AppContent: React.FC = () => {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             activeVault={activeVault}
+            onDeleteNode={handleDeleteNodeByTargetId}
+            onDownloadNode={handleDownloadNodeByTargetId}
           />
 
           <section className="flex-1 flex flex-col h-full relative overflow-hidden">
