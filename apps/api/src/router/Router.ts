@@ -73,7 +73,30 @@ export class Router {
       container.mediaController.getMedia(ctx)
     );
 
-    // 4. Admin Endpoints (Protected + Admin Only)
+    // 4. Vault File System & Object Storage Endpoints (Protected)
+    this.addRoute('GET', '/api/v1/vault/tree', true, false, (container, ctx) =>
+      container.vaultController.getTree(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vault/nodes', true, false, (container, ctx) =>
+      container.vaultController.createNode(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vault/nodes/move', true, false, (container, ctx) =>
+      container.vaultController.moveNode(ctx)
+    );
+    this.addRoute('GET', '/api/v1/vault/nodes/:id', true, false, (container, ctx) =>
+      container.vaultController.getNode(ctx)
+    );
+    this.addRoute('GET', '/api/v1/vault/nodes/:id/content', true, false, (container, ctx) =>
+      container.vaultController.getContent(ctx)
+    );
+    this.addRoute('PUT', '/api/v1/vault/nodes/:id/content', true, false, (container, ctx) =>
+      container.vaultController.updateContent(ctx)
+    );
+    this.addRoute('DELETE', '/api/v1/vault/nodes/:id', true, false, (container, ctx) =>
+      container.vaultController.deleteNode(ctx)
+    );
+
+    // 5. Admin Endpoints (Protected + Admin Only)
     this.addRoute('GET', '/api/v1/admin/users', true, true, (container, ctx) =>
       container.adminController.listUsers(ctx)
     );

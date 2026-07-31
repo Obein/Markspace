@@ -14,7 +14,31 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 
--- Notes Table: Store encrypted notes payload, encrypted titles, and encrypted DEKs
+-- Vault Nodes Table: Filesystem File Tree Metadata (SQL Stores Hierarchy & Metadata Only)
+-- File contents (Markdown notes, media, and binary files) are saved in R2 Object Storage.
+CREATE TABLE IF NOT EXISTS vault_nodes (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    path TEXT NOT NULL,
+    parent_path TEXT NOT NULL,
+    name TEXT NOT NULL,
+    is_directory INTEGER NOT NULL DEFAULT 0,
+    size INTEGER NOT NULL DEFAULT 0,
+    mime_type TEXT NOT NULL DEFAULT 'text/markdown',
+    category TEXT NOT NULL DEFAULT 'markdown',
+    encrypted_dek TEXT NOT NULL,
+    object_key TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE (user_id, path)
+);
+
+CREATE INDEX IF NOT EXISTS idx_vault_nodes_user_id ON vault_nodes(user_id);
+CREATE INDEX IF NOT EXISTS idx_vault_nodes_parent_path ON vault_nodes(user_id, parent_path);
+CREATE INDEX IF NOT EXISTS idx_vault_nodes_path ON vault_nodes(user_id, path);
+
+-- Notes Table (Legacy compatibility)
 CREATE TABLE IF NOT EXISTS notes (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
@@ -26,10 +50,7 @@ CREATE TABLE IF NOT EXISTS notes (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_notes_user_id ON notes(user_id);
-CREATE INDEX IF NOT EXISTS idx_notes_created_at ON notes(created_at DESC);
-
--- Media Table: Store encrypted media metadata and R2 keys
+-- Media Table (Legacy compatibility)
 CREATE TABLE IF NOT EXISTS media (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
@@ -40,9 +61,5 @@ CREATE TABLE IF NOT EXISTS media (
     r2_key TEXT NOT NULL,
     size INTEGER NOT NULL,
     created_at INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE SET NULL
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_media_user_id ON media(user_id);
-CREATE INDEX IF NOT EXISTS idx_media_note_id ON media(note_id);

@@ -9,7 +9,12 @@ export class FileTreeBuilder {
     const folderMap = new Map<string, FileTreeNode>();
 
     for (const file of files) {
-      const parts = file.path.split('/').filter(Boolean);
+      const isExplicitDirectory = file.mimeType === 'inode/directory' || file.path.endsWith('/');
+      const cleanPath = file.path.replace(/^\/+|\/+$/g, '');
+      const parts = cleanPath.split('/').filter(Boolean);
+
+      if (parts.length === 0) continue;
+
       let currentLevel = root;
       let currentPath = '';
 
@@ -18,7 +23,7 @@ export class FileTreeBuilder {
         const isLast = i === parts.length - 1;
         currentPath = currentPath ? `${currentPath}/${part}` : part;
 
-        if (isLast) {
+        if (isLast && !isExplicitDirectory) {
           // Leaf File Node
           currentLevel.push({
             id: file.id,
@@ -32,7 +37,7 @@ export class FileTreeBuilder {
           let dirNode = folderMap.get(currentPath);
           if (!dirNode) {
             dirNode = {
-              id: `dir_${currentPath}`,
+              id: isExplicitDirectory && isLast ? file.id : `dir_${currentPath}`,
               name: part,
               path: currentPath,
               isDirectory: true,
