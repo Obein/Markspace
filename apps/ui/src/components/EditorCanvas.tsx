@@ -44,7 +44,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   onOpenHistory,
   onSelectionStatsChange,
 }) => {
-  const { sheetEngine, highlightService } = useApp();
+  const { sheetEngine } = useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -244,25 +244,16 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
       {/* Editor / Preview Canvas Container */}
       <div className={`absolute inset-0 z-10 flex flex-col w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[45em]'}`}>
+        {/* Markdown Edit Mode */}
         {category === 'markdown' && !isPreview && (
           <div
             ref={scrollContainerRef}
             className="flex-1 overflow-y-auto relative w-full h-full font-mono text-sm leading-relaxed"
-            style={{ counterReset: 'line' }}
           >
             {/* Top Toolbar Spacing */}
             <div className="h-28" />
 
-            {/* Lezer Markdown Syntax Layer */}
-            <div
-              className="absolute top-28 left-0 right-0 bottom-24 p-6 pl-14 pointer-events-none whitespace-pre-wrap break-words font-mono text-sm leading-relaxed z-0"
-              aria-hidden="true"
-              dangerouslySetInnerHTML={{
-                __html: highlightService.highlightMarkdownCodeBlocks(content),
-              }}
-            />
-
-            {/* Active Editable Textarea */}
+            {/* Active Clean Textarea Editor */}
             <textarea
               ref={textareaRef}
               value={content}
@@ -271,7 +262,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               onKeyUp={handleSelectionChange}
               onClick={handleSelectionChange}
               placeholder="Write your thoughts..."
-              className="w-full h-[calc(100%-13rem)] p-6 pl-14 bg-transparent text-white focus:outline-none resize-none font-mono text-sm leading-relaxed relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white"
+              className="w-full h-[calc(100%-13rem)] p-6 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-mono text-sm leading-relaxed relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white"
             />
 
             {/* Bottom Status Bar Spacing */}
@@ -279,6 +270,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           </div>
         )}
 
+        {/* Markdown Rich Preview Mode */}
         {category === 'markdown' && isPreview && (
           <div className="flex-1 overflow-y-auto w-full h-full font-mono text-sm leading-relaxed text-zinc-200">
             <div className="h-28" />
