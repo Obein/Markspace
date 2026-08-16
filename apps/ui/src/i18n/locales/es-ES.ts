@@ -20,6 +20,7 @@ export const esES: typeof enUS = {
   deleting: 'Eliminando...',
   cancel: 'Cancelar',
   confirm: 'Confirmar',
+  confirmDelete: '¿Estás seguro de que deseas eliminar?',
 
   // Authentication
   welcomeTitle: 'Bienvenido a Markspace',

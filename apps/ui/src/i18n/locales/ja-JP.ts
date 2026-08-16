@@ -20,6 +20,7 @@ export const jaJP: typeof enUS = {
   deleting: '削除中...',
   cancel: 'キャンセル',
   confirm: '確認',
+  confirmDelete: '本当に削除しますか？',
 
   // Authentication
   welcomeTitle: 'Markspaceへようこそ',

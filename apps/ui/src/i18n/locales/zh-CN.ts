@@ -20,6 +20,7 @@ export const zhCN: typeof enUS = {
   deleting: '删除中...',
   cancel: '取消',
   confirm: '确认',
+  confirmDelete: '确定要删除吗？',
 
   // Authentication
   welcomeTitle: '欢迎使用 Markspace',

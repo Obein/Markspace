@@ -18,6 +18,7 @@ export const enUS = {
   deleting: 'Deleting...',
   cancel: 'Cancel',
   confirm: 'Confirm',
+  confirmDelete: 'Are you sure you want to delete?',
 
   // Authentication
   welcomeTitle: 'Welcome to Markspace',

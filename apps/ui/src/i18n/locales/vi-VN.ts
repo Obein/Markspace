@@ -20,6 +20,7 @@ export const viVN: typeof enUS = {
   deleting: 'Đang xóa...',
   cancel: 'Cancel',
   confirm: 'Xác Nhận',
+  confirmDelete: 'Bạn có chắc chắn muốn xóa không?',
 
   // Authentication
   welcomeTitle: 'Chào mừng đến với Markspace',

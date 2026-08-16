@@ -20,6 +20,7 @@ export const zhTW: typeof enUS = {
   deleting: '刪除中...',
   cancel: '取消',
   confirm: '確認',
+  confirmDelete: '確定要刪除嗎？',
 
   // Authentication
   welcomeTitle: '歡迎使用 Markspace',

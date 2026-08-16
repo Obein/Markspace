@@ -20,6 +20,7 @@ export const koKR: typeof enUS = {
   deleting: '삭제 중...',
   cancel: '취소',
   confirm: '확인',
+  confirmDelete: '정말 삭제하시겠습니까?',
 
   // Authentication
   welcomeTitle: 'Markspace에 오신 것을 환영합니다',

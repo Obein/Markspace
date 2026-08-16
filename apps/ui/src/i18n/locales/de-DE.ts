@@ -20,6 +20,7 @@ export const deDE: typeof enUS = {
   deleting: 'Wird gelöscht...',
   cancel: 'Abbrechen',
   confirm: 'Bestätigen',
+  confirmDelete: 'Möchten Sie dies wirklich löschen?',
 
   // Authentication
   welcomeTitle: 'Willkommen bei Markspace',

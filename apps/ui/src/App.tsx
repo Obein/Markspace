@@ -254,7 +254,7 @@ export const AppContent: React.FC = () => {
 
       const defaultTitle = t('untitledNote');
       const filename = getUniqueFilename(defaultTitle, '.md');
-      const defaultContent = `# ${defaultTitle}\n\nWrite your encrypted notes here.`;
+      const defaultContent = '';
 
       const encryptedPayload = await cryptoService.encryptText(defaultContent, dek);
 
