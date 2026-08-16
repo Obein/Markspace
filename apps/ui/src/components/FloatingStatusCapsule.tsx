@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Edit3, Sun, Moon, Crown, Lock, User, Download, Trash2, History } from 'lucide-react';
+import { Eye, Edit3, Sun, Moon, Lock, User, Download, Trash2, History } from 'lucide-react';
 import { useI18n } from '../i18n/i18nContext';
 import { UserRole } from '../interfaces/IApiClient';
 
@@ -62,7 +62,6 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
         </span>
         {role === 'admin' ? (
           <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center gap-1 shrink-0">
-            <Crown className="w-2.5 h-2.5 text-blue-400" />
             <span>ADMIN</span>
           </span>
         ) : (

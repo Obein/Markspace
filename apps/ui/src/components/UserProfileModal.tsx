@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Crown, ShieldCheck, LogOut, Globe, FileText, Loader2, ChevronRight, ChevronDown } from 'lucide-react';
+import { X, ShieldCheck, LogOut, Globe, FileText, Loader2, ChevronRight, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { LANGUAGE_OPTIONS, Language, useI18n } from '../i18n/i18nContext';
 import { AuditLogResponse } from '../interfaces/IApiClient';
@@ -87,7 +87,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               <h2 className="text-xl font-bold text-white">{username || 'Anonymous'}</h2>
               {role === 'admin' ? (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center gap-1">
-                  <Crown className="w-3 h-3 text-blue-400" />
                   <span>SYSTEM ADMIN</span>
                 </span>
               ) : (
