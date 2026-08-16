@@ -372,7 +372,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
         onTouchStart={(e) => e.stopPropagation()}
-        className="absolute top-1/2 -translate-y-1/2 left-full z-50 w-5 h-20 bg-zinc-900/90 hover:bg-zinc-800/95 active:bg-zinc-700/95 border-t border-r border-b border-white/20 rounded-r-2xl backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center opacity-40 hover:opacity-100 active:opacity-100 focus:opacity-100 transition-opacity duration-200 cursor-pointer group select-none"
+        className="absolute top-1/2 -translate-y-1/2 left-full z-50 w-5 h-20 bg-zinc-900/90 hover:bg-zinc-800/95 active:bg-zinc-700/95 rounded-r-2xl backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center opacity-40 hover:opacity-100 active:opacity-100 focus:opacity-100 transition-opacity duration-200 cursor-pointer group select-none"
         title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
         aria-label={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
       >
