@@ -59,7 +59,7 @@ export class LezerHighlightService implements IHighlightService {
     const fencedCodeBlockRegex = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
     const codeBlocks: string[] = [];
 
-    // Extract code blocks, run Lezer syntax highlighting, and store HTML blocks
+    // 1. Extract code blocks, run Lezer syntax highlighting, and store HTML blocks
     const placeholdersMarkdown = markdown.replace(fencedCodeBlockRegex, (_, lang, code) => {
       const language = lang ? lang.trim() : 'code';
       const highlightedHtml = this.highlightCode(code.trimEnd(), language);
@@ -70,18 +70,63 @@ export class LezerHighlightService implements IHighlightService {
       return placeholder;
     });
 
-    // Escape and format surrounding Markdown text
-    let html = placeholdersMarkdown
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+    // 2. Parse Markdown elements
+    let html = placeholdersMarkdown;
 
-    html = html.replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-white mt-4 mb-2">$1</h3>');
-    html = html.replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-white mt-6 mb-3 border-b border-white/10 pb-1">$1</h2>');
-    html = html.replace(/^# (.*$)/gim, '<h1 class="text-3xl font-extrabold text-white mt-8 mb-4 border-b border-white/20 pb-2">$1</h1>');
+    // Headings
+    html = html.replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-white mt-5 mb-2 flex items-center gap-2"><span class="w-1.5 h-4 bg-blue-500 rounded-full"></span>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-white mt-7 mb-3 border-b border-white/10 pb-1.5 flex items-center gap-2"><span class="w-2 h-5 bg-blue-500 rounded-full"></span>$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1 class="text-3xl font-extrabold text-white mt-8 mb-4 border-b border-white/20 pb-2 font-mono">$1</h1>');
 
+    // Bold & Italic
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-blue-400">$1</strong>');
-    html = html.replace(/\*(.*?)\*/g, '<em class="italic text-zinc-400">$1</em>');
+    html = html.replace(/\*(.*?)\*/g, '<em class="italic text-zinc-300">$1</em>');
+
+    // Inline Code
+    html = html.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-white/10 text-blue-300 font-mono text-xs border border-white/10">$1</code>');
+
+    // Blockquotes
+    html = html.replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-blue-500 pl-4 py-2 my-3 text-zinc-300 italic bg-white/5 rounded-r-xl">$1</blockquote>');
+
+    // Bullet Lists
+    html = html.replace(/^- (.*$)/gim, '<div class="flex items-start gap-2 my-1 text-zinc-200"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0"></span><span>$1</span></div>');
+
+    // Tables
+    const tableRegex = /((?:\|[^\n]+\|\n?)+)/g;
+    html = html.replace(tableRegex, (tableBlock) => {
+      const rows = tableBlock.trim().split('\n').filter(Boolean);
+      if (rows.length < 2) return tableBlock;
+
+      let tableHtml = '<div class="overflow-x-auto my-4"><table class="w-full text-xs font-mono border-collapse border border-white/10 rounded-xl overflow-hidden shadow-lg">';
+      
+      rows.forEach((row, idx) => {
+        const cells = row.split('|').slice(1, -1).map((c) => c.trim());
+        if (idx === 0) {
+          // Header row
+          tableHtml += '<thead class="bg-white/10 text-blue-300 border-b border-white/10"><tr>';
+          cells.forEach((cell) => {
+            tableHtml += `<th class="px-4 py-2.5 text-left font-semibold">${cell}</th>`;
+          });
+          tableHtml += '</tr></thead><tbody>';
+        } else if (idx === 1 && cells.every((c) => c.startsWith('---') || c.startsWith('-'))) {
+          // Separator row (ignore)
+          return;
+        } else {
+          // Data row
+          tableHtml += `<tr class="border-b border-white/5 hover:bg-white/5 transition">`;
+          cells.forEach((cell) => {
+            tableHtml += `<td class="px-4 py-2 text-zinc-200">${cell}</td>`;
+          });
+          tableHtml += '</tr>';
+        }
+      });
+
+      tableHtml += '</tbody></table></div>';
+      return tableHtml;
+    });
+
+    // Paragraph breaks
+    html = html.replace(/\n\n/g, '<div class="h-3"></div>');
 
     // Restore Lezer highlighted code blocks
     codeBlocks.forEach((block, idx) => {
@@ -113,7 +158,6 @@ export class LezerHighlightService implements IHighlightService {
         fullHtml += escapeHtml(content.slice(pos));
       }
 
-      // Split AST highlighted HTML back line by line
       const highlightedLines = fullHtml.split('\n');
       return highlightedLines.map((line) => line || '\u200B');
     } catch (err) {

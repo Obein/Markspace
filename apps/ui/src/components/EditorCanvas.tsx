@@ -44,7 +44,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   onOpenHistory,
   onSelectionStatsChange,
 }) => {
-  const { sheetEngine } = useApp();
+  const { sheetEngine, highlightService } = useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -52,7 +52,21 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const [isFullWidth, setIsFullWidth] = useState(false);
 
   const category = activeFile?.category || 'markdown';
-  const evaluatedMarkdown = category === 'markdown' && activeFile ? sheetEngine.evaluateMarkdownFormulas(content) : '';
+
+  // Evaluate formula calculations for table cells
+  const evaluatedMarkdown =
+    category === 'markdown' && activeFile
+      ? sheetEngine.evaluateMarkdownFormulas(content)
+      : '';
+
+  // Render Markdown preview HTML (Headings, Lezer Code Highlight, Formulas, Tables, Lists)
+  const previewHtml =
+    category === 'markdown' && isPreview
+      ? highlightService.highlightMarkdownCodeBlocks(evaluatedMarkdown)
+      : '';
+
+  // Lines count for edit mode line-number gutter
+  const lines = content.split('\n');
 
   // Update selected word & character stats
   const handleSelectionChange = () => {
@@ -244,7 +258,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
       {/* Editor / Preview Canvas Container */}
       <div className={`absolute inset-0 z-10 flex flex-col w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[45em]'}`}>
-        {/* Markdown Edit Mode */}
+        {/* Markdown Edit Mode: Pixel-Perfect Textarea with Synced Line Numbers */}
         {category === 'markdown' && !isPreview && (
           <div
             ref={scrollContainerRef}
@@ -253,31 +267,42 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             {/* Top Toolbar Spacing */}
             <div className="h-28" />
 
-            {/* Active Clean Textarea Editor */}
-            <textarea
-              ref={textareaRef}
-              value={content}
-              onChange={(e) => onContentChange(e.target.value)}
-              onSelect={handleSelectionChange}
-              onKeyUp={handleSelectionChange}
-              onClick={handleSelectionChange}
-              placeholder="Write your thoughts..."
-              className="w-full h-[calc(100%-13rem)] p-6 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-mono text-sm leading-relaxed relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white"
-            />
+            <div className="flex w-full min-h-[calc(100%-13rem)]">
+              {/* Left Line Number Gutter Column */}
+              <div className="w-12 py-6 pr-3 text-right select-none text-zinc-600 font-mono text-xs leading-relaxed shrink-0 border-r border-white/5 space-y-0 opacity-60">
+                {lines.map((_, i) => (
+                  <div key={i} className="h-[1.5rem] leading-[1.5rem]">
+                    {i + 1}
+                  </div>
+                ))}
+              </div>
+
+              {/* Active Clean Textarea Editor */}
+              <textarea
+                ref={textareaRef}
+                value={content}
+                onChange={(e) => onContentChange(e.target.value)}
+                onSelect={handleSelectionChange}
+                onKeyUp={handleSelectionChange}
+                onClick={handleSelectionChange}
+                placeholder="Write your thoughts..."
+                className="flex-1 p-6 pl-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-mono text-sm leading-relaxed relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white"
+              />
+            </div>
 
             {/* Bottom Status Bar Spacing */}
             <div className="h-24" />
           </div>
         )}
 
-        {/* Markdown Rich Preview Mode */}
+        {/* Markdown Rich Preview Mode: Headings, Tables, Math, Lezer Syntax Highlighting */}
         {category === 'markdown' && isPreview && (
           <div className="flex-1 overflow-y-auto w-full h-full font-mono text-sm leading-relaxed text-zinc-200">
             <div className="h-28" />
             <div className="p-8 pb-28 prose prose-invert max-w-none">
               <div
                 dangerouslySetInnerHTML={{
-                  __html: evaluatedMarkdown,
+                  __html: previewHtml,
                 }}
               />
             </div>
