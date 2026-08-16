@@ -54,16 +54,13 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg">
       <div className="w-full max-w-md p-8 glass-panel rounded-glass-lg border border-white/10 text-white shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        {/* Glow Background */}
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
-
         {/* Top Actions: Settings / Profile */}
         {onOpenProfile && (
           <div className="flex justify-end mb-2">
             <button
               type="button"
               onClick={onOpenProfile}
-              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-xs font-mono flex items-center gap-1.5 transition"
+              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer"
               title="User Profile & Settings"
             >
               <User className="w-3.5 h-3.5 text-blue-400" />
@@ -73,7 +70,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
         )}
 
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 mb-3 shadow-inner text-emerald-400">
+          <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 mb-3 text-blue-400">
             <Lock className="w-8 h-8 animate-pulse" />
           </div>
           <h2 className="text-2xl font-bold tracking-tight text-white">{t('unlockVault')}</h2>
@@ -83,7 +80,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
         </div>
 
         {errorMsg && (
-          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs text-center">
+          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs text-center font-mono">
             {errorMsg}
           </div>
         )}
@@ -99,7 +96,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
               <select
                 value={activeVaultId}
                 onChange={(e) => onSelectVault(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-zinc-900 border border-white/10 text-xs font-mono text-white focus:outline-none focus:border-emerald-500/50 transition cursor-pointer"
+                className="w-full px-4 py-2.5 rounded-xl bg-zinc-900 border border-white/10 text-xs font-mono text-white focus:outline-none focus:border-blue-500/50 transition cursor-pointer"
               >
                 {vaults.map((v) => (
                   <option key={v.id} value={v.id} className="bg-zinc-900 text-white">
@@ -117,7 +114,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
               value={dataPassword}
               onChange={(e) => setDataPassword(e.target.value)}
               placeholder="••••••••••••"
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition font-mono"
               required
             />
           </div>
@@ -125,7 +122,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium transition shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition shadow-lg shadow-blue-500/20 border border-blue-400/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
           >
             {loading ? (
               <>
@@ -142,7 +139,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
         </form>
 
         <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-zinc-400">
-          <div className="flex items-center gap-1 text-emerald-400">
+          <div className="flex items-center gap-1 text-blue-400">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>E2EE Zero-Knowledge</span>
           </div>

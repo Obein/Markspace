@@ -320,13 +320,16 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         {/* Markdown Rich Preview Mode: Headings in Serif, Body in Sans-serif, Code in Mono */}
         {category === 'markdown' && isPreview && (
           <div className="flex-1 overflow-y-auto w-full h-full font-preview-body font-sans text-sm leading-relaxed text-zinc-200">
-            <div className="p-8 pb-28 prose prose-invert max-w-none">
+            <div className="p-8 pt-14 markdown-preview">
               <div
                 dangerouslySetInnerHTML={{
                   __html: previewHtml,
                 }}
               />
             </div>
+
+            {/* Bottom Status Capsule Spacing */}
+            <div className="h-28" />
           </div>
         )}
 
