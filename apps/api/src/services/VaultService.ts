@@ -150,13 +150,17 @@ export class VaultService {
   }
 
   public async moveNode(userId: string, nodeId: string, newPath: string): Promise<VaultNodeEntity> {
-    await this.getNode(userId, nodeId);
+    const currentNode = await this.getNode(userId, nodeId);
     const normalizedNewPath = this.normalizePath(newPath);
     const newParentPath = this.getParentPath(normalizedNewPath);
     const newName = this.getFileName(normalizedNewPath);
 
+    if (currentNode.path === normalizedNewPath) {
+      return currentNode;
+    }
+
     const existing = await this.nodeRepo.getNodeByPath(userId, normalizedNewPath);
-    if (existing) {
+    if (existing && existing.id !== nodeId) {
       throw new Error(`CONFLICT: Node already exists at path ${normalizedNewPath}`);
     }
 
@@ -168,6 +172,26 @@ export class VaultService {
 
     if (!updated) {
       throw new Error('INTERNAL_ERROR: Failed to move node path');
+    }
+
+    // If currentNode is a directory, update all child nodes whose paths start with old directory path
+    if (currentNode.isDirectory) {
+      const oldDirPath = currentNode.path;
+      const allUserNodes = await this.nodeRepo.listNodesByUser(userId);
+      for (const child of allUserNodes) {
+        if (child.id !== nodeId && child.path.startsWith(`${oldDirPath}/`)) {
+          const childSubPath = child.path.substring(oldDirPath.length);
+          const childNewPath = `${normalizedNewPath}${childSubPath}`;
+          const childNewParentPath = this.getParentPath(childNewPath);
+          const childNewName = this.getFileName(childNewPath);
+
+          await this.nodeRepo.updateNode(userId, child.id, {
+            path: childNewPath,
+            parentPath: childNewParentPath,
+            name: childNewName,
+          });
+        }
+      }
     }
 
     return updated;

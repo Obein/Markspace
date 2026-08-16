@@ -13,6 +13,7 @@ import { VaultNodeRepository } from '../infrastructure/VaultNodeRepository';
 import { WebCryptoHasher } from '../infrastructure/WebCryptoHasher';
 import { AuthService } from '../services/AuthService';
 import { MediaService } from '../services/MediaService';
+import { NonceService } from '../services/NonceService';
 import { NoteService } from '../services/NoteService';
 import { VaultService } from '../services/VaultService';
 import { Env } from '../types/env';
@@ -24,6 +25,7 @@ export class ServiceContainer {
   public readonly vaultController: VaultController;
   public readonly adminController: AdminController;
   public readonly tokenService: JwtTokenService;
+  public readonly nonceService: NonceService;
 
   constructor(env: Env) {
     const userRepository = new D1UserRepository(env.DB);
@@ -35,13 +37,14 @@ export class ServiceContainer {
     const objectStorageService = new R2ObjectStorageService(env.BUCKET);
     const passwordHasher = new WebCryptoHasher();
     this.tokenService = new JwtTokenService();
+    this.nonceService = new NonceService();
 
     const authService = new AuthService(userRepository, passwordHasher, this.tokenService);
     const noteService = new NoteService(noteRepository, mediaRepository, storageService);
     const mediaService = new MediaService(mediaRepository, storageService);
     const vaultService = new VaultService(vaultNodeRepository, objectStorageService);
 
-    this.authController = new AuthController(authService);
+    this.authController = new AuthController(authService, this.nonceService);
     this.noteController = new NoteController(noteService);
     this.mediaController = new MediaController(mediaService);
     this.vaultController = new VaultController(vaultService);

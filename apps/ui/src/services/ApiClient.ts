@@ -1,3 +1,4 @@
+import { DPoPSigner } from '../crypto/DPoPSigner';
 import { AuthResponse, IApiClient, VaultNodeResponse } from '../interfaces/IApiClient';
 import { FileCategory, NoteItem, NoteMetadataItem } from '../interfaces/INoteModels';
 
@@ -11,24 +12,51 @@ export class ApiClient implements IApiClient {
 
   setToken(token: string): void {
     this.token = token;
-    localStorage.setItem('markspace_jwt_token', token);
+    if (token) {
+      localStorage.setItem('markspace_jwt_token', token);
+    } else {
+      localStorage.removeItem('markspace_jwt_token');
+    }
   }
 
-  private getHeaders(): HeadersInit {
+  private async getNonce(): Promise<string> {
+    try {
+      const res = await fetch(`${this.baseUrl}/auth/nonce`, { method: 'GET', credentials: 'include' });
+      const json = await res.json();
+      return json.data?.nonce || '';
+    } catch {
+      return '';
+    }
+  }
+
+  private async getHeaders(method: string, path: string): Promise<HeadersInit> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
+
+    try {
+      // Attach RFC 9449 DPoP proof signed by non-extractable client key
+      const dpopProof = await DPoPSigner.createProof(method, path);
+      headers['DPoP'] = dpopProof;
+    } catch (err) {
+      console.warn('Failed to sign DPoP proof header', err);
+    }
+
     return headers;
   }
 
   private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const method = (options.method || 'GET').toUpperCase();
+    const defaultHeaders = await this.getHeaders(method, path);
+
     const res = await fetch(`${this.baseUrl}${path}`, {
       ...options,
+      credentials: 'include', // Enforce HttpOnly cookie session transmission
       headers: {
-        ...this.getHeaders(),
+        ...defaultHeaders,
         ...(options.headers || {}),
       },
     });
@@ -42,18 +70,20 @@ export class ApiClient implements IApiClient {
   }
 
   async register(username: string, authToken: string): Promise<AuthResponse> {
+    const nonce = await this.getNonce();
     const data = await this.request<AuthResponse>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ username, authToken }),
+      body: JSON.stringify({ username, authToken, nonce }),
     });
     this.setToken(data.token);
     return data;
   }
 
   async login(username: string, authToken: string): Promise<AuthResponse> {
+    const nonce = await this.getNonce();
     const data = await this.request<AuthResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, authToken }),
+      body: JSON.stringify({ username, authToken, nonce }),
     });
     this.setToken(data.token);
     return data;
@@ -81,11 +111,13 @@ export class ApiClient implements IApiClient {
   }
 
   async getVaultNodeContent(id: string): Promise<{ body: ArrayBuffer; encryptedDek: string; fileName: string }> {
-    const res = await fetch(`${this.baseUrl}/vault/nodes/${id}/content`, {
+    const path = `/vault/nodes/${id}/content`;
+    const defaultHeaders = await this.getHeaders('GET', path);
+
+    const res = await fetch(`${this.baseUrl}${path}`, {
       method: 'GET',
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-      },
+      credentials: 'include',
+      headers: defaultHeaders,
     });
 
     if (!res.ok) {
@@ -109,15 +141,17 @@ export class ApiClient implements IApiClient {
     contentBlob: ArrayBuffer | Uint8Array | string,
     mimeType: string = 'application/octet-stream'
   ): Promise<VaultNodeResponse> {
+    const path = `/vault/nodes/${id}/content`;
+    const defaultHeaders = await this.getHeaders('PUT', path);
+
     const headers: Record<string, string> = {
+      ...(defaultHeaders as Record<string, string>),
       'Content-Type': mimeType,
     };
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
-    }
 
-    const res = await fetch(`${this.baseUrl}/vault/nodes/${id}/content`, {
+    const res = await fetch(`${this.baseUrl}${path}`, {
       method: 'PUT',
+      credentials: 'include',
       headers,
       body: contentBlob as any,
     });

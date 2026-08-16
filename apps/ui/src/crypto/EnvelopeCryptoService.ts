@@ -1,4 +1,5 @@
 import { ICryptoService } from '../interfaces/ICryptoService';
+import { WorkerCryptoBridge } from './WorkerCryptoBridge';
 
 export class EnvelopeCryptoService implements ICryptoService {
   private base64ToBuffer(base64: string): ArrayBuffer {
@@ -20,44 +21,59 @@ export class EnvelopeCryptoService implements ICryptoService {
   }
 
   async deriveCMK(masterPassword: string, saltInput?: string): Promise<{ cmk: CryptoKey; salt: string }> {
-    const encoder = new TextEncoder();
     const salt = saltInput || this.generateSalt();
-    const saltBuffer = encoder.encode(salt);
 
-    const baseKey = await crypto.subtle.importKey(
-      'raw',
-      encoder.encode(masterPassword),
-      'PBKDF2',
-      false,
-      ['deriveKey']
-    );
+    try {
+      // Offload to Web Worker cryptographic sandbox if supported
+      const res = await WorkerCryptoBridge.executeTask<{ cmk: CryptoKey }>('DERIVE_CMK', {
+        password: masterPassword,
+        salt,
+      });
+      return { cmk: res.cmk, salt };
+    } catch {
+      // Main-thread fallback with strict memory scrubbing
+      const encoder = new TextEncoder();
+      const saltBuffer = encoder.encode(salt);
+      const pwdBuffer = encoder.encode(masterPassword);
 
-    const cmk = await crypto.subtle.deriveKey(
-      {
-        name: 'PBKDF2',
-        salt: saltBuffer,
-        iterations: 100000,
-        hash: 'SHA-256',
-      },
-      baseKey,
-      { name: 'AES-GCM', length: 256 },
-      false,
-      ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']
-    );
+      try {
+        const baseKey = await crypto.subtle.importKey('raw', pwdBuffer, 'PBKDF2', false, ['deriveKey']);
 
-    return { cmk, salt };
+        const cmk = await crypto.subtle.deriveKey(
+          {
+            name: 'PBKDF2',
+            salt: saltBuffer,
+            iterations: 100000,
+            hash: 'SHA-256',
+          },
+          baseKey,
+          { name: 'AES-GCM', length: 256 },
+          false, // CRITICAL: Non-extractable key
+          ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']
+        );
+
+        return { cmk, salt };
+      } finally {
+        // Explicit memory scrubbing
+        pwdBuffer.fill(0);
+        saltBuffer.fill(0);
+      }
+    }
   }
 
   private generateSalt(): string {
     const array = new Uint8Array(16);
     crypto.getRandomValues(array);
-    return Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('');
+    const saltHex = Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('');
+    array.fill(0); // Memory scrubbing
+    return saltHex;
   }
 
   async generateDEK(): Promise<CryptoKey> {
+    // Zero-Trust: Non-extractable CryptoKey handle (extractable: false)
     return crypto.subtle.generateKey(
       { name: 'AES-GCM', length: 256 },
-      true,
+      false, // CRITICAL: Non-extractable key handle
       ['encrypt', 'decrypt']
     );
   }
@@ -73,7 +89,10 @@ export class EnvelopeCryptoService implements ICryptoService {
     combined.set(iv, 0);
     combined.set(new Uint8Array(wrappedBuffer), iv.length);
 
-    return this.bufferToBase64(combined.buffer);
+    const base64Str = this.bufferToBase64(combined.buffer);
+    combined.fill(0); // Memory scrubbing
+    iv.fill(0);
+    return base64Str;
   }
 
   async unwrapDEK(encryptedDekBase64: string, cmk: CryptoKey): Promise<CryptoKey> {
@@ -81,31 +100,45 @@ export class EnvelopeCryptoService implements ICryptoService {
     const iv = combined.slice(0, 12);
     const wrappedData = combined.slice(12);
 
-    return crypto.subtle.unwrapKey(
-      'raw',
-      wrappedData,
-      cmk,
-      { name: 'AES-GCM', iv },
-      { name: 'AES-GCM', length: 256 },
-      false,
-      ['encrypt', 'decrypt']
-    );
+    try {
+      return await crypto.subtle.unwrapKey(
+        'raw',
+        wrappedData,
+        cmk,
+        { name: 'AES-GCM', iv },
+        { name: 'AES-GCM', length: 256 },
+        false, // CRITICAL: Non-extractable unwrapped DEK
+        ['encrypt', 'decrypt']
+      );
+    } finally {
+      combined.fill(0); // Memory scrubbing
+      iv.fill(0);
+    }
   }
 
   async encryptText(plainText: string, dek: CryptoKey): Promise<string> {
     const encoder = new TextEncoder();
+    const plainBuffer = encoder.encode(plainText);
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const cipherBuffer = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      dek,
-      encoder.encode(plainText)
-    );
 
-    const combined = new Uint8Array(iv.length + cipherBuffer.byteLength);
-    combined.set(iv, 0);
-    combined.set(new Uint8Array(cipherBuffer), iv.length);
+    try {
+      const cipherBuffer = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        dek,
+        plainBuffer
+      );
 
-    return this.bufferToBase64(combined.buffer);
+      const combined = new Uint8Array(iv.length + cipherBuffer.byteLength);
+      combined.set(iv, 0);
+      combined.set(new Uint8Array(cipherBuffer), iv.length);
+
+      const base64Str = this.bufferToBase64(combined.buffer);
+      combined.fill(0);
+      return base64Str;
+    } finally {
+      plainBuffer.fill(0); // Memory scrubbing
+      iv.fill(0);
+    }
   }
 
   async decryptText(cipherTextBase64: string, dek: CryptoKey): Promise<string> {
@@ -113,21 +146,31 @@ export class EnvelopeCryptoService implements ICryptoService {
     const iv = combined.slice(0, 12);
     const cipherData = combined.slice(12);
 
-    const plainBuffer = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
-      dek,
-      cipherData
-    );
+    try {
+      const plainBuffer = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        dek,
+        cipherData
+      );
 
-    return new TextDecoder().decode(plainBuffer);
+      return new TextDecoder().decode(plainBuffer);
+    } finally {
+      combined.fill(0); // Memory scrubbing
+      iv.fill(0);
+    }
   }
 
   async deriveAuthToken(masterPassword: string, salt: string): Promise<string> {
     const encoder = new TextEncoder();
     const data = encoder.encode(`${masterPassword}:${salt}`);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hashBuffer))
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
+    try {
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hex = Array.from(new Uint8Array(hashBuffer))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+      return hex;
+    } finally {
+      data.fill(0); // Memory scrubbing
+    }
   }
 }

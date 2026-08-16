@@ -15,9 +15,9 @@ export class ErrorHandler {
     } else if (message.startsWith('INVALID_CREDENTIALS:')) {
       status = 401;
       code = 'INVALID_CREDENTIALS';
-    } else if (message.startsWith('USER_EXISTS:')) {
+    } else if (message.startsWith('USER_EXISTS:') || message.startsWith('CONFLICT:')) {
       status = 409;
-      code = 'USER_EXISTS';
+      code = message.startsWith('USER_EXISTS:') ? 'USER_EXISTS' : 'CONFLICT';
     } else if (
       message.startsWith('NOT_FOUND:') ||
       message.startsWith('NOTE_NOT_FOUND:') ||
@@ -26,6 +26,7 @@ export class ErrorHandler {
       status = 404;
       code = 'NOT_FOUND';
     } else if (
+      message.startsWith('BAD_REQUEST:') ||
       message.startsWith('INVALID_INPUT:') ||
       message.startsWith('USERNAME_REQUIRED:') ||
       message.startsWith('AUTH_TOKEN_REQUIRED:')

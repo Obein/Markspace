@@ -2,6 +2,8 @@ import { ServiceContainer } from '../container/ServiceContainer';
 import { AdminMiddleware } from '../middleware/AdminMiddleware';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
 import { ErrorHandler } from '../middleware/ErrorHandler';
+import { SecurityHeadersMiddleware } from '../middleware/SecurityHeadersMiddleware';
+import { DPoPVerifier } from '../services/DPoPVerifier';
 import { Env } from '../types/env';
 import { RequestContext } from '../types/http';
 
@@ -37,7 +39,10 @@ export class Router {
       );
     });
 
-    // 1. Auth Endpoints (Public)
+    // 1. Auth & Nonce Endpoints (Public)
+    this.addRoute('GET', '/api/v1/auth/nonce', false, false, (container, ctx) =>
+      container.authController.getNonce(ctx)
+    );
     this.addRoute('POST', '/api/v1/auth/register', false, false, (container, ctx) =>
       container.authController.register(ctx)
     );
@@ -136,14 +141,19 @@ export class Router {
 
     // Global CORS Preflight
     if (method === 'OPTIONS') {
+      const responseHeaders = new Headers({
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, DPoP, X-Auth-Nonce, X-Encrypted-DEK',
+        'Access-Control-Expose-Headers': 'X-Encrypted-DEK, X-File-Name, DPoP-Nonce',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Max-Age': '86400',
+      });
+      SecurityHeadersMiddleware.apply(responseHeaders);
+
       return new Response(null, {
         status: 204,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Encrypted-DEK',
-          'Access-Control-Max-Age': '86400',
-        },
+        headers: responseHeaders,
       });
     }
 
@@ -166,6 +176,12 @@ export class Router {
         };
 
         try {
+          // Optional DPoP Proof Verification if DPoP Header Present
+          const dpopHeader = request.headers.get('DPoP');
+          if (dpopHeader) {
+            await DPoPVerifier.verifyProof(dpopHeader, method, pathname);
+          }
+
           if (route.requiresAuth) {
             const authMiddleware = new AuthMiddleware(container.tokenService);
             ctx = await authMiddleware.authenticate(ctx);
@@ -179,7 +195,11 @@ export class Router {
 
           const headers = new Headers(response.headers);
           headers.set('Access-Control-Allow-Origin', '*');
-          headers.set('Access-Control-Expose-Headers', 'X-Encrypted-DEK, X-File-Name');
+          headers.set('Access-Control-Expose-Headers', 'X-Encrypted-DEK, X-File-Name, DPoP-Nonce');
+          headers.set('Access-Control-Allow-Credentials', 'true');
+
+          // Apply Security Headers (COOP, COEP, CSP, etc.)
+          SecurityHeadersMiddleware.apply(headers);
 
           return new Response(response.body, {
             status: response.status,
@@ -187,7 +207,14 @@ export class Router {
             headers,
           });
         } catch (error) {
-          return ErrorHandler.handle(error);
+          const errRes = ErrorHandler.handle(error);
+          const errHeaders = new Headers(errRes.headers);
+          SecurityHeadersMiddleware.apply(errHeaders);
+          return new Response(errRes.body, {
+            status: errRes.status,
+            statusText: errRes.statusText,
+            headers: errHeaders,
+          });
         }
       }
     }
