@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   FileText,
   AlertCircle,
@@ -59,7 +59,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       ? sheetEngine.evaluateMarkdownFormulas(content)
       : '';
 
-  // Render Markdown preview HTML (Headings, Lezer Code Highlight, Formulas, Tables, Lists)
+  // Render Markdown preview HTML
   const previewHtml =
     category === 'markdown' && isPreview
       ? highlightService.highlightMarkdownCodeBlocks(evaluatedMarkdown)
@@ -67,6 +67,15 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
   // Lines count for edit mode line-number gutter
   const lines = content.split('\n');
+
+  // Auto-expand textarea height based on line count so textarea never shows inner scrollbar
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.max(textarea.scrollHeight, lines.length * 24)}px`;
+    }
+  }, [content, isPreview]);
 
   // Update selected word & character stats
   const handleSelectionChange = () => {
@@ -258,7 +267,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
       {/* Editor / Preview Canvas Container */}
       <div className={`absolute inset-0 z-10 flex flex-col w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[45em]'}`}>
-        {/* Markdown Edit Mode: Pixel-Perfect Textarea with Synced Line Numbers */}
+        {/* Markdown Edit Mode: Single Main Scrollbar for line numbers + textarea */}
         {category === 'markdown' && !isPreview && (
           <div
             ref={scrollContainerRef}
@@ -277,7 +286,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 ))}
               </div>
 
-              {/* Active Clean Textarea Editor */}
+              {/* Active Textarea without redundant inner scrollbar */}
               <textarea
                 ref={textareaRef}
                 value={content}
@@ -286,7 +295,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 onKeyUp={handleSelectionChange}
                 onClick={handleSelectionChange}
                 placeholder="Write your thoughts..."
-                className="flex-1 p-6 pl-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-mono text-sm leading-relaxed relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white"
+                className="flex-1 p-6 pl-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-mono text-sm leading-relaxed relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
               />
             </div>
 
@@ -295,7 +304,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           </div>
         )}
 
-        {/* Markdown Rich Preview Mode: Headings, Tables, Math, Lezer Syntax Highlighting */}
+        {/* Markdown Rich Preview Mode */}
         {category === 'markdown' && isPreview && (
           <div className="flex-1 overflow-y-auto w-full h-full font-mono text-sm leading-relaxed text-zinc-200">
             <div className="h-28" />
