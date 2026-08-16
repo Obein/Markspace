@@ -1,9 +1,22 @@
 import React, { useState } from 'react';
-import { Lock, ShieldCheck, KeyRound, LogOut } from 'lucide-react';
+import { Lock, ShieldCheck, KeyRound, LogOut, Database, User, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../i18n/i18nContext';
+import { VaultInfo } from '../interfaces/INoteModels';
 
-export const UnlockModal: React.FC = () => {
+interface UnlockModalProps {
+  vaults?: VaultInfo[];
+  activeVaultId?: string;
+  onSelectVault?: (id: string) => void;
+  onOpenProfile?: () => void;
+}
+
+export const UnlockModal: React.FC<UnlockModalProps> = ({
+  vaults = [],
+  activeVaultId,
+  onSelectVault,
+  onOpenProfile,
+}) => {
   const { cryptoService, setCmk, isAuthenticated, isVaultUnlocked, username, logoutAccount } = useApp();
   const { t } = useI18n();
 
@@ -44,6 +57,21 @@ export const UnlockModal: React.FC = () => {
         {/* Glow Background */}
         <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
 
+        {/* Top Actions: Settings / Profile */}
+        {onOpenProfile && (
+          <div className="flex justify-end mb-2">
+            <button
+              type="button"
+              onClick={onOpenProfile}
+              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-xs font-mono flex items-center gap-1.5 transition"
+              title="User Profile & Settings"
+            >
+              <User className="w-3.5 h-3.5 text-blue-400" />
+              <span>{t('userProfile')}</span>
+            </button>
+          </div>
+        )}
+
         <div className="flex flex-col items-center text-center mb-6">
           <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 mb-3 shadow-inner text-emerald-400">
             <Lock className="w-8 h-8 animate-pulse" />
@@ -61,6 +89,27 @@ export const UnlockModal: React.FC = () => {
         )}
 
         <form onSubmit={handleUnlock} className="space-y-4">
+          {/* Vault Selector (if multiple vaults exist) */}
+          {vaults.length > 0 && onSelectVault && (
+            <div>
+              <label className="block text-xs font-medium text-zinc-400 mb-1 flex items-center gap-1.5">
+                <Database className="w-3.5 h-3.5 text-blue-400" />
+                <span>{t('activeVault')}</span>
+              </label>
+              <select
+                value={activeVaultId}
+                onChange={(e) => onSelectVault(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-zinc-900 border border-white/10 text-xs font-mono text-white focus:outline-none focus:border-emerald-500/50 transition cursor-pointer"
+              >
+                {vaults.map((v) => (
+                  <option key={v.id} value={v.id} className="bg-zinc-900 text-white">
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-medium text-zinc-400 mb-1">{t('masterPassword')}</label>
             <input
@@ -76,14 +125,17 @@ export const UnlockModal: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium transition shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium transition shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
           >
             {loading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <span>{t('unlocking')}</span>
+              </>
             ) : (
               <>
                 <KeyRound className="w-4 h-4" />
-                <span>{t('unlocking')}</span>
+                <span>{t('unlock')}</span>
               </>
             )}
           </button>
@@ -96,7 +148,7 @@ export const UnlockModal: React.FC = () => {
           </div>
           <button
             onClick={logoutAccount}
-            className="text-red-400 hover:underline transition flex items-center gap-1"
+            className="text-red-400 hover:underline transition flex items-center gap-1 cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>{t('logoutAccount')}</span>

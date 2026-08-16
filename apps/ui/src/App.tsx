@@ -605,7 +605,26 @@ export const AppContent: React.FC = () => {
 
       {/* Step 2: Data Vault Unlock Modal */}
       {isAuthenticated && (!isVaultUnlocked || isUnlockModalOpen) && (
-        <UnlockModal />
+        <UnlockModal
+          vaults={vaults}
+          activeVaultId={activeVaultId}
+          onSelectVault={(id) => {
+            setActiveVaultId(id);
+            const inVault = files.filter((f) => f.vaultId === id && f.mimeType !== 'inode/directory');
+            if (inVault.length > 0) {
+              setActiveFileId(inVault[0].id);
+              setActiveTitle(inVault[0].name);
+              setActiveContent(inVault[0].content);
+            } else {
+              setActiveFileId(null);
+              setActiveTitle('');
+              setActiveContent('');
+            }
+            setSelectedWordCount(0);
+            setSelectedCharCount(0);
+          }}
+          onOpenProfile={() => setIsProfileOpen(true)}
+        />
       )}
 
       {/* User Profile & Vault Settings Modal */}

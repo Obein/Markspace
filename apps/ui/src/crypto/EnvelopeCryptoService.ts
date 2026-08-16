@@ -70,10 +70,11 @@ export class EnvelopeCryptoService implements ICryptoService {
   }
 
   async generateDEK(): Promise<CryptoKey> {
-    // Zero-Trust: Non-extractable CryptoKey handle (extractable: false)
+    // Generate key for wrapping. WebCrypto wrapKey requires the key being wrapped to be extractable (extractable: true).
+    // Once wrapped by wrapDEK and stored, unwrapDEK unwraps it strictly as non-extractable (extractable: false).
     return crypto.subtle.generateKey(
       { name: 'AES-GCM', length: 256 },
-      false, // CRITICAL: Non-extractable key handle
+      true,
       ['encrypt', 'decrypt']
     );
   }
@@ -107,7 +108,7 @@ export class EnvelopeCryptoService implements ICryptoService {
         cmk,
         { name: 'AES-GCM', iv },
         { name: 'AES-GCM', length: 256 },
-        false, // CRITICAL: Non-extractable unwrapped DEK
+        false, // CRITICAL: Non-extractable unwrapped DEK in browser memory!
         ['encrypt', 'decrypt']
       );
     } finally {
