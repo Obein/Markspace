@@ -16,6 +16,7 @@ export const esES: typeof enUS = {
   loadingVaultTree: 'Cargando árbol de archivos cifrados...',
   noFilesFound: 'No se encontraron archivos',
   download: 'Descargar',
+  rename: 'Renombrar',
   delete: 'Eliminar',
   deleting: 'Eliminando...',
   cancel: 'Cancelar',

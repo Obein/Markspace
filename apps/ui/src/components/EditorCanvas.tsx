@@ -50,6 +50,11 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
   const category = activeFile?.category || 'markdown';
 
+  // Extract base name and extension from title (in top bar only base name is editable)
+  const lastDotIndex = title.lastIndexOf('.');
+  const baseName = lastDotIndex > 0 ? title.substring(0, lastDotIndex) : title;
+  const extension = lastDotIndex > 0 ? title.substring(lastDotIndex) : '';
+
   // Evaluate formula calculations for table cells
   const evaluatedMarkdown =
     category === 'markdown' && activeFile
@@ -132,14 +137,25 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       {/* Top Floating Utility Bar (Fixed Header: Stays on top of content) */}
       <div className="absolute top-0 left-0 right-0 z-20 px-6 py-3 border-b border-white/10 bg-black/40 backdrop-blur-xl flex flex-col gap-2">
         <div className="flex items-center justify-between gap-4">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => onTitleChange(e.target.value)}
-            disabled={category !== 'markdown'}
-            placeholder="Filename..."
-            className="flex-1 min-w-0 text-lg font-bold font-editor-mono font-mono text-white bg-transparent focus:outline-none placeholder-zinc-600 disabled:opacity-70"
-          />
+          {/* Filename Input: Base name only is editable with auto-select on click; extension is semi-transparent */}
+          <div className="flex items-center flex-1 min-w-0">
+            <input
+              type="text"
+              value={baseName}
+              onChange={(e) => onTitleChange(`${e.target.value}${extension}`)}
+              onClick={(e) => (e.target as HTMLInputElement).select()}
+              onFocus={(e) => (e.target as HTMLInputElement).select()}
+              disabled={category !== 'markdown'}
+              placeholder="Filename"
+              className="text-lg font-bold font-editor-mono font-mono text-white bg-transparent focus:outline-none placeholder-zinc-600 disabled:opacity-70 max-w-full"
+              style={{ width: `${Math.max(baseName.length, 1) + 1}ch` }}
+            />
+            {extension && (
+              <span className="text-lg font-bold font-editor-mono font-mono text-white/40 select-none shrink-0 pointer-events-none">
+                {extension}
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center gap-2 shrink-0">
             {/* Layout Toggle: Limited Width vs Full Width */}

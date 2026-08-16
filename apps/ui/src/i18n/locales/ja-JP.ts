@@ -16,6 +16,7 @@ export const jaJP: typeof enUS = {
   loadingVaultTree: '暗号化ファイルツリーを読み込み中...',
   noFilesFound: 'ファイルが見つかりません',
   download: 'ダウンロード',
+  rename: '名前を変更',
   delete: '削除',
   deleting: '削除中...',
   cancel: 'キャンセル',

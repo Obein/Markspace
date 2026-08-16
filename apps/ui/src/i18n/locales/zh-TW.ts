@@ -16,6 +16,7 @@ export const zhTW: typeof enUS = {
   loadingVaultTree: '解密載入檔案樹中...',
   noFilesFound: '未找到相關檔案',
   download: '下載',
+  rename: '重新命名',
   delete: '刪除',
   deleting: '刪除中...',
   cancel: '取消',

@@ -14,6 +14,7 @@ export const enUS = {
   loadingVaultTree: 'Loading vault tree...',
   noFilesFound: 'No files found',
   download: 'Download',
+  rename: 'Rename',
   delete: 'Delete',
   deleting: 'Deleting...',
   cancel: 'Cancel',

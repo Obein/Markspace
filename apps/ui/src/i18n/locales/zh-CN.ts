@@ -16,6 +16,7 @@ export const zhCN: typeof enUS = {
   loadingVaultTree: '解密加载文件树中...',
   noFilesFound: '未找到相关文件',
   download: '下载',
+  rename: '重命名',
   delete: '删除',
   deleting: '删除中...',
   cancel: '取消',

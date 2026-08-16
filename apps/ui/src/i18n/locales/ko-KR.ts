@@ -16,6 +16,7 @@ export const koKR: typeof enUS = {
   loadingVaultTree: '암호화된 파일 트리를 불러오는 중...',
   noFilesFound: '파일을 찾을 수 없습니다',
   download: '다운로드',
+  rename: '이름 바꾸기',
   delete: '삭제',
   deleting: '삭제 중...',
   cancel: '취소',

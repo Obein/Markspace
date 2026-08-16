@@ -597,6 +597,53 @@ export const AppContent: React.FC = () => {
     }
   };
 
+  // Generic Node Renaming (File or Folder) for Context Menu
+  const handleRenameNode = async (nodeId: string, newFilename: string) => {
+    const targetNode = files.find((f) => f.id === nodeId);
+    if (!targetNode || !newFilename.trim() || targetNode.filename === newFilename.trim()) return;
+
+    const trimmedName = newFilename.trim();
+    const isDir = targetNode.mimeType === 'inode/directory';
+
+    // Compute new path in same directory
+    const lastSlash = targetNode.path.lastIndexOf('/');
+    const dirPrefix = lastSlash >= 0 ? targetNode.path.substring(0, lastSlash) : '';
+    const newPath = dirPrefix ? `${dirPrefix}/${trimmedName}` : trimmedName;
+
+    try {
+      await apiClient.moveVaultNode(nodeId, newPath);
+
+      setFiles((prev) =>
+        prev.map((f) => {
+          if (f.id === nodeId) {
+            return {
+              ...f,
+              name: trimmedName,
+              filename: trimmedName,
+              path: newPath,
+              updatedAt: Date.now(),
+            };
+          }
+          if (isDir && f.path.startsWith(`${targetNode.path}/`)) {
+            const childSubPath = f.path.substring(targetNode.path.length);
+            return {
+              ...f,
+              path: `${newPath}${childSubPath}`,
+            };
+          }
+          return f;
+        })
+      );
+
+      if (activeFileId === nodeId) {
+        setActiveTitle(trimmedName);
+      }
+    } catch (err) {
+      console.error('Failed to rename node', err);
+      showToast(err instanceof Error ? err.message : t('moveFileFailed'), 'error');
+    }
+  };
+
   // Delete active file
   const handleDeleteFile = async () => {
     if (activeFileId) {
@@ -630,7 +677,7 @@ export const AppContent: React.FC = () => {
             const inVault = files.filter((f) => f.vaultId === id && f.mimeType !== 'inode/directory');
             if (inVault.length > 0) {
               setActiveFileId(inVault[0].id);
-              setActiveTitle(inVault[0].name);
+              setActiveTitle(inVault[0].filename);
               setActiveContent(inVault[0].content);
             } else {
               setActiveFileId(null);
@@ -644,13 +691,13 @@ export const AppContent: React.FC = () => {
         />
       )}
 
-      {/* User Profile Modal (User Info & Language Settings) */}
+      {/* Step 3: User Profile & Security Settings Modal */}
       <UserProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
       />
 
-      {/* Dedicated Vault Settings Modal (Active Vault, Create Vault & Export Backup) */}
+      {/* Step 4: Vault Settings Modal */}
       <VaultSettingsModal
         isOpen={isVaultSettingsOpen}
         onClose={() => setIsVaultSettingsOpen(false)}
@@ -661,7 +708,7 @@ export const AppContent: React.FC = () => {
           const inVault = files.filter((f) => f.vaultId === id && f.mimeType !== 'inode/directory');
           if (inVault.length > 0) {
             setActiveFileId(inVault[0].id);
-            setActiveTitle(inVault[0].name);
+            setActiveTitle(inVault[0].filename);
             setActiveContent(inVault[0].content);
           } else {
             setActiveFileId(null);
@@ -675,7 +722,7 @@ export const AppContent: React.FC = () => {
         activeVaultNotes={activeNotesList}
       />
 
-      {/* Git Version History & Revert Modal */}
+      {/* Step 5: Version History Modal */}
       <VersionHistoryModal
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
@@ -707,6 +754,7 @@ export const AppContent: React.FC = () => {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             activeVault={activeVault}
+            onRenameNode={handleRenameNode}
             onDeleteNode={handleDeleteNodeByTargetId}
             onDownloadNode={handleDownloadNodeByTargetId}
             isLoadingVaultTree={isLoadingVaultTree}

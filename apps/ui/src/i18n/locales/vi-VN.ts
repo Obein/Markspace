@@ -16,6 +16,7 @@ export const viVN: typeof enUS = {
   loadingVaultTree: 'Đang tải cây tệp mã hóa...',
   noFilesFound: 'Không tìm thấy tệp nào',
   download: 'Tải Về',
+  rename: 'Đổi tên',
   delete: 'Xóa',
   deleting: 'Đang xóa...',
   cancel: 'Cancel',

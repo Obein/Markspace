@@ -16,6 +16,7 @@ export const deDE: typeof enUS = {
   loadingVaultTree: 'Verschlüsselter Dateibaum wird geladen...',
   noFilesFound: 'Keine Dateien gefunden',
   download: 'Herunterladen',
+  rename: 'Umbenennen',
   delete: 'Löschen',
   deleting: 'Wird gelöscht...',
   cancel: 'Abbrechen',
