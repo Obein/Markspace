@@ -28,6 +28,11 @@ function sanitizeFilename(title: string): string {
   return clean || 'note';
 }
 
+function normalizePath(pathStr: string): string {
+  const cleaned = pathStr.replace(/\\/g, '/').replace(/\/+/g, '/');
+  return cleaned.startsWith('/') ? cleaned : '/' + cleaned;
+}
+
 export const AppContent: React.FC = () => {
   const {
     cryptoService,
@@ -58,6 +63,7 @@ export const AppContent: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   // Operation Loading / Buffering States
+  const [isLoadingVaultTree, setIsLoadingVaultTree] = useState(false);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [isCreatingFolderLoading, setIsCreatingFolderLoading] = useState(false);
   const [isDeletingNodeId, setIsDeletingNodeId] = useState<string | null>(null);
@@ -88,6 +94,7 @@ export const AppContent: React.FC = () => {
 
     const fetchAndDecryptVaultTree = async () => {
       try {
+        setIsLoadingVaultTree(true);
         const treeNodes = await apiClient.getVaultTree();
         const decryptedList: VaultFileItem[] = [];
 
@@ -163,6 +170,8 @@ export const AppContent: React.FC = () => {
       } catch (err) {
         console.error('Failed to load Vault tree from backend', err);
         showToast('加载文件列表失败，请检查网络设置', 'error');
+      } finally {
+        setIsLoadingVaultTree(false);
       }
     };
 
@@ -471,7 +480,7 @@ export const AppContent: React.FC = () => {
         const dirPrefix = lastSlash >= 0 ? existing.path.substring(0, lastSlash) : '';
         const updatedPath = dirPrefix ? `${dirPrefix}/${updatedFilename}` : updatedFilename;
 
-        if (updatedPath !== existing.path) {
+        if (normalizePath(updatedPath) !== normalizePath(existing.path)) {
           await apiClient.moveVaultNode(activeFileId, updatedPath);
         }
 
@@ -639,6 +648,7 @@ export const AppContent: React.FC = () => {
             activeVault={activeVault}
             onDeleteNode={handleDeleteNodeByTargetId}
             onDownloadNode={handleDownloadNodeByTargetId}
+            isLoadingVaultTree={isLoadingVaultTree}
             isCreatingNote={isCreatingNote}
             isCreatingFolderLoading={isCreatingFolderLoading}
             isDeletingNodeId={isDeletingNodeId}

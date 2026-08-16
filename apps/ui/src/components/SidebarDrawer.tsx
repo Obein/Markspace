@@ -42,6 +42,7 @@ interface SidebarDrawerProps {
   onDownloadNode?: (nodeId: string) => void;
 
   // Operation Buffering / Loading States
+  isLoadingVaultTree?: boolean;
   isCreatingNote?: boolean;
   isCreatingFolderLoading?: boolean;
   isDeletingNodeId?: string | null;
@@ -73,6 +74,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
   activeVault,
   onDeleteNode,
   onDownloadNode,
+  isLoadingVaultTree = false,
   isCreatingNote = false,
   isCreatingFolderLoading = false,
   isDeletingNodeId = null,
@@ -477,7 +479,12 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
 
       {/* File Tree Items Area */}
       <div className="flex-1 overflow-y-auto p-3 space-y-1">
-        {fileTree.length > 0 ? (
+        {isLoadingVaultTree ? (
+          <div className="p-12 text-center text-zinc-400 text-xs font-mono space-y-3 flex flex-col items-center justify-center">
+            <Loader2 className="w-6 h-6 text-blue-400 animate-spin opacity-80" />
+            <p className="text-zinc-400 font-medium">Loading vault tree...</p>
+          </div>
+        ) : fileTree.length > 0 ? (
           renderTreeNodes(fileTree)
         ) : (
           <div className="p-8 text-center text-zinc-600 text-xs font-mono space-y-2">
