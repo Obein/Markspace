@@ -432,7 +432,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       {/* Physical Edge Drawer Pull Handle: 100% Flush to right edge */}
       <div
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute top-1/2 -translate-y-1/2 left-full z-50 flex items-center justify-center w-5 h-16 bg-[#09090B]/90 backdrop-blur-xl border border-white/20 border-l-0 rounded-r-xl cursor-pointer opacity-40 hover:opacity-100 active:opacity-100 transition-all duration-200 shadow-2xl hover:w-6 hover:bg-blue-600/30 group select-none"
+        className="absolute top-1/2 -translate-y-1/2 left-full z-50 flex items-center justify-center w-5 h-16 bg-[#09090B]/90 backdrop-blur-xl border border-white/20 border-l-0 rounded-r-xl cursor-pointer opacity-40 hover:opacity-100 active:opacity-100 transition-all duration-200 shadow-2xl group select-none"
         title={isCollapsed ? 'Expand Sidebar Drawer' : 'Collapse Sidebar Drawer'}
       >
         <div className="flex flex-col items-center justify-center gap-1">
