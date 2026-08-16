@@ -195,19 +195,35 @@ export class VaultService {
     const versionId = `ver_${crypto.randomUUID()}`;
     const versionObjectKey = `vault_versions/${userId}/${node.id}/${timestamp}`;
 
-    let size = 0;
+    let dataUint8: Uint8Array;
     if (typeof contentBlob === 'string') {
-      size = new TextEncoder().encode(contentBlob).byteLength;
-    } else if (contentBlob instanceof ArrayBuffer || contentBlob instanceof Uint8Array) {
-      size = contentBlob.byteLength;
+      dataUint8 = new TextEncoder().encode(contentBlob);
+    } else if (contentBlob instanceof Uint8Array) {
+      dataUint8 = contentBlob;
+    } else if (contentBlob instanceof ArrayBuffer) {
+      dataUint8 = new Uint8Array(contentBlob);
+    } else {
+      dataUint8 = new Uint8Array(0);
     }
 
-    // Generate SHA-1 git commit hash
-    const rawHeader = `commit ${size}\0${timestamp}`;
-    const enc = new TextEncoder().encode(rawHeader);
-    const hashBuffer = await crypto.subtle.digest('SHA-1', enc);
+    const size = dataUint8.byteLength;
+
+    // Standard Git Object format: "blob <size>\0<data>"
+    const header = new TextEncoder().encode(`blob ${size}\0`);
+    const fullBuffer = new Uint8Array(header.byteLength + size);
+    fullBuffer.set(header, 0);
+    fullBuffer.set(dataUint8, header.byteLength);
+
+    // Compute cryptographic SHA-1 Git commit/blob hash
+    const hashBuffer = await crypto.subtle.digest('SHA-1', fullBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const commitHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
+    // Git Clean Working Tree Check: If the latest version commit hash matches, skip duplicate commit
+    const existingVersions = await this.nodeRepo.listVersionsByNode(userId, node.id);
+    if (existingVersions.length > 0 && existingVersions[0].commitHash === commitHash) {
+      return;
+    }
 
     // Save encrypted payload blob in Object Storage
     await this.objectStorage.putObject(versionObjectKey, contentBlob, node.mimeType || 'text/markdown');

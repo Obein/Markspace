@@ -33,6 +33,7 @@ export const zhCN: typeof enUS = {
   unlock: '解锁',
 
   // Version Control & History
+  history: '历史记录',
   versionHistory: '版本历史记录',
   revert: '恢复此版本',
   reverting: '恢复中...',

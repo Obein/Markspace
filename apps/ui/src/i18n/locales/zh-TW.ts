@@ -33,6 +33,7 @@ export const zhTW: typeof enUS = {
   unlock: '解鎖',
 
   // Version Control & History
+  history: '歷史記錄',
   versionHistory: '版本歷史記錄',
   revert: '恢復此版本',
   reverting: '恢復中...',

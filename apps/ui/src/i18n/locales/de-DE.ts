@@ -33,6 +33,7 @@ export const deDE: typeof enUS = {
   unlock: 'Entschlüsseln',
 
   // Version Control & History
+  history: 'Verlauf',
   versionHistory: 'Versionsverlauf',
   revert: 'Wiederherstellen',
   reverting: 'Wiederherstellung...',

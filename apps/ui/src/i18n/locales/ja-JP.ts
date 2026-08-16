@@ -33,8 +33,9 @@ export const jaJP: typeof enUS = {
   unlock: '解除',
 
   // Version Control & History
+  history: '履歴',
   versionHistory: 'バージョン履歴',
-  revert: '復元',
+  revert: 'このバージョンを復元',
   reverting: '復元中...',
   noHistory: 'バージョン履歴はまだ記録されていません。',
   commitHash: 'Git Commit Hash',

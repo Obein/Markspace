@@ -33,6 +33,7 @@ export const koKR: typeof enUS = {
   unlock: '잠금 해제',
 
   // Version Control & History
+  history: '기록',
   versionHistory: '버전 기록',
   revert: '복원',
   reverting: '복원 중...',

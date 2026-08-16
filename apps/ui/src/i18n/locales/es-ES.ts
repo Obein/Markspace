@@ -33,8 +33,9 @@ export const esES: typeof enUS = {
   unlock: 'Desbloquear',
 
   // Version Control & History
-  versionHistory: 'Historial de Versiones',
-  revert: 'Restaurar',
+  history: 'Historial',
+  versionHistory: 'Historial de versiones',
+  revert: 'Revertir',
   reverting: 'Restaurando...',
   noHistory: 'No hay historial de versiones guardado aún.',
   commitHash: 'Git Commit Hash',

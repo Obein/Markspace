@@ -9,6 +9,7 @@ import {
   Folder,
   FolderOpen,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   Upload,
   Image as ImageIcon,
@@ -86,6 +87,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
 }) => {
   const { t } = useI18n();
 
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
@@ -355,174 +357,201 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`w-80 h-full glass-panel rounded-glass-lg border flex flex-col overflow-hidden shrink-0 shadow-2xl relative z-10 transition-all duration-300 ${
-        isDragOver ? 'border-blue-500 bg-blue-500/10 ring-4 ring-blue-500/20' : 'border-white/10'
+      style={{
+        transform: isCollapsed ? 'translateX(calc(-100% + 14px))' : 'translateX(0)',
+        marginRight: isCollapsed ? 'calc(-20rem + 14px)' : '0',
+      }}
+      className={`w-80 h-full glass-panel rounded-glass-lg border border-white/10 flex flex-col shrink-0 shadow-2xl relative z-30 transition-all duration-300 ease-in-out select-none ${
+        !isCollapsed && isDragOver ? 'border-blue-500 bg-blue-500/10 ring-4 ring-blue-500/20' : ''
       }`}
     >
-      {/* Hidden File Input */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileInputChange}
-        multiple
-        className="hidden"
-      />
+      {/* Drawer Middle Outer Handle: Seamlessly attached to right border (0px gap), translates 1:1 with drawer */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        onTouchStart={(e) => e.stopPropagation()}
+        className="absolute top-1/2 -translate-y-1/2 left-full z-50 w-5 h-20 bg-zinc-900/90 hover:bg-zinc-800/95 active:bg-zinc-700/95 border-t border-r border-b border-white/20 rounded-r-2xl backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center opacity-40 hover:opacity-100 active:opacity-100 focus:opacity-100 transition-opacity duration-200 cursor-pointer group select-none"
+        title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+        aria-label={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+      >
+        <div className="w-0.5 h-6 bg-zinc-500/50 group-hover:bg-blue-400 group-hover:h-8 transition-all duration-200 rounded-full mb-1" />
+        {isCollapsed ? (
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-blue-400 group-hover:scale-110 transition-transform shrink-0" />
+        ) : (
+          <ChevronLeft className="w-3.5 h-3.5 text-zinc-400 group-hover:text-blue-400 group-hover:scale-110 transition-transform shrink-0" />
+        )}
+      </button>
 
-      {/* Vault Header & Action Buttons */}
-      <div className="p-4 border-b border-white/10 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
-              <Database className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-white font-mono truncate max-w-[140px]">
-                {activeVault ? activeVault.name : t('mainVault')}
-              </h2>
-              <p className="text-[11px] text-zinc-500 font-mono flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                {t('encryptedVault')}
-              </p>
-            </div>
-          </div>
+      {/* Internal Content Container: Fixed uncompressed structure */}
+      <div
+        className={`w-full h-full flex flex-col overflow-hidden transition-opacity duration-200 ${
+          isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
+        {/* Hidden File Input */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileInputChange}
+          multiple
+          className="hidden"
+        />
 
-          <div className="flex items-center gap-1">
-            {onOpenVaultSettings && (
+        {/* Vault Header & Action Buttons */}
+        <div className="p-4 border-b border-white/10 space-y-3 shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                <Database className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-white font-mono truncate max-w-[140px]">
+                  {activeVault ? activeVault.name : t('mainVault')}
+                </h2>
+                <p className="text-[11px] text-zinc-500 font-mono flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  {t('encryptedVault')}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1">
+              {onOpenVaultSettings && (
+                <button
+                  onClick={onOpenVaultSettings}
+                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition border border-white/10"
+                  title={t('vaultSettings')}
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
+                </button>
+              )}
               <button
-                onClick={onOpenVaultSettings}
+                onClick={onLockVault}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition border border-white/10"
-                title={t('vaultSettings')}
+                title={t('lockVault')}
               >
-                <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
+                <Lock className="w-3.5 h-3.5" />
               </button>
-            )}
-            <button
-              onClick={onLockVault}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition border border-white/10"
-              title={t('lockVault')}
-            >
-              <Lock className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={onLogoutAccount}
-              className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition border border-red-500/20"
-              title={t('logoutAccount')}
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
+              <button
+                onClick={onLogoutAccount}
+                className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition border border-red-500/20"
+                title={t('logoutAccount')}
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Action Toolbar: New Note (Text) & New Dir (Icon-Only No Text) */}
-        <div className="flex items-center gap-2 pt-1">
-          <button
-            onClick={onCreateNote}
-            disabled={isCreatingNote}
-            className="flex-1 py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white text-xs font-medium font-mono flex items-center justify-center gap-1.5 transition shadow-lg shadow-blue-500/20 disabled:cursor-not-allowed"
-          >
-            {isCreatingNote ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Plus className="w-3.5 h-3.5" />
-            )}
-            <span>{t('newNote')}</span>
-          </button>
-
-          <button
-            onClick={() => setIsCreatingFolder(true)}
-            disabled={isCreatingFolderLoading}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:bg-white/5 text-zinc-300 hover:text-white transition border border-white/10 flex items-center justify-center shrink-0 disabled:cursor-not-allowed"
-            title={t('createDirectory')}
-          >
-            {isCreatingFolderLoading ? (
-              <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
-            ) : (
-              <FolderPlus className="w-4 h-4 text-blue-400" />
-            )}
-          </button>
-        </div>
-
-        {/* Inline Create Folder Input Form */}
-        {isCreatingFolder && (
-          <form onSubmit={handleCreateFolderSubmit} className="flex items-center gap-1.5 pt-1">
-            <input
-              type="text"
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder="folder_name"
-              className="flex-1 px-3 py-1.5 rounded-xl bg-white/5 border border-blue-500/50 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none"
-              autoFocus
-            />
+          {/* Action Toolbar: New Note (Text) & New Dir (Icon-Only No Text) */}
+          <div className="flex items-center gap-2 pt-1">
             <button
-              type="submit"
-              disabled={isCreatingFolderLoading}
-              className="p-1.5 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition disabled:bg-blue-600/50 disabled:cursor-not-allowed flex items-center justify-center"
-              title={t('confirm')}
+              onClick={onCreateNote}
+              disabled={isCreatingNote}
+              className="flex-1 py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white text-xs font-medium font-mono flex items-center justify-center gap-1.5 transition shadow-lg shadow-blue-500/20 disabled:cursor-not-allowed"
             >
-              {isCreatingFolderLoading ? (
+              {isCreatingNote ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <Check className="w-3.5 h-3.5" />
+                <Plus className="w-3.5 h-3.5" />
+              )}
+              <span>{t('newNote')}</span>
+            </button>
+
+            <button
+              onClick={() => setIsCreatingFolder(true)}
+              disabled={isCreatingFolderLoading}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:bg-white/5 text-zinc-300 hover:text-white transition border border-white/10 flex items-center justify-center shrink-0 disabled:cursor-not-allowed"
+              title={t('createDirectory')}
+            >
+              {isCreatingFolderLoading ? (
+                <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+              ) : (
+                <FolderPlus className="w-4 h-4 text-blue-400" />
               )}
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsCreatingFolder(false);
-                setNewFolderName('');
-              }}
-              className="p-1.5 rounded-xl bg-white/5 text-zinc-400 hover:text-white transition"
-              title={t('cancel')}
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </form>
-        )}
-
-        {/* Search Bar Input */}
-        <div className="relative pt-1">
-          <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-3.5" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={t('searchPlaceholder')}
-            className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500/50 transition"
-          />
-        </div>
-      </div>
-
-      {/* File Tree Items Area */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-1">
-        {isLoadingVaultTree ? (
-          <div className="p-12 text-center text-zinc-400 text-xs font-mono space-y-3 flex flex-col items-center justify-center">
-            <Loader2 className="w-6 h-6 text-blue-400 animate-spin opacity-80" />
-            <p className="text-zinc-400 font-medium">{t('loadingVaultTree')}</p>
           </div>
-        ) : fileTree.length > 0 ? (
-          renderTreeNodes(fileTree)
-        ) : (
-          <div className="p-8 text-center text-zinc-600 text-xs font-mono space-y-2">
-            <FileText className="w-8 h-8 opacity-20 mx-auto" />
-            <p>{t('noFilesFound')}</p>
-          </div>
-        )}
-      </div>
 
-      {/* Panel Footer: Add File Button */}
-      <div className="p-3 border-t border-white/10 bg-white/[0.02]">
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isUploadingFiles}
-          className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 disabled:bg-white/5 text-zinc-300 hover:text-white text-xs font-medium font-mono flex items-center justify-center gap-2 transition border border-white/10 disabled:cursor-not-allowed"
-        >
-          {isUploadingFiles ? (
-            <Loader2 className="w-3.5 h-3.5 text-blue-400 animate-spin" />
-          ) : (
-            <Upload className="w-3.5 h-3.5 text-blue-400" />
+          {/* Inline Create Folder Input Form */}
+          {isCreatingFolder && (
+            <form onSubmit={handleCreateFolderSubmit} className="flex items-center gap-1.5 pt-1">
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="folder_name"
+                className="flex-1 px-3 py-1.5 rounded-xl bg-white/5 border border-blue-500/50 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none"
+                autoFocus
+              />
+              <button
+                type="submit"
+                disabled={isCreatingFolderLoading}
+                className="p-1.5 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition disabled:bg-blue-600/50 disabled:cursor-not-allowed flex items-center justify-center"
+                title={t('confirm')}
+              >
+                {isCreatingFolderLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Check className="w-3.5 h-3.5" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCreatingFolder(false);
+                  setNewFolderName('');
+                }}
+                className="p-1.5 rounded-xl bg-white/5 text-zinc-400 hover:text-white transition"
+                title={t('cancel')}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </form>
           )}
-          <span>{isUploadingFiles ? t('uploading') : t('addFileMedia')}</span>
-        </button>
+
+          {/* Search Bar Input */}
+          <div className="relative pt-1">
+            <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-3.5" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder={t('searchPlaceholder')}
+              className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500/50 transition"
+            />
+          </div>
+        </div>
+
+        {/* File Tree Items Area */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-1">
+          {isLoadingVaultTree ? (
+            <div className="p-12 text-center text-zinc-400 text-xs font-mono space-y-3 flex flex-col items-center justify-center">
+              <Loader2 className="w-6 h-6 text-blue-400 animate-spin opacity-80" />
+              <p className="text-zinc-400 font-medium">{t('loadingVaultTree')}</p>
+            </div>
+          ) : fileTree.length > 0 ? (
+            renderTreeNodes(fileTree)
+          ) : (
+            <div className="p-8 text-center text-zinc-600 text-xs font-mono space-y-2">
+              <FileText className="w-8 h-8 opacity-20 mx-auto" />
+              <p>{t('noFilesFound')}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Panel Footer: Add File Button */}
+        <div className="p-3 border-t border-white/10 bg-white/[0.02] shrink-0">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploadingFiles}
+            className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 disabled:bg-white/5 text-zinc-300 hover:text-white text-xs font-medium font-mono flex items-center justify-center gap-2 transition border border-white/10 disabled:cursor-not-allowed"
+          >
+            {isUploadingFiles ? (
+              <Loader2 className="w-3.5 h-3.5 text-blue-400 animate-spin" />
+            ) : (
+              <Upload className="w-3.5 h-3.5 text-blue-400" />
+            )}
+            <span>{isUploadingFiles ? t('uploading') : t('addFileMedia')}</span>
+          </button>
+        </div>
       </div>
 
       {/* Right-Click & Touch Long-Press Floating Context Menu */}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Edit3, Sun, Moon, Crown, Lock, User, Download, Trash2 } from 'lucide-react';
+import { Eye, Edit3, Sun, Moon, Crown, Lock, User, Download, Trash2, History } from 'lucide-react';
 import { useI18n } from '../i18n/i18nContext';
 import { UserRole } from '../interfaces/IApiClient';
 
@@ -20,6 +20,7 @@ interface FloatingStatusCapsuleProps {
   isSaving: boolean;
   onDownloadCurrentFile?: () => void;
   onDeleteCurrentFile?: () => void;
+  onOpenHistory?: () => void;
 }
 
 export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
@@ -39,6 +40,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   isSaving,
   onDownloadCurrentFile,
   onDeleteCurrentFile,
+  onOpenHistory,
 }) => {
   const { t } = useI18n();
   const hasSelection = selectedCharCount > 0;
@@ -121,13 +123,28 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
             )}
           </div>
 
+          {/* Version History Button */}
+          {onOpenHistory && (
+            <>
+              <div className="w-px h-4 bg-white/10 shrink-0" />
+              <button
+                onClick={onOpenHistory}
+                className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 transition flex items-center gap-1.5 shrink-0"
+                title={t('versionHistory')}
+              >
+                <History className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                <span className="text-[11px] font-medium whitespace-nowrap">{t('history')}</span>
+              </button>
+            </>
+          )}
+
           {/* File Download Button */}
           {onDownloadCurrentFile && (
             <>
               <div className="w-px h-4 bg-white/10 shrink-0" />
               <button
                 onClick={onDownloadCurrentFile}
-                className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 transition flex items-center gap-1.5 shrink-0"
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition flex items-center gap-1.5 shrink-0"
                 title="Download Current File"
               >
                 <Download className="w-3.5 h-3.5 text-blue-400 shrink-0" />

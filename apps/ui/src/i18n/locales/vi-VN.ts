@@ -33,8 +33,9 @@ export const viVN: typeof enUS = {
   unlock: 'Mở Khóa',
 
   // Version Control & History
-  versionHistory: 'Lịch Sử Phiên Bản',
-  revert: 'Khôi Phục',
+  history: 'Lịch sử',
+  versionHistory: 'Lịch sử phiên bản',
+  revert: 'Khôi phục',
   reverting: 'Đang khôi phục...',
   noHistory: 'Chưa có lịch sử phiên bản nào.',
   commitHash: 'Git Commit Hash',

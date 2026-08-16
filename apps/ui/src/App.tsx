@@ -465,28 +465,36 @@ export const AppContent: React.FC = () => {
     }
   };
 
-  // Auto-save active file payload changes into R2 Object Storage
+  // Auto-save active file payload changes into R2 Object Storage (only when modified)
   useEffect(() => {
     if (!activeFileId || !cmk || !isVaultUnlocked || activeFile?.category !== 'markdown') return;
+
+    const existing = files.find((f) => f.id === activeFileId);
+    if (!existing) return;
+
+    // Git-diff check: If content and title are unchanged, skip auto-saving completely
+    if (existing.name === activeTitle && existing.content === activeContent) {
+      return;
+    }
 
     const timer = setTimeout(async () => {
       try {
         setIsSaving(true);
-        const existing = files.find((f) => f.id === activeFileId);
-        if (!existing) return;
+        const currentTarget = files.find((f) => f.id === activeFileId);
+        if (!currentTarget) return;
 
         const updatedFilename = getUniqueFilename(activeTitle, '.md', activeFileId);
-        const dek = await cryptoService.unwrapDEK(existing.encryptedDek, cmk);
+        const dek = await cryptoService.unwrapDEK(currentTarget.encryptedDek, cmk);
         const encryptedPayload = await cryptoService.encryptText(activeContent, dek);
 
         await apiClient.updateVaultNodeContent(activeFileId, encryptedPayload, 'text/markdown');
 
         // Preserve current directory folder path
-        const lastSlash = existing.path.lastIndexOf('/');
-        const dirPrefix = lastSlash >= 0 ? existing.path.substring(0, lastSlash) : '';
+        const lastSlash = currentTarget.path.lastIndexOf('/');
+        const dirPrefix = lastSlash >= 0 ? currentTarget.path.substring(0, lastSlash) : '';
         const updatedPath = dirPrefix ? `${dirPrefix}/${updatedFilename}` : updatedFilename;
 
-        if (normalizePath(updatedPath) !== normalizePath(existing.path)) {
+        if (normalizePath(updatedPath) !== normalizePath(currentTarget.path)) {
           await apiClient.moveVaultNode(activeFileId, updatedPath);
         }
 
@@ -709,7 +717,6 @@ export const AppContent: React.FC = () => {
               onContentChange={setActiveContent}
               isPreview={isPreview}
               onDownloadFile={handleDownloadActiveFile}
-              onOpenHistory={() => setIsHistoryOpen(true)}
               onSelectionStatsChange={(selWords, selChars) => {
                 setSelectedWordCount(selWords);
                 setSelectedCharCount(selChars);
@@ -731,6 +738,7 @@ export const AppContent: React.FC = () => {
               isDark={isDark}
               onToggleTheme={() => setIsDark(!isDark)}
               isSaving={isSaving}
+              onOpenHistory={() => setIsHistoryOpen(true)}
               onDownloadCurrentFile={handleDownloadActiveFile}
               onDeleteCurrentFile={handleDeleteFile}
             />

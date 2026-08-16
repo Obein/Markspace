@@ -31,6 +31,7 @@ export const enUS = {
   unlock: 'Unlock',
 
   // Version Control & History
+  history: 'History',
   versionHistory: 'Version History',
   revert: 'Revert',
   reverting: 'Reverting...',

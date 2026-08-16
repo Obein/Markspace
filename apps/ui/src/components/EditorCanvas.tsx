@@ -16,7 +16,6 @@ import {
   Calculator,
   Maximize2,
   Minimize2,
-  History,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { VaultFileItem } from '../interfaces/INoteModels';
@@ -29,7 +28,6 @@ interface EditorCanvasProps {
   onContentChange: (content: string) => void;
   isPreview: boolean;
   onDownloadFile: () => void;
-  onOpenHistory?: () => void;
   onSelectionStatsChange?: (selectedWords: number, selectedChars: number) => void;
 }
 
@@ -41,7 +39,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   onContentChange,
   isPreview,
   onDownloadFile,
-  onOpenHistory,
   onSelectionStatsChange,
 }) => {
   const { sheetEngine, highlightService } = useApp();
@@ -145,18 +142,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           />
 
           <div className="flex items-center gap-2 shrink-0">
-            {/* Version History Button */}
-            {onOpenHistory && (
-              <button
-                onClick={onOpenHistory}
-                className="p-1.5 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition flex items-center gap-1.5 text-xs font-editor-mono font-mono border border-white/10 cursor-pointer"
-                title="Version History"
-              >
-                <History className="w-3.5 h-3.5 text-blue-400" />
-                <span className="hidden sm:inline font-medium">History</span>
-              </button>
-            )}
-
             {/* Layout Toggle: Limited Width vs Full Width */}
             <button
               onClick={() => setIsFullWidth(!isFullWidth)}
