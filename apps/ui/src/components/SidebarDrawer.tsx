@@ -97,6 +97,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
 
   // Floating Context Menu State for Right-Click & Touch Long-Press
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const [confirmDeleteNodeId, setConfirmDeleteNodeId] = useState<string | null>(null);
   const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -220,6 +221,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
     const x = Math.min(e.clientX, window.innerWidth - 200);
     const y = Math.min(e.clientY, window.innerHeight - 160);
 
+    setConfirmDeleteNodeId(null);
     setContextMenu({
       x,
       y,
@@ -250,6 +252,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       const x = Math.min(clientX, window.innerWidth - 200);
       const y = Math.min(clientY, window.innerHeight - 160);
 
+      setConfirmDeleteNodeId(null);
       setContextMenu({
         x,
         y,
@@ -592,24 +595,45 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
               <span>{t('download')}</span>
             </button>
 
-            <button
-              onClick={() => {
-                const targetId = contextMenu.nodeId;
-                setContextMenu(null);
-                if (onDeleteNode) {
-                  onDeleteNode(targetId);
-                }
-              }}
-              disabled={isDeletingNodeId === contextMenu.nodeId}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isDeletingNodeId === contextMenu.nodeId ? (
-                <Loader2 className="w-3.5 h-3.5 text-red-400 animate-spin" />
-              ) : (
-                <Trash2 className="w-3.5 h-3.5 text-red-400" />
-              )}
-              <span>{isDeletingNodeId === contextMenu.nodeId ? t('deleting') : t('delete')}</span>
-            </button>
+            {confirmDeleteNodeId === contextMenu.nodeId ? (
+              <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/30 space-y-1.5 my-1 animate-in fade-in duration-100">
+                <p className="text-[11px] text-red-300 font-medium">{t('confirmDelete')}</p>
+                <div className="flex items-center gap-1.5 justify-end pt-0.5">
+                  <button
+                    onClick={() => {
+                      const targetId = contextMenu.nodeId;
+                      setContextMenu(null);
+                      setConfirmDeleteNodeId(null);
+                      if (onDeleteNode) {
+                        onDeleteNode(targetId);
+                      }
+                    }}
+                    className="px-2.5 py-1 rounded bg-red-600 hover:bg-red-500 text-white text-[10px] font-semibold transition shadow-sm"
+                  >
+                    {t('confirm')}
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteNodeId(null)}
+                    className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/15 text-zinc-300 text-[10px] transition"
+                  >
+                    {t('cancel')}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmDeleteNodeId(contextMenu.nodeId)}
+                disabled={isDeletingNodeId === contextMenu.nodeId}
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeletingNodeId === contextMenu.nodeId ? (
+                  <Loader2 className="w-3.5 h-3.5 text-red-400 animate-spin" />
+                ) : (
+                  <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                )}
+                <span>{isDeletingNodeId === contextMenu.nodeId ? t('deleting') : t('delete')}</span>
+              </button>
+            )}
           </div>
         </div>
       )}
