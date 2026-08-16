@@ -5,6 +5,8 @@ export const jaJP: typeof enUS = {
   mainVault: 'メイン保管庫',
   encryptedVault: 'エンドツーエンド暗号化保管庫',
   lockVault: '保管庫をロック',
+  vaultSettings: '保管庫設定',
+  exportVault: '保管庫をエクスポート',
   logoutAccount: 'ログアウト',
   newNote: '新規ノート',
   createDirectory: 'フォルダ作成',
@@ -30,13 +32,21 @@ export const jaJP: typeof enUS = {
   unlocking: '解除中...',
   unlock: '解除',
 
-  // Settings & Profile
+  // Settings & Profile & Audit Logs
   userProfile: 'ユーザープロフィールと設定',
   language: '言語',
   switchLanguage: '言語を切り替え',
   activeVault: '現在の保管庫',
   createVault: '新規保管庫を作成',
   vaultName: '保管庫名',
+  securityAudit: 'セキュリティ監査ログ',
+  auditLogTitle: 'アクティビティとゼロトラストセキュリティ監査ログ',
+  noAuditLogs: '監査ログはまだ記録されていません',
+  authMethod: '認証方式',
+  ipAddress: 'IPアドレス',
+  timestamp: '日時',
+  status: 'ステータス',
+  action: '操作',
 
   // Status Capsule & Editor
   words: '単語数',

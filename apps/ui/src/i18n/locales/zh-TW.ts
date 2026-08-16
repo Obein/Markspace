@@ -5,6 +5,8 @@ export const zhTW: typeof enUS = {
   mainVault: '主保險庫',
   encryptedVault: '端到端加密保險庫',
   lockVault: '鎖定保險庫',
+  vaultSettings: '保險庫設定',
+  exportVault: '匯出保險庫',
   logoutAccount: '登出帳號',
   newNote: '新增筆記',
   createDirectory: '新增資料夾',
@@ -30,13 +32,21 @@ export const zhTW: typeof enUS = {
   unlocking: '解密中...',
   unlock: '解鎖',
 
-  // Settings & Profile
+  // Settings & Profile & Audit Logs
   userProfile: '個人中心與設定',
   language: '語言設定',
   switchLanguage: '切換語言',
   activeVault: '目前保險庫',
   createVault: '新增保險庫',
   vaultName: '保險庫名稱',
+  securityAudit: '安全審計日誌',
+  auditLogTitle: '使用者活動與零信任安全審計日誌',
+  noAuditLogs: '暫無安全審計日誌記錄',
+  authMethod: '認證方式',
+  ipAddress: 'IP 地址',
+  timestamp: '時間',
+  status: '狀態',
+  action: '操作事件',
 
   // Status Capsule & Editor
   words: '字數',

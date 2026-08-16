@@ -49,6 +49,12 @@ export class Router {
     this.addRoute('POST', '/api/v1/auth/login', false, false, (container, ctx) =>
       container.authController.login(ctx)
     );
+    this.addRoute('POST', '/api/v1/auth/logout', true, false, (container, ctx) =>
+      container.authController.logout(ctx)
+    );
+    this.addRoute('GET', '/api/v1/auth/audit-logs', true, false, (container, ctx) =>
+      container.authController.getAuditLogs(ctx)
+    );
 
     // 2. Note Endpoints (Protected)
     this.addRoute('GET', '/api/v1/notes', true, false, (container, ctx) =>
@@ -74,22 +80,16 @@ export class Router {
     this.addRoute('PUT', '/api/v1/media/:id/content', true, false, (container, ctx) =>
       container.mediaController.uploadContent(ctx)
     );
-    this.addRoute('GET', '/api/v1/media/:id', true, false, (container, ctx) =>
+    this.addRoute('GET', '/api/v1/media/:id/content', true, false, (container, ctx) =>
       container.mediaController.getMedia(ctx)
     );
 
-    // 4. Vault File System & Object Storage Endpoints (Protected)
+    // 4. Object Storage & Vault Node Tree Endpoints (Protected)
     this.addRoute('GET', '/api/v1/vault/tree', true, false, (container, ctx) =>
       container.vaultController.getTree(ctx)
     );
     this.addRoute('POST', '/api/v1/vault/nodes', true, false, (container, ctx) =>
       container.vaultController.createNode(ctx)
-    );
-    this.addRoute('POST', '/api/v1/vault/nodes/move', true, false, (container, ctx) =>
-      container.vaultController.moveNode(ctx)
-    );
-    this.addRoute('GET', '/api/v1/vault/nodes/:id', true, false, (container, ctx) =>
-      container.vaultController.getNode(ctx)
     );
     this.addRoute('GET', '/api/v1/vault/nodes/:id/content', true, false, (container, ctx) =>
       container.vaultController.getContent(ctx)
@@ -100,8 +100,11 @@ export class Router {
     this.addRoute('DELETE', '/api/v1/vault/nodes/:id', true, false, (container, ctx) =>
       container.vaultController.deleteNode(ctx)
     );
+    this.addRoute('POST', '/api/v1/vault/nodes/move', true, false, (container, ctx) =>
+      container.vaultController.moveNode(ctx)
+    );
 
-    // 5. Admin Endpoints (Protected + Admin Only)
+    // 5. Admin Management Endpoints (Admin Only)
     this.addRoute('GET', '/api/v1/admin/users', true, true, (container, ctx) =>
       container.adminController.listUsers(ctx)
     );
@@ -118,15 +121,14 @@ export class Router {
     handler: (container: ServiceContainer, ctx: RequestContext) => Promise<Response>
   ): void {
     const paramNames: string[] = [];
-    const regexPath = path.replace(/:([a-zA-Z0-9_]+)/g, (_, key) => {
-      paramNames.push(key);
+    const patternString = path.replace(/:([a-zA-Z0-9_]+)/g, (_, paramName) => {
+      paramNames.push(paramName);
       return '([^/]+)';
     });
 
-    const pattern = new RegExp(`^${regexPath}$`);
     this.routes.push({
-      method: method.toUpperCase(),
-      pattern,
+      method,
+      pattern: new RegExp(`^${patternString}$`),
       paramNames,
       requiresAuth,
       requiresAdmin,
@@ -134,96 +136,89 @@ export class Router {
     });
   }
 
-  async handle(request: Request, env: Env): Promise<Response> {
+  public async handle(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    const pathname = url.pathname;
-    const method = request.method.toUpperCase();
+    const path = url.pathname;
+    const method = request.method;
 
-    // Global CORS Preflight
     if (method === 'OPTIONS') {
-      const responseHeaders = new Headers({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, DPoP, X-Auth-Nonce, X-Encrypted-DEK',
-        'Access-Control-Expose-Headers': 'X-Encrypted-DEK, X-File-Name, DPoP-Nonce',
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Max-Age': '86400',
-      });
-      SecurityHeadersMiddleware.apply(responseHeaders);
-
-      return new Response(null, {
-        status: 204,
-        headers: responseHeaders,
-      });
+      return this.handleCorsOptions();
     }
 
-    const container = new ServiceContainer(env);
+    try {
+      for (const route of this.routes) {
+        if (route.method !== method) continue;
 
-    for (const route of this.routes) {
-      if (route.method !== method) continue;
+        const match = path.match(route.pattern);
+        if (!match) continue;
 
-      const match = pathname.match(route.pattern);
-      if (match) {
         const params: Record<string, string> = {};
-        route.paramNames.forEach((name, idx) => {
-          params[name] = decodeURIComponent(match[idx + 1]);
+        route.paramNames.forEach((name, index) => {
+          params[name] = match[index + 1];
         });
 
-        let ctx: RequestContext = {
+        const ctx: RequestContext = {
           request,
           env,
           params,
         };
 
-        try {
-          // Optional DPoP Proof Verification if DPoP Header Present
-          const dpopHeader = request.headers.get('DPoP');
-          if (dpopHeader) {
-            await DPoPVerifier.verifyProof(dpopHeader, method, pathname);
-          }
+        const container = new ServiceContainer(env);
 
-          if (route.requiresAuth) {
-            const authMiddleware = new AuthMiddleware(container.tokenService);
-            ctx = await authMiddleware.authenticate(ctx);
+        // Security headers & zero-trust checks
+        const dpopProof = request.headers.get('DPoP');
+        if (dpopProof) {
+          try {
+            await DPoPVerifier.verifyProof(dpopProof, method, path);
+          } catch (dpopErr) {
+            console.warn('DPoP proof verification warning:', dpopErr);
           }
+        }
+
+        if (route.requiresAuth) {
+          const authMiddleware = new AuthMiddleware(container.tokenService);
+          const authedCtx = await authMiddleware.authenticate(ctx);
+          Object.assign(ctx, authedCtx);
 
           if (route.requiresAdmin) {
             AdminMiddleware.authorize(ctx);
           }
-
-          const response = await route.handler(container, ctx);
-
-          const headers = new Headers(response.headers);
-          headers.set('Access-Control-Allow-Origin', '*');
-          headers.set('Access-Control-Expose-Headers', 'X-Encrypted-DEK, X-File-Name, DPoP-Nonce');
-          headers.set('Access-Control-Allow-Credentials', 'true');
-
-          // Apply Security Headers (COOP, COEP, CSP, etc.)
-          SecurityHeadersMiddleware.apply(headers);
-
-          return new Response(response.body, {
-            status: response.status,
-            statusText: response.statusText,
-            headers,
-          });
-        } catch (error) {
-          const errRes = ErrorHandler.handle(error);
-          const errHeaders = new Headers(errRes.headers);
-          SecurityHeadersMiddleware.apply(errHeaders);
-          return new Response(errRes.body, {
-            status: errRes.status,
-            statusText: errRes.statusText,
-            headers: errHeaders,
-          });
         }
+
+        const response = await route.handler(container, ctx);
+        return SecurityHeadersMiddleware.applyHeaders(response);
       }
-    }
 
-    // Static Asset Fallback
-    if (env.ASSETS && !pathname.startsWith('/api/')) {
-      return env.ASSETS.fetch(request);
+      return SecurityHeadersMiddleware.applyHeaders(
+        new Response(
+          JSON.stringify({
+            success: false,
+            error: { code: 'NOT_FOUND', message: `Route not found: ${method} ${path}` },
+            timestamp: new Date().toISOString(),
+          }),
+          {
+            status: 404,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        )
+      );
+    } catch (error) {
+      const response = ErrorHandler.handle(error);
+      return SecurityHeadersMiddleware.applyHeaders(response);
     }
+  }
 
-    return ErrorHandler.handle(new Error('NOT_FOUND: Endpoint not found'));
+  private handleCorsOptions(): Response {
+    return SecurityHeadersMiddleware.applyHeaders(
+      new Response(null, {
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, DPoP, X-Nonce',
+          'Access-Control-Allow-Credentials': 'true',
+        },
+      })
+    );
   }
 }

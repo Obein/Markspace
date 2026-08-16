@@ -5,6 +5,8 @@ export const viVN: typeof enUS = {
   mainVault: 'Kho Lưu Trữ Chính',
   encryptedVault: 'Kho Lưu Trữ Mã Hóa Đầu Cuối',
   lockVault: 'Khóa Kho',
+  vaultSettings: 'Cài Đặt Kho',
+  exportVault: 'Xuất Kho',
   logoutAccount: 'Đăng Xuất',
   newNote: 'Ghi Chú Mới',
   createDirectory: 'Tạo Thư Mục',
@@ -30,13 +32,21 @@ export const viVN: typeof enUS = {
   unlocking: 'Đang mở khóa...',
   unlock: 'Mở Khóa',
 
-  // Settings & Profile
+  // Settings & Profile & Audit Logs
   userProfile: 'Hồ Sơ Nguời Dùng & Cài Đặt',
   language: 'Ngôn Ngữ',
   switchLanguage: 'Đổi Ngôn Ngữ',
   activeVault: 'Kho Hiện Tại',
   createVault: 'Tạo Kho Mới',
   vaultName: 'Tên Kho',
+  securityAudit: 'Nhật Ký Kiểm Toán An Ninh',
+  auditLogTitle: 'Nhật Ký Hoạt Động & Kiểm Toán An Ninh Zero-Trust',
+  noAuditLogs: 'Chưa có nhật ký kiểm toán nào.',
+  authMethod: 'Phương Thức Xác Thực',
+  ipAddress: 'Địa Chỉ IP',
+  timestamp: 'Thời Gian',
+  status: 'Trạng Thái',
+  action: 'Hành Động',
 
   // Status Capsule & Editor
   words: 'Số Từ',

@@ -7,4 +7,9 @@ export class SecurityHeadersMiddleware {
     headers.set('X-Content-Type-Options', 'nosniff');
     headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   }
+
+  public static applyHeaders(response: Response): Response {
+    this.apply(response.headers);
+    return response;
+  }
 }

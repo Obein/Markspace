@@ -1,5 +1,5 @@
 import { DPoPSigner } from '../crypto/DPoPSigner';
-import { AuthResponse, IApiClient, VaultNodeResponse } from '../interfaces/IApiClient';
+import { AuditLogResponse, AuthResponse, IApiClient, VaultNodeResponse } from '../interfaces/IApiClient';
 import { FileCategory, NoteItem, NoteMetadataItem } from '../interfaces/INoteModels';
 
 export class ApiClient implements IApiClient {
@@ -87,6 +87,20 @@ export class ApiClient implements IApiClient {
     });
     this.setToken(data.token);
     return data;
+  }
+
+  async logout(): Promise<void> {
+    try {
+      await this.request<{ message: string }>('/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.warn('Failed to record logout on backend', err);
+    } finally {
+      this.setToken('');
+    }
+  }
+
+  async getAuditLogs(): Promise<AuditLogResponse[]> {
+    return this.request<AuditLogResponse[]>('/auth/audit-logs', { method: 'GET' });
   }
 
   // Vault Tree & Object Storage API

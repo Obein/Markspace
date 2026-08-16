@@ -5,6 +5,8 @@ export const koKR: typeof enUS = {
   mainVault: '메인 금고',
   encryptedVault: '종단간 암호화 금고',
   lockVault: '금고 잠금',
+  vaultSettings: '금고 설정',
+  exportVault: '금고 내보내기',
   logoutAccount: '로그아웃',
   newNote: '새 노트',
   createDirectory: '폴더 생성',
@@ -30,13 +32,21 @@ export const koKR: typeof enUS = {
   unlocking: '해제 중...',
   unlock: '잠금 해제',
 
-  // Settings & Profile
+  // Settings & Profile & Audit Logs
   userProfile: '사용자 프로필 및 설정',
   language: '언어',
   switchLanguage: '언어 변경',
   activeVault: '현재 금고',
   createVault: '새 금고 생성',
   vaultName: '금고 이름',
+  securityAudit: '보안 감사 로그',
+  auditLogTitle: '사용자 활동 및 제로 트러스트 보안 감사 로그',
+  noAuditLogs: '감사 로그 기록이 없습니다',
+  authMethod: '인증 방식',
+  ipAddress: 'IP 주소',
+  timestamp: '시간',
+  status: '상태',
+  action: '작업',
 
   // Status Capsule & Editor
   words: '단어 수',

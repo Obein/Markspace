@@ -1,49 +1,69 @@
 import React, { useState } from 'react';
-import { X, Crown, Download, Plus, Database, ShieldCheck, LogOut, Globe } from 'lucide-react';
+import { X, Crown, ShieldCheck, LogOut, Globe, FileText, Loader2, ChevronRight, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { LANGUAGE_OPTIONS, Language, useI18n } from '../i18n/i18nContext';
-import { NoteItem, VaultInfo } from '../interfaces/INoteModels';
-import { VaultExportService } from '../services/VaultExportService';
+import { AuditLogResponse } from '../interfaces/IApiClient';
 
 interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  vaults: VaultInfo[];
-  activeVaultId: string;
-  onSelectVault: (id: string) => void;
-  onCreateVault: (name: string) => void;
-  activeVaultNotes: NoteItem[];
 }
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   isOpen,
   onClose,
-  vaults,
-  activeVaultId,
-  onSelectVault,
-  onCreateVault,
-  activeVaultNotes,
 }) => {
-  const { username, role, logoutAccount, isVaultUnlocked } = useApp();
+  const { username, role, logoutAccount, apiClient } = useApp();
   const { language, setLanguage, t } = useI18n();
-  const [newVaultName, setNewVaultName] = useState('');
-  const [showCreateVault, setShowCreateVault] = useState(false);
+
+  const [showAuditLogs, setShowAuditLogs] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<AuditLogResponse[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [logsError, setLogsError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const activeVault = vaults.find((v) => v.id === activeVaultId) || vaults[0];
+  const handleToggleAuditLogs = async () => {
+    const nextState = !showAuditLogs;
+    setShowAuditLogs(nextState);
 
-  const handleCreateVaultSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newVaultName.trim()) {
-      onCreateVault(newVaultName.trim());
-      setNewVaultName('');
-      setShowCreateVault(false);
+    if (nextState && auditLogs.length === 0) {
+      try {
+        setLoadingLogs(true);
+        setLogsError(null);
+        const logs = await apiClient.getAuditLogs();
+        setAuditLogs(logs);
+      } catch (err: any) {
+        setLogsError(err instanceof Error ? err.message : 'Failed to fetch audit logs');
+      } finally {
+        setLoadingLogs(false);
+      }
     }
   };
 
-  const handleExportVault = () => {
-    VaultExportService.exportVault(activeVault?.name || 'Vault', activeVaultNotes);
+  const formatTimestamp = (ms: number): string => {
+    return new Date(ms).toLocaleString(language === 'zh-CN' ? 'zh-CN' : 'en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+  };
+
+  const getActionBadgeColor = (action: string) => {
+    switch (action) {
+      case 'AUTH_LOGIN':
+        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+      case 'AUTH_REGISTER':
+        return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+      case 'AUTH_LOGOUT':
+        return 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30';
+      default:
+        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+    }
   };
 
   return (
@@ -52,7 +72,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition"
+          className="absolute top-4 right-4 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -81,7 +101,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </div>
 
         {/* Language Selection Section */}
-        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 mb-6">
+        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-medium text-zinc-200">
               <Globe className="w-4 h-4 text-blue-400" />
@@ -94,7 +114,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as Language)}
-            className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-mono text-white focus:outline-none focus:border-blue-500/50 transition cursor-pointer"
+            className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-white/10 text-xs font-mono text-white focus:outline-none focus:border-blue-500/50 transition cursor-pointer"
           >
             {LANGUAGE_OPTIONS.map((opt) => (
               <option key={opt.code} value={opt.code} className="bg-zinc-900 text-white">
@@ -104,98 +124,83 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           </select>
         </div>
 
-        {/* Multi-Vault Management Section */}
-        <div className="space-y-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-              <Database className="w-4 h-4 text-blue-400" />
-              <span>{t('activeVault')}</span>
-            </div>
-            <button
-              onClick={() => setShowCreateVault(!showCreateVault)}
-              className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{t('createVault')}</span>
-            </button>
-          </div>
-
-          {showCreateVault && (
-            <form onSubmit={handleCreateVaultSubmit} className="flex gap-2 p-3 bg-white/5 rounded-xl border border-blue-500/30">
-              <input
-                type="text"
-                value={newVaultName}
-                onChange={(e) => setNewVaultName(e.target.value)}
-                placeholder={`${t('vaultName')}...`}
-                className="flex-1 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white placeholder-zinc-500 focus:outline-none"
-                required
-              />
-              <button
-                type="submit"
-                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium"
-              >
-                {t('confirm')}
-              </button>
-            </form>
-          )}
-
-          {/* Vault List */}
-          <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-            {vaults.map((v) => (
-              <div
-                key={v.id}
-                onClick={() => onSelectVault(v.id)}
-                className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition ${
-                  v.id === activeVaultId
-                    ? 'bg-blue-600/20 border-blue-500/50 text-white'
-                    : 'bg-white/5 hover:bg-white/10 border-white/5 text-zinc-300'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className={`w-2 h-2 rounded-full ${v.id === activeVaultId ? 'bg-blue-400' : 'bg-zinc-600'}`} />
-                  <span className="text-xs font-medium">{v.name}</span>
-                </div>
-                {v.id === activeVaultId && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">Active</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Full Vault Export Section */}
+        {/* Security Audit Logs Entrance */}
         <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-medium text-zinc-200">
-              <Download className="w-4 h-4 text-blue-400" />
-              <span>Full Local Vault Export</span>
-            </div>
-            <span className="text-[10px] text-zinc-400 font-mono">
-              {activeVaultNotes.length} Files
-            </span>
-          </div>
           <button
-            onClick={handleExportVault}
-            disabled={!isVaultUnlocked || activeVaultNotes.length === 0}
-            className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center justify-center gap-2 transition disabled:opacity-50 border border-blue-400/20 shadow-lg shadow-blue-500/10"
+            onClick={handleToggleAuditLogs}
+            className="w-full flex items-center justify-between text-xs font-medium text-zinc-200 hover:text-white transition cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>{t('download')} "{activeVault?.name}"</span>
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-blue-400" />
+              <span>{t('securityAudit')}</span>
+            </div>
+            <div className="flex items-center gap-1 text-[11px] text-zinc-400 font-mono">
+              {showAuditLogs ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            </div>
           </button>
+
+          {showAuditLogs && (
+            <div className="pt-2 space-y-2 border-t border-white/10">
+              {loadingLogs ? (
+                <div className="p-4 text-center text-zinc-400 text-xs font-mono flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                  <span>Loading audit logs...</span>
+                </div>
+              ) : logsError ? (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-300 text-xs rounded-xl">
+                  {logsError}
+                </div>
+              ) : auditLogs.length === 0 ? (
+                <div className="p-4 text-center text-zinc-500 text-xs font-mono">
+                  {t('noAuditLogs')}
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                  {auditLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className="p-2.5 rounded-xl bg-black/40 border border-white/5 text-[11px] font-mono space-y-1"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-semibold border ${getActionBadgeColor(log.action)}`}>
+                          {log.action}
+                        </span>
+                        <span className="text-zinc-500 text-[10px]">{formatTimestamp(log.timestamp)}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-zinc-300 text-[10px] pt-1">
+                        <span>{t('authMethod')}: <strong className="text-zinc-200">{log.authMethod}</strong></span>
+                        <span className={`font-semibold ${log.status === 'SUCCESS' ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {log.status}
+                        </span>
+                      </div>
+
+                      <div className="text-zinc-400 text-[10px]">
+                        <span>IP: <strong className="text-zinc-300">{log.ipAddress}</strong></span>
+                        {log.details && (
+                          <p className="text-zinc-500 text-[9px] truncate mt-0.5">{log.details}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Account Footer Actions */}
         <div className="flex items-center justify-between pt-4 border-t border-white/10 text-xs">
           <div className="flex items-center gap-1.5 text-zinc-500 text-[11px] font-mono">
             <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-            <span>Zero-Knowledge E2EE Storage</span>
+            <span>Zero-Knowledge Account</span>
           </div>
           <button
             onClick={() => {
               onClose();
               logoutAccount();
             }}
-            className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition flex items-center gap-1"
+            className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition flex items-center gap-1 cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>{t('logoutAccount')}</span>

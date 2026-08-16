@@ -3,6 +3,8 @@ export const enUS = {
   mainVault: 'Main Vault',
   encryptedVault: 'Encrypted Vault',
   lockVault: 'Lock Vault',
+  vaultSettings: 'Vault Settings',
+  exportVault: 'Export Vault',
   logoutAccount: 'Logout Account',
   newNote: 'New Note',
   createDirectory: 'Create Directory',
@@ -28,13 +30,21 @@ export const enUS = {
   unlocking: 'Unlocking...',
   unlock: 'Unlock',
 
-  // Settings & Profile
+  // Settings & Profile & Audit Logs
   userProfile: 'User Profile & Settings',
   language: 'Language',
   switchLanguage: 'Switch Language',
   activeVault: 'Active Vault',
   createVault: 'Create New Vault',
   vaultName: 'Vault Name',
+  securityAudit: 'Security Audit Logs',
+  auditLogTitle: 'User Activity & Zero-Trust Security Audit Logs',
+  noAuditLogs: 'No security audit logs recorded yet.',
+  authMethod: 'Auth Method',
+  ipAddress: 'IP Address',
+  timestamp: 'Timestamp',
+  status: 'Status',
+  action: 'Action',
 
   // Status Capsule & Editor
   words: 'Words',

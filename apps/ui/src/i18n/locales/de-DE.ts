@@ -5,6 +5,8 @@ export const deDE: typeof enUS = {
   mainVault: 'Haupt-Tresor',
   encryptedVault: 'Ende-zu-Ende verschlüsselter Tresor',
   lockVault: 'Tresor sperren',
+  vaultSettings: 'Tresor-Einstellungen',
+  exportVault: 'Tresor exportieren',
   logoutAccount: 'Abmelden',
   newNote: 'Neue Notiz',
   createDirectory: 'Ordner erstellen',
@@ -30,13 +32,21 @@ export const deDE: typeof enUS = {
   unlocking: 'Entschlüsseln...',
   unlock: 'Entschlüsseln',
 
-  // Settings & Profile
+  // Settings & Profile & Audit Logs
   userProfile: 'Benutzerprofil & Einstellungen',
   language: 'Sprache',
   switchLanguage: 'Sprache wechseln',
   activeVault: 'Aktiver Tresor',
   createVault: 'Neuen Tresor erstellen',
   vaultName: 'Tresor-Name',
+  securityAudit: 'Sicherheits-Audit-Protokolle',
+  auditLogTitle: 'Benutzeraktivitäten & Zero-Trust Sicherheits-Audit',
+  noAuditLogs: 'Noch keine Audit-Protokolle aufgezeichnet.',
+  authMethod: 'Auth-Methode',
+  ipAddress: 'IP-Adresse',
+  timestamp: 'Zeitstempel',
+  status: 'Status',
+  action: 'Aktion',
 
   // Status Capsule & Editor
   words: 'Wörter',

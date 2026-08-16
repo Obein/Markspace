@@ -10,6 +10,30 @@ export interface User {
   updatedAt: number;
 }
 
+export interface AuditLogEntity {
+  id: string;
+  userId: string;
+  username: string;
+  action: 'AUTH_LOGIN' | 'AUTH_REGISTER' | 'AUTH_LOGOUT' | 'PASSWORD_CHANGE' | 'MFA_VERIFY' | 'DPOP_HANDSHAKE';
+  authMethod: string;
+  ipAddress: string;
+  userAgent: string;
+  status: 'SUCCESS' | 'FAILED';
+  details: string;
+  timestamp: number;
+}
+
+export interface CreateAuditLogDTO {
+  userId: string;
+  username: string;
+  action: AuditLogEntity['action'];
+  authMethod: string;
+  ipAddress: string;
+  userAgent: string;
+  status: 'SUCCESS' | 'FAILED';
+  details?: string;
+}
+
 export interface Note {
   id: string;
   userId: string;
@@ -43,11 +67,13 @@ export interface Media {
 export interface RegisterDTO {
   username: string;
   authToken: string;
+  nonce?: string;
 }
 
 export interface LoginDTO {
   username: string;
   authToken: string;
+  nonce?: string;
 }
 
 export interface CreateNoteDTO {

@@ -21,6 +21,7 @@ import {
   Download,
   Trash2,
   Loader2,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useI18n } from '../i18n/i18nContext';
 import { FileTreeNode, VaultFileItem, VaultInfo } from '../interfaces/INoteModels';
@@ -35,6 +36,7 @@ interface SidebarDrawerProps {
   onAddFiles: (files: FileList | File[]) => void;
   onMoveFileToDirectory: (fileId: string, targetFolderPath: string) => void;
   onLockVault: () => void;
+  onOpenVaultSettings?: () => void;
   onLogoutAccount: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -69,6 +71,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
   onAddFiles,
   onMoveFileToDirectory,
   onLockVault,
+  onOpenVaultSettings,
   onLogoutAccount,
   searchQuery,
   onSearchChange,
@@ -384,6 +387,15 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
           </div>
 
           <div className="flex items-center gap-1">
+            {onOpenVaultSettings && (
+              <button
+                onClick={onOpenVaultSettings}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition border border-white/10"
+                title={t('vaultSettings')}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
+              </button>
+            )}
             <button
               onClick={onLockVault}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition border border-white/10"

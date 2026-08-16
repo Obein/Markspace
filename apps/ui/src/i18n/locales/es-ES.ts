@@ -5,6 +5,8 @@ export const esES: typeof enUS = {
   mainVault: 'Bóveda Principal',
   encryptedVault: 'Bóveda Cifrada de Extremo a Extremo',
   lockVault: 'Bloquear Bóveda',
+  vaultSettings: 'Ajustes de la Bóveda',
+  exportVault: 'Exportar Bóveda',
   logoutAccount: 'Cerrar Sesión',
   newNote: 'Nueva Nota',
   createDirectory: 'Crear Directorio',
@@ -30,13 +32,21 @@ export const esES: typeof enUS = {
   unlocking: 'Desbloqueando...',
   unlock: 'Desbloquear',
 
-  // Settings & Profile
+  // Settings & Profile & Audit Logs
   userProfile: 'Perfil de Usuario y Ajustes',
   language: 'Idioma',
   switchLanguage: 'Cambiar Idioma',
   activeVault: 'Bóveda Activa',
   createVault: 'Crear Nueva Bóveda',
   vaultName: 'Nombre de la Bóveda',
+  securityAudit: 'Auditoría de Seguridad',
+  auditLogTitle: 'Registro de Auditoría de Seguridad y Zero-Trust',
+  noAuditLogs: 'Aún no hay registros de auditoría.',
+  authMethod: 'Método de Autenticación',
+  ipAddress: 'Dirección IP',
+  timestamp: 'Fecha y Hora',
+  status: 'Estado',
+  action: 'Acción',
 
   // Status Capsule & Editor
   words: 'Palabras',

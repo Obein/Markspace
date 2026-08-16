@@ -11,6 +11,19 @@ export interface AuthResponse {
   };
 }
 
+export interface AuditLogResponse {
+  id: string;
+  userId: string;
+  username: string;
+  action: 'AUTH_LOGIN' | 'AUTH_REGISTER' | 'AUTH_LOGOUT' | 'PASSWORD_CHANGE' | 'MFA_VERIFY' | 'DPOP_HANDSHAKE';
+  authMethod: string;
+  ipAddress: string;
+  userAgent: string;
+  status: 'SUCCESS' | 'FAILED';
+  details: string;
+  timestamp: number;
+}
+
 export interface VaultNodeResponse {
   id: string;
   userId: string;
@@ -31,6 +44,8 @@ export interface IApiClient {
   setToken(token: string): void;
   register(username: string, authToken: string): Promise<AuthResponse>;
   login(username: string, authToken: string): Promise<AuthResponse>;
+  logout(): Promise<void>;
+  getAuditLogs(): Promise<AuditLogResponse[]>;
 
   // Vault Tree & Object Storage API
   getVaultTree(): Promise<VaultNodeResponse[]>;

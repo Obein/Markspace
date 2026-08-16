@@ -75,6 +75,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logoutAccount = () => {
+    apiClient.logout();
     setCmk(null);
     setToken(null);
     setUsername(null);

@@ -5,6 +5,8 @@ export const zhCN: typeof enUS = {
   mainVault: '主保险库',
   encryptedVault: '端到端加密保险库',
   lockVault: '锁定保险库',
+  vaultSettings: '保险库配置',
+  exportVault: '导出保险库',
   logoutAccount: '退出账号',
   newNote: '新建笔记',
   createDirectory: '新建目录',
@@ -30,13 +32,21 @@ export const zhCN: typeof enUS = {
   unlocking: '解密中...',
   unlock: '解锁',
 
-  // Settings & Profile
+  // Settings & Profile & Audit Logs
   userProfile: '个人中心与设置',
   language: '语言设置',
   switchLanguage: '切换语言',
   activeVault: '当前保险库',
   createVault: '新建保险库',
   vaultName: '保险库名称',
+  securityAudit: '安全审计日志',
+  auditLogTitle: '用户活动与零信任安全审计日志',
+  noAuditLogs: '暂无安全审计日志记录',
+  authMethod: '认证方式',
+  ipAddress: 'IP 地址',
+  timestamp: '时间',
+  status: '状态',
+  action: '操作事件',
 
   // Status Capsule & Editor
   words: '字数',

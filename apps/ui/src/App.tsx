@@ -6,6 +6,7 @@ import { SidebarDrawer } from './components/SidebarDrawer';
 import { ToastContainer, ToastMessage } from './components/Toast';
 import { UnlockModal } from './components/UnlockModal';
 import { UserProfileModal } from './components/UserProfileModal';
+import { VaultSettingsModal } from './components/VaultSettingsModal';
 import { useApp } from './context/AppContext';
 import { useI18n } from './i18n/i18nContext';
 import { NoteItem, VaultFileItem, VaultInfo } from './interfaces/INoteModels';
@@ -54,6 +55,7 @@ export const AppContent: React.FC = () => {
   ]);
   const [activeVaultId, setActiveVaultId] = useState<string>('vault_default');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isVaultSettingsOpen, setIsVaultSettingsOpen] = useState(false);
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
 
   const [files, setFiles] = useState<VaultFileItem[]>([]);
@@ -627,10 +629,16 @@ export const AppContent: React.FC = () => {
         />
       )}
 
-      {/* User Profile & Vault Settings Modal */}
+      {/* User Profile Modal (User Info & Language Settings) */}
       <UserProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
+      />
+
+      {/* Dedicated Vault Settings Modal (Active Vault, Create Vault & Export Backup) */}
+      <VaultSettingsModal
+        isOpen={isVaultSettingsOpen}
+        onClose={() => setIsVaultSettingsOpen(false)}
         vaults={vaults}
         activeVaultId={activeVaultId}
         onSelectVault={(id) => {
@@ -664,6 +672,7 @@ export const AppContent: React.FC = () => {
             onAddFiles={handleAddFiles}
             onMoveFileToDirectory={handleMoveFileToDirectory}
             onLockVault={lockVault}
+            onOpenVaultSettings={() => setIsVaultSettingsOpen(true)}
             onLogoutAccount={logoutAccount}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
