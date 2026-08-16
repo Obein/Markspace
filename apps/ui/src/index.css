@@ -2,13 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Local Noto Sans Mono CJK Web Fonts */
+@font-face {
+  font-family: 'Noto Sans Mono CJK SC';
+  src: url('../assets/NotoSansMonoCJKsc-Regular.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans Mono CJK TC';
+  src: url('../assets/NotoSansMonoCJKtc-Regular.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans Mono CJK JP';
+  src: url('../assets/NotoSansMonoCJKjp-Regular.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans Mono CJK KR';
+  src: url('../assets/NotoSansMonoCJKkr-Regular.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
-  :root {
+  :root,
+  [data-lang="en-US"],
+  [data-lang="es-ES"],
+  [data-lang="de-DE"],
+  [data-lang="vi-VN"] {
     --bg-base: #F4F4F5;
     --text-main: #09090B;
     --text-muted: #71717A;
     --glass-bg: rgba(255, 255, 255, 0.70);
     --glass-border: rgba(0, 0, 0, 0.08);
+
+    /* Non-serif Monospace stack with ligatures support */
+    --font-editor-mono: 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Noto Sans Mono', 'Segoe UI Mono', Consolas, 'Noto Sans', ui-monospace, sans-serif;
+    --font-preview-heading: 'Noto Serif', Georgia, Cambria, 'Times New Roman', Times, serif;
+    --font-preview-body: 'Noto Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  [data-lang="zh-CN"] {
+    /* Noto Sans Mono CJK SC + Ligatures (Fira Code/JetBrains Mono for ASCII symbols like =>, !==, ->) */
+    --font-editor-mono: 'Noto Sans Mono CJK SC', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Noto Sans Mono', 'Segoe UI Mono', Consolas, 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Heiti SC', 'WenQuanYi Micro Hei', ui-monospace, sans-serif;
+    /* Headings: Serif 衬线体 */
+    --font-preview-heading: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'SimSun', STSong, Georgia, serif;
+    /* Body: Sans-serif 非衬线体 */
+    --font-preview-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'SimHei', sans-serif;
+  }
+
+  [data-lang="zh-TW"] {
+    /* Noto Sans Mono CJK TC + Ligatures */
+    --font-editor-mono: 'Noto Sans Mono CJK TC', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Noto Sans Mono', 'Segoe UI Mono', Consolas, 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', ui-monospace, sans-serif;
+    --font-preview-heading: 'Noto Serif TC', 'Source Han Serif TC', 'Songti TC', 'PMingLiU', 'MingLiU', Georgia, serif;
+    --font-preview-body: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  }
+
+  [data-lang="ja-JP"] {
+    /* Noto Sans Mono CJK JP + Ligatures */
+    --font-editor-mono: 'Noto Sans Mono CJK JP', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Noto Sans Mono', 'Segoe UI Mono', Consolas, 'Noto Sans JP', 'Hiragino Sans', 'Meiryo', 'Yu Gothic', ui-monospace, sans-serif;
+    --font-preview-heading: 'Noto Serif JP', 'Source Han Serif JP', 'Yu Mincho', 'Hiragino Mincho ProN', 'MS Mincho', Georgia, serif;
+    --font-preview-body: 'Noto Sans JP', 'Hiragino Sans', 'Meiryo', sans-serif;
+  }
+
+  [data-lang="ko-KR"] {
+    /* Noto Sans Mono CJK KR + Ligatures */
+    --font-editor-mono: 'Noto Sans Mono CJK KR', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Noto Sans Mono', 'Segoe UI Mono', Consolas, 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', ui-monospace, sans-serif;
+    --font-preview-heading: 'Noto Serif KR', 'Source Han Serif KR', 'Nanum Myeongjo', 'Batang', Georgia, serif;
+    --font-preview-body: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
   }
 
   .dark {
@@ -18,6 +90,29 @@
     --glass-bg: rgba(24, 24, 27, 0.65);
     --glass-border: rgba(255, 255, 255, 0.10);
   }
+}
+
+/* Typography Utility Classes with Font Ligatures Enabled */
+.font-editor-mono {
+  font-family: var(--font-editor-mono);
+  font-variant-ligatures: contextual common-ligatures;
+  font-feature-settings: "calt" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+}
+
+.font-preview-heading {
+  font-family: var(--font-preview-heading);
+}
+
+.font-preview-body {
+  font-family: var(--font-preview-body);
+}
+
+/* Enable code ligatures on code blocks and pre tags */
+pre, code, textarea, .lezer-code-block {
+  font-variant-ligatures: contextual common-ligatures;
+  font-feature-settings: "calt" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
 }
 
 /* Apple Glassmorphism Utilities */
@@ -71,15 +166,15 @@
 .tok-meta { color: #a1a1aa; }
 
 /* Lezer Markdown Syntax Classes */
-.tok-heading { color: #60a5fa; font-weight: 700; }
-.tok-heading1 { color: #3b82f6; font-weight: 800; }
-.tok-heading2 { color: #60a5fa; font-weight: 700; }
-.tok-heading3 { color: #93c5fd; font-weight: 600; }
+.tok-heading { font-family: var(--font-preview-heading); color: #60a5fa; font-weight: 700; }
+.tok-heading1 { font-family: var(--font-preview-heading); color: #3b82f6; font-weight: 800; }
+.tok-heading2 { font-family: var(--font-preview-heading); color: #60a5fa; font-weight: 700; }
+.tok-heading3 { font-family: var(--font-preview-heading); color: #93c5fd; font-weight: 600; }
 .tok-emphasis { font-style: italic; color: #a1a1aa; }
 .tok-strong { font-weight: 700; color: #60a5fa; }
 .tok-link { color: #3b82f6; text-decoration: underline; }
 .tok-url { color: #93c5fd; }
 .tok-quote { color: #a1a1aa; font-style: italic; }
-.tok-monospace { color: #bfdbfe; background: rgba(255, 255, 255, 0.06); padding: 0.1rem 0.25rem; border-radius: 0.25rem; }
+.tok-monospace { font-family: var(--font-editor-mono); color: #bfdbfe; background: rgba(255, 255, 255, 0.06); padding: 0.1rem 0.25rem; border-radius: 0.25rem; }
 .tok-processingInstruction { color: #71717a; }
 .tok-processingInstructionMark { color: #60a5fa; }

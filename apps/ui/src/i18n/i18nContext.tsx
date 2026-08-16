@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { deDE } from './locales/de-DE';
 import { enUS } from './locales/en-US';
 import { esES } from './locales/es-ES';
@@ -9,6 +9,8 @@ import { zhCN } from './locales/zh-CN';
 import { zhTW } from './locales/zh-TW';
 
 export type Language = 'en-US' | 'zh-CN' | 'zh-TW' | 'es-ES' | 'de-DE' | 'ja-JP' | 'ko-KR' | 'vi-VN';
+
+export type TranslationKey = keyof typeof enUS;
 
 export interface LanguageOption {
   code: Language;
@@ -38,10 +40,10 @@ const dictionaries: Record<Language, typeof enUS> = {
   'vi-VN': viVN,
 };
 
-interface I18nContextType {
+export interface I18nContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: keyof typeof enUS) => string;
+  t: (key: TranslationKey) => string;
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
@@ -65,27 +67,52 @@ function detectDefaultLanguage(): Language {
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(detectDefaultLanguage);
 
-  const setLanguage = (lang: Language) => {
+  useEffect(() => {
+    document.documentElement.setAttribute('data-lang', language);
+    document.documentElement.lang = language;
+  }, [language]);
+
+  const setLanguage = (lang: Language): void => {
     setLanguageState(lang);
     localStorage.setItem('markspace_lang', lang);
   };
 
-  const t = (key: keyof typeof enUS): string => {
-    const dict = dictionaries[language] || dictionaries['zh-CN'];
-    return dict[key] || enUS[key] || (key as string);
+  const t = (key: TranslationKey): string => {
+    const currentDict = dictionaries[language];
+    const targetVal = currentDict ? currentDict[key] : undefined;
+
+    // If current locale value exists and is non-empty, use it
+    if (typeof targetVal === 'string' && targetVal.trim() !== '') {
+      return targetVal;
+    }
+
+    // Fallback to English (en-US)
+    const enFallback = enUS[key];
+    if (typeof enFallback === 'string' && enFallback.trim() !== '') {
+      return enFallback;
+    }
+
+    // Ultimate fallback to key name
+    return key as string;
+  };
+
+  const contextValue: I18nContextType = {
+    language,
+    setLanguage,
+    t,
   };
 
   return (
-    <I18nContext.Provider value={{ language, setLanguage, t }}>
+    <I18nContext.Provider value={contextValue}>
       {children}
     </I18nContext.Provider>
   );
 };
 
-export const useI18n = (): I18nContextType => {
+export function useI18n(): I18nContextType {
   const context = useContext(I18nContext);
   if (!context) {
     throw new Error('useI18n must be used within an I18nProvider');
   }
   return context;
-};
+}
