@@ -137,7 +137,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
             disabled={category !== 'markdown'}
-            placeholder="Note title..."
+            placeholder="Filename..."
             className="flex-1 min-w-0 text-lg font-bold font-editor-mono font-mono text-white bg-transparent focus:outline-none placeholder-zinc-600 disabled:opacity-70"
           />
 

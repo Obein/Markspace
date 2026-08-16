@@ -144,17 +144,19 @@ export const AppContent: React.FC = () => {
               contentText = blobUrl;
             }
 
+            const nodeFilename = node.path.split('/').pop() || node.name;
+
             decryptedList.push({
               id: node.id,
-              name: node.name,
-              filename: node.name,
+              name: nodeFilename,
+              filename: nodeFilename,
               path: node.path,
               category: node.category,
               mimeType: node.mimeType,
               size: node.size,
               content: contentText,
               blobUrl,
-              encryptedTitle: node.name,
+              encryptedTitle: nodeFilename,
               encryptedPayload: '',
               encryptedDek: node.encryptedDek,
               vaultId: 'vault_default',
@@ -170,7 +172,7 @@ export const AppContent: React.FC = () => {
         const fileOnlyList = decryptedList.filter((f) => f.mimeType !== 'inode/directory');
         if (fileOnlyList.length > 0) {
           setActiveFileId(fileOnlyList[0].id);
-          setActiveTitle(fileOnlyList[0].name);
+          setActiveTitle(fileOnlyList[0].filename);
           setActiveContent(fileOnlyList[0].content);
         }
       } catch (err) {
@@ -189,7 +191,7 @@ export const AppContent: React.FC = () => {
     const selected = files.find((f) => f.id === id);
     if (selected) {
       setActiveFileId(id);
-      setActiveTitle(selected.name);
+      setActiveTitle(selected.filename);
       setActiveContent(selected.content);
       setSelectedWordCount(0);
       setSelectedCharCount(0);
@@ -200,19 +202,25 @@ export const AppContent: React.FC = () => {
   const getUniqueFilename = (baseTitle: string, ext = '.md', currentFileId?: string): string => {
     const currentFile = files.find((f) => f.id === currentFileId);
 
-    const sanitized = sanitizeFilename(baseTitle);
-    let candidate = `${sanitized}${ext}`;
+    let cleanTitle = baseTitle.trim();
+    if (!cleanTitle.toLowerCase().endsWith(ext.toLowerCase())) {
+      cleanTitle = `${cleanTitle}${ext}`;
+    }
 
-    if (currentFile && (currentFile.filename === candidate || currentFile.name === baseTitle)) {
+    const sanitized = sanitizeFilename(cleanTitle);
+    let candidate = sanitized.toLowerCase().endsWith(ext.toLowerCase()) ? sanitized : `${sanitized}${ext}`;
+
+    if (currentFile && currentFile.filename === candidate) {
       return currentFile.filename;
     }
 
     const isDuplicate = files.some(
-      (f) => f.vaultId === activeVaultId && f.id !== currentFileId && f.filename === candidate
+      (f) => f.vaultId === activeVaultId && f.id !== currentFileId && f.filename.toLowerCase() === candidate.toLowerCase()
     );
 
     if (isDuplicate) {
-      candidate = `${sanitized}_${generateRandom4Chars()}${ext}`;
+      const baseWithoutExt = candidate.substring(0, candidate.length - ext.length);
+      candidate = `${baseWithoutExt}_${generateRandom4Chars()}${ext}`;
     }
 
     return candidate;
@@ -252,7 +260,7 @@ export const AppContent: React.FC = () => {
       const dek = await cryptoService.generateDEK();
       const wrappedDek = await cryptoService.wrapDEK(dek, cmk);
 
-      const defaultTitle = t('untitledNote');
+      const defaultTitle = `${t('untitledNote')}.md`;
       const filename = getUniqueFilename(defaultTitle, '.md');
       const defaultContent = '';
 
@@ -260,7 +268,7 @@ export const AppContent: React.FC = () => {
 
       const createdNode = await apiClient.createVaultNode({
         path: filename,
-        name: defaultTitle,
+        name: filename,
         isDirectory: false,
         encryptedDek: wrappedDek,
         mimeType: 'text/markdown',
@@ -270,14 +278,14 @@ export const AppContent: React.FC = () => {
 
       const newFile: VaultFileItem = {
         id: createdNode.id,
-        name: defaultTitle,
+        name: filename,
         filename,
         path: filename,
         category: 'markdown',
         mimeType: 'text/markdown',
         size: defaultContent.length,
         content: defaultContent,
-        encryptedTitle: defaultTitle,
+        encryptedTitle: filename,
         encryptedPayload,
         encryptedDek: wrappedDek,
         vaultId: activeVaultId,
@@ -287,7 +295,7 @@ export const AppContent: React.FC = () => {
 
       setFiles([newFile, ...files]);
       setActiveFileId(newFile.id);
-      setActiveTitle(defaultTitle);
+      setActiveTitle(filename);
       setActiveContent(defaultContent);
       setSelectedWordCount(0);
       setSelectedCharCount(0);
@@ -472,8 +480,8 @@ export const AppContent: React.FC = () => {
     const existing = files.find((f) => f.id === activeFileId);
     if (!existing) return;
 
-    // Git-diff check: If content and title are unchanged, skip auto-saving completely
-    if (existing.name === activeTitle && existing.content === activeContent) {
+    // Git-diff check: If content and filename are unchanged, skip auto-saving completely
+    if (existing.filename === activeTitle && existing.content === activeContent) {
       return;
     }
 
@@ -550,7 +558,7 @@ export const AppContent: React.FC = () => {
         );
         if (remainingInVault.length > 0) {
           setActiveFileId(remainingInVault[0].id);
-          setActiveTitle(remainingInVault[0].name);
+          setActiveTitle(remainingInVault[0].filename);
           setActiveContent(remainingInVault[0].content);
         } else {
           setActiveFileId(null);
@@ -727,6 +735,7 @@ export const AppContent: React.FC = () => {
               username={username || 'Markspace User'}
               role={role || 'user'}
               isVaultUnlocked={isVaultUnlocked}
+              hasActiveFile={Boolean(activeFileId)}
               onOpenProfile={() => setIsProfileOpen(true)}
               onOpenUnlockModal={() => setIsUnlockModalOpen(true)}
               wordCount={wordCount}

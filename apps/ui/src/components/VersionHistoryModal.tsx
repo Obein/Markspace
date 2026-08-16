@@ -133,7 +133,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
                 <span>{t('versionHistory')}</span>
                 <span className="text-xs font-mono text-zinc-400 font-normal">({file.filename})</span>
               </h2>
-              <p className="text-xs text-zinc-400 mt-0.5">Git Commit Snapshot & Unix Timestamp Revert Indicator</p>
+              <p className="text-xs text-zinc-400 mt-0.5">Git Commit Snapshot & Timeline</p>
             </div>
           </div>
 
@@ -193,7 +193,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
                         <GitCommit className="w-3 h-3 text-blue-400" />
                         <span>{ver.commitHash.substring(0, 7)}</span>
                       </span>
-                      <span className="text-zinc-500">TS: {ver.timestamp}</span>
+                      <span className="text-zinc-500 truncate max-w-[120px]">{ver.commitMessage || 'Snapshot'}</span>
                     </div>
 
                     {isSelected && (
@@ -229,13 +229,13 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
                 <span>Version Preview</span>
                 {selectedVersion && (
                   <span className="text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
-                    Unix TS: {selectedVersion.timestamp}
+                    {formatTimestamp(selectedVersion.timestamp)}
                   </span>
                 )}
               </div>
               {selectedVersion && (
                 <span className="text-[11px] text-zinc-500">
-                  Commit Hash: {selectedVersion.commitHash}
+                  Commit: {selectedVersion.commitHash}
                 </span>
               )}
             </div>

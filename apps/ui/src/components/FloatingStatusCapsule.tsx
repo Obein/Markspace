@@ -7,6 +7,7 @@ interface FloatingStatusCapsuleProps {
   username: string | null;
   role: UserRole | null;
   isVaultUnlocked: boolean;
+  hasActiveFile?: boolean;
   onOpenProfile: () => void;
   onOpenUnlockModal: () => void;
   wordCount: number;
@@ -27,6 +28,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   username,
   role,
   isVaultUnlocked,
+  hasActiveFile = false,
   onOpenProfile,
   onOpenUnlockModal,
   wordCount,
@@ -86,7 +88,8 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
         </>
       )}
 
-      {isVaultUnlocked && (
+      {/* File Operation Tools: Only visible when Vault is Unlocked AND a File is Focused */}
+      {isVaultUnlocked && hasActiveFile && (
         <>
           <div className="w-px h-4 bg-white/10 shrink-0" />
 
@@ -153,52 +156,43 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
             </>
           )}
 
-          {/* File Delete Button with Confirmation Tooltip */}
+          {/* File Delete Button with Confirmation */}
           {onDeleteCurrentFile && (
             <>
               <div className="w-px h-4 bg-white/10 shrink-0" />
-              <div className="relative inline-flex items-center shrink-0">
+              {showDeleteConfirm ? (
+                <div className="flex items-center gap-2 bg-red-500/15 border border-red-500/30 rounded-xl px-2.5 py-1 animate-in fade-in duration-100 shrink-0">
+                  <span className="text-[11px] text-red-300 font-medium whitespace-nowrap">
+                    {t('confirmDelete')}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => {
+                        setShowDeleteConfirm(false);
+                        onDeleteCurrentFile();
+                      }}
+                      className="px-2 py-0.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-medium text-[10px] transition shadow-md shadow-red-500/20"
+                    >
+                      {t('confirm')}
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="px-1.5 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-zinc-300 text-[10px] transition"
+                    >
+                      {t('cancel')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
                 <button
-                  onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
-                  className={`p-1.5 rounded-lg border transition flex items-center gap-1.5 shrink-0 ${
-                    showDeleteConfirm
-                      ? 'bg-red-500/20 text-red-300 border-red-500/40'
-                      : 'bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-red-400 border-white/10'
-                  }`}
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-red-400 border border-white/10 transition flex items-center gap-1.5 shrink-0"
                   title={t('delete')}
                 >
                   <Trash2 className="w-3.5 h-3.5 text-zinc-400 hover:text-red-400 shrink-0" />
                   <span className="text-[11px] font-medium whitespace-nowrap">{t('delete')}</span>
                 </button>
-
-                {/* Inline Confirmation Tooltip Popover */}
-                {showDeleteConfirm && (
-                  <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 z-50 p-2.5 rounded-xl bg-[#09090B]/95 border border-red-500/30 backdrop-blur-xl shadow-2xl flex flex-col items-center gap-2 text-xs font-mono animate-in fade-in zoom-in-95 duration-100 min-w-[190px]">
-                    <p className="text-zinc-200 text-[11px] font-medium whitespace-nowrap text-center">
-                      {t('confirmDelete')}
-                    </p>
-                    <div className="flex items-center gap-2 w-full justify-center">
-                      <button
-                        onClick={() => {
-                          setShowDeleteConfirm(false);
-                          onDeleteCurrentFile();
-                        }}
-                        className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-medium text-[11px] transition shadow-lg shadow-red-500/20"
-                      >
-                        {t('confirm')}
-                      </button>
-                      <button
-                        onClick={() => setShowDeleteConfirm(false)}
-                        className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-zinc-300 text-[11px] transition"
-                      >
-                        {t('cancel')}
-                      </button>
-                    </div>
-                    {/* Tooltip Arrow */}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-4 border-transparent border-t-[#09090B]/95" />
-                  </div>
-                )}
-              </div>
+              )}
             </>
           )}
 

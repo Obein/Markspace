@@ -71,7 +71,7 @@ export class VaultService {
     let size = req.size || 0;
 
     if (!req.isDirectory) {
-      objectKey = `vault/${userId}/${nodeId}`;
+      objectKey = `vaults/${userId}/${nodeId}`;
       const blob = req.contentBlob !== undefined ? req.contentBlob : '';
 
       if (typeof blob === 'string') {
@@ -130,7 +130,15 @@ export class VaultService {
       throw new Error('BAD_REQUEST: Cannot fetch file content for a directory node');
     }
 
-    const obj = await this.objectStorage.getObject(node.objectKey);
+    let obj = await this.objectStorage.getObject(node.objectKey);
+    if (!obj) {
+      // Fallback: Check if legacy path format exists
+      const fallbackKey = node.objectKey.startsWith('vaults/')
+        ? node.objectKey.replace(/^vaults\//, 'vault/')
+        : node.objectKey.replace(/^vault\//, 'vaults/');
+      obj = await this.objectStorage.getObject(fallbackKey);
+    }
+
     if (!obj) {
       throw new Error('NOT_FOUND: File content payload missing in Object Storage');
     }
@@ -193,7 +201,6 @@ export class VaultService {
   ): Promise<void> {
     const timestamp = Date.now();
     const versionId = `ver_${crypto.randomUUID()}`;
-    const versionObjectKey = `vault_versions/${userId}/${node.id}/${timestamp}`;
 
     let dataUint8: Uint8Array;
     if (typeof contentBlob === 'string') {
@@ -219,16 +226,27 @@ export class VaultService {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const commitHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 
+    // Standard Git Object Storage Key: vaults/{userId}/.git/objects/xx/xxxx...
+    const objectPrefix = commitHash.substring(0, 2);
+    const objectRest = commitHash.substring(2);
+    const gitObjectKey = `vaults/${userId}/.git/objects/${objectPrefix}/${objectRest}`;
+
     // Git Clean Working Tree Check: If the latest version commit hash matches, skip duplicate commit
     const existingVersions = await this.nodeRepo.listVersionsByNode(userId, node.id);
     if (existingVersions.length > 0 && existingVersions[0].commitHash === commitHash) {
       return;
     }
 
-    // Save encrypted payload blob in Object Storage
-    await this.objectStorage.putObject(versionObjectKey, contentBlob, node.mimeType || 'text/markdown');
+    // Save encrypted blob as standard Git Object in R2 Object Storage
+    await this.objectStorage.putObject(gitObjectKey, contentBlob, node.mimeType || 'text/markdown');
 
-    // Record index entry in D1 DB
+    // Update Virtual Git Branch Ref (refs/heads/main) & HEAD in Object Storage
+    const gitRefKey = `vaults/${userId}/.git/refs/heads/main`;
+    const gitHeadKey = `vaults/${userId}/.git/HEAD`;
+    await this.objectStorage.putObject(gitRefKey, `${commitHash}\n`, 'text/plain');
+    await this.objectStorage.putObject(gitHeadKey, 'ref: refs/heads/main\n', 'text/plain');
+
+    // Record index entry in D1 DB pointing to the Git Object Key
     await this.nodeRepo.createVersion({
       id: versionId,
       nodeId: node.id,
@@ -237,7 +255,7 @@ export class VaultService {
       commitHash,
       size,
       encryptedDek,
-      objectKey: versionObjectKey,
+      objectKey: gitObjectKey,
       commitMessage,
     });
   }
@@ -257,9 +275,15 @@ export class VaultService {
       throw new Error(`NOT_FOUND: Version snapshot not found for timestamp ${timestamp}`);
     }
 
-    const obj = await this.objectStorage.getObject(version.objectKey);
+    // Read payload from standard Git Object Key (with fallback for any legacy keys)
+    let obj = await this.objectStorage.getObject(version.objectKey);
+    if (!obj && version.commitHash) {
+      const fallbackGitKey = `vaults/${userId}/.git/objects/${version.commitHash.substring(0, 2)}/${version.commitHash.substring(2)}`;
+      obj = await this.objectStorage.getObject(fallbackGitKey);
+    }
+
     if (!obj) {
-      throw new Error('NOT_FOUND: Version content payload missing in Object Storage');
+      throw new Error(`NOT_FOUND: Version object payload missing in Object Storage for key ${version.objectKey}`);
     }
 
     const arrayBuf = await this.bodyToArrayBuffer(obj.body);
