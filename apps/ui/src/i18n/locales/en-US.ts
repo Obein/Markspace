@@ -47,6 +47,8 @@ export const enUS = {
   switchLanguage: 'Switch Language',
   activeVault: 'Active Vault',
   createVault: 'Create New Vault',
+  deleteVault: 'Delete Vault',
+  confirmDeleteVault: 'Are you sure you want to delete this vault and all its files?',
   vaultName: 'Vault Name',
   securityAudit: 'Security Audit Logs',
   auditLogTitle: 'User Activity & Zero-Trust Security Audit Logs',

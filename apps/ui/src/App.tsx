@@ -50,9 +50,47 @@ export const AppContent: React.FC = () => {
 
   const { t } = useI18n();
 
-  const [vaults, setVaults] = useState<VaultInfo[]>([
-    { id: 'vault_default', name: 'Main Vault', createdAt: Date.now() },
-  ]);
+  const [vaults, setVaults] = useState<VaultInfo[]>(() => {
+    try {
+      const stored = localStorage.getItem(`markspace_vaults_${username || 'default'}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (_) {}
+    return [{ id: 'vault_default', name: t('mainVault'), createdAt: Date.now() }];
+  });
+
+  // Keep vaults persisted in localStorage
+  useEffect(() => {
+    if (username && vaults.length > 0) {
+      try {
+        localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(vaults));
+      } catch (_) {}
+    }
+  }, [vaults, username]);
+
+  // Sync vaults from localStorage when user logs in
+  useEffect(() => {
+    if (username) {
+      try {
+        const stored = localStorage.getItem(`markspace_vaults_${username}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setVaults(parsed);
+            setActiveVaultId(parsed[0].id);
+            return;
+          }
+        }
+      } catch (_) {}
+      setVaults([{ id: 'vault_default', name: t('mainVault'), createdAt: Date.now() }]);
+      setActiveVaultId('vault_default');
+    }
+  }, [username]);
+
   const [activeVaultId, setActiveVaultId] = useState<string>('vault_default');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isVaultSettingsOpen, setIsVaultSettingsOpen] = useState(false);
@@ -434,17 +472,6 @@ export const AppContent: React.FC = () => {
     }
   };
 
-  // Create a new Vault
-  const handleCreateVault = (vaultName: string) => {
-    const newVault: VaultInfo = {
-      id: `vault_${crypto.randomUUID()}`,
-      name: vaultName,
-      createdAt: Date.now(),
-    };
-    setVaults([...vaults, newVault]);
-    setActiveVaultId(newVault.id);
-  };
-
   const downloadSingleFile = (file: VaultFileItem) => {
     if (file.blobUrl) {
       const a = document.createElement('a');
@@ -492,12 +519,15 @@ export const AppContent: React.FC = () => {
         if (!currentTarget) return;
 
         const updatedFilename = getUniqueFilename(activeTitle, '.md', activeFileId);
-        const dek = await cryptoService.unwrapDEK(currentTarget.encryptedDek, cmk);
-        const encryptedPayload = await cryptoService.encryptText(activeContent, dek);
 
-        await apiClient.updateVaultNodeContent(activeFileId, encryptedPayload, 'text/markdown');
+        // ONLY update content payload (and create a Git content revision) if content actually changed!
+        if (currentTarget.content !== activeContent) {
+          const dek = await cryptoService.unwrapDEK(currentTarget.encryptedDek, cmk);
+          const encryptedPayload = await cryptoService.encryptText(activeContent, dek);
+          await apiClient.updateVaultNodeContent(activeFileId, encryptedPayload, 'text/markdown');
+        }
 
-        // Preserve current directory folder path
+        // Preserve current directory folder path & move/rename if filename changed
         const lastSlash = currentTarget.path.lastIndexOf('/');
         const dirPrefix = lastSlash >= 0 ? currentTarget.path.substring(0, lastSlash) : '';
         const updatedPath = dirPrefix ? `${dirPrefix}/${updatedFilename}` : updatedFilename;
@@ -644,6 +674,78 @@ export const AppContent: React.FC = () => {
     }
   };
 
+  // Create a new Vault
+  const handleCreateVault = (name: string) => {
+    const newVault: VaultInfo = {
+      id: `vault_${crypto.randomUUID()}`,
+      name,
+      createdAt: Date.now(),
+    };
+    setVaults((prev) => [...prev, newVault]);
+    setActiveVaultId(newVault.id);
+    setActiveFileId(null);
+    setActiveTitle('');
+    setActiveContent('');
+    setSelectedWordCount(0);
+    setSelectedCharCount(0);
+    showToast(t('createVault'), 'success');
+  };
+
+  // Delete an existing Vault
+  const handleDeleteVault = async (vaultId: string) => {
+    if (vaults.length <= 1) return;
+
+    const vaultToDelete = vaults.find((v) => v.id === vaultId);
+    if (!vaultToDelete) return;
+
+    // Delete all nodes associated with this vault
+    const vaultFiles = files.filter((f) => f.vaultId === vaultId);
+    for (const file of vaultFiles) {
+      try {
+        await apiClient.deleteVaultNode(file.id);
+      } catch (err) {
+        console.error('Failed to delete node in vault during vault deletion', err);
+      }
+    }
+
+    const updatedVaults = vaults.filter((v) => v.id !== vaultId);
+    setVaults(updatedVaults);
+
+    const updatedFiles = files.filter((f) => f.vaultId !== vaultId);
+    setFiles(updatedFiles);
+
+    // If active vault was deleted, switch to the first remaining vault
+    if (activeVaultId === vaultId) {
+      const nextVault = updatedVaults[0];
+      setActiveVaultId(nextVault.id);
+      const inNextVault = updatedFiles.filter(
+        (f) => f.vaultId === nextVault.id && f.mimeType !== 'inode/directory'
+      );
+      if (inNextVault.length > 0) {
+        setActiveFileId(inNextVault[0].id);
+        setActiveTitle(inNextVault[0].filename);
+        setActiveContent(inNextVault[0].content);
+      } else {
+        setActiveFileId(null);
+        setActiveTitle('');
+        setActiveContent('');
+      }
+      setSelectedWordCount(0);
+      setSelectedCharCount(0);
+    }
+
+    showToast(t('deleteVault'), 'success');
+  };
+
+  // Rename an existing Vault
+  const handleRenameVault = (vaultId: string, newName: string) => {
+    if (!newName.trim()) return;
+    setVaults((prev) =>
+      prev.map((v) => (v.id === vaultId ? { ...v, name: newName.trim() } : v))
+    );
+    showToast(t('saved'), 'success');
+  };
+
   // Delete active file
   const handleDeleteFile = async () => {
     if (activeFileId) {
@@ -719,6 +821,8 @@ export const AppContent: React.FC = () => {
           setSelectedCharCount(0);
         }}
         onCreateVault={handleCreateVault}
+        onRenameVault={handleRenameVault}
+        onDeleteVault={handleDeleteVault}
         activeVaultNotes={activeNotesList}
       />
 

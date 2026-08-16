@@ -49,6 +49,8 @@ export const viVN: typeof enUS = {
   switchLanguage: 'Đổi Ngôn Ngữ',
   activeVault: 'Kho Hiện Tại',
   createVault: 'Tạo Kho Mới',
+  deleteVault: 'Xóa Kho',
+  confirmDeleteVault: 'Bạn có chắc chắn muốn xóa kho này và tất cả các tệp bên trong không?',
   vaultName: 'Tên Kho',
   securityAudit: 'Nhật Ký Kiểm Toán An Ninh',
   auditLogTitle: 'Nhật Ký Hoạt Động & Kiểm Toán An Ninh Zero-Trust',

@@ -49,6 +49,8 @@ export const zhTW: typeof enUS = {
   switchLanguage: '切換語言',
   activeVault: '目前保險庫',
   createVault: '新增保險庫',
+  deleteVault: '刪除保險庫',
+  confirmDeleteVault: '確定要刪除此保險庫及其中所有檔案嗎？',
   vaultName: '保險庫名稱',
   securityAudit: '安全審計日誌',
   auditLogTitle: '使用者活動與零信任安全審計日誌',

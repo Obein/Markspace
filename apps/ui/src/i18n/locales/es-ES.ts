@@ -49,6 +49,8 @@ export const esES: typeof enUS = {
   switchLanguage: 'Cambiar Idioma',
   activeVault: 'Bóveda Activa',
   createVault: 'Crear Nueva Bóveda',
+  deleteVault: 'Eliminar Bóveda',
+  confirmDeleteVault: '¿Estás seguro de que deseas eliminar esta bóveda y todos sus archivos?',
   vaultName: 'Nombre de la Bóveda',
   securityAudit: 'Auditoría de Seguridad',
   auditLogTitle: 'Registro de Auditoría de Seguridad y Zero-Trust',

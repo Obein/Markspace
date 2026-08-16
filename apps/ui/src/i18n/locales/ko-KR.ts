@@ -49,6 +49,8 @@ export const koKR: typeof enUS = {
   switchLanguage: '언어 변경',
   activeVault: '현재 금고',
   createVault: '새 금고 생성',
+  deleteVault: '금고 삭제',
+  confirmDeleteVault: '이 금고와 모든 파일을 삭제하시겠습니까?',
   vaultName: '금고 이름',
   securityAudit: '보안 감사 로그',
   auditLogTitle: '사용자 활동 및 제로 트러스트 보안 감사 로그',

@@ -106,7 +106,7 @@ export class VaultService {
         createdNode,
         req.contentBlob !== undefined ? req.contentBlob : '',
         req.encryptedDek,
-        'Initial version commit'
+        'Create'
       );
     }
 
@@ -185,7 +185,7 @@ export class VaultService {
         updated,
         contentBlob,
         updated.encryptedDek,
-        'Auto-save commit snapshot'
+        'Update'
       );
     }
 
@@ -330,7 +330,7 @@ export class VaultService {
       updatedNode,
       arrayBuf,
       version.encryptedDek,
-      `Reverted to version from ${new Date(timestamp).toISOString()}`
+      `Revert to ${version.commitHash.substring(0, 7)}`
     );
 
     return updatedNode;

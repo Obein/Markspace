@@ -49,6 +49,8 @@ export const zhCN: typeof enUS = {
   switchLanguage: '切换语言',
   activeVault: '当前保险库',
   createVault: '新建保险库',
+  deleteVault: '删除保险库',
+  confirmDeleteVault: '确定要删除此保险库及其中所有文件吗？',
   vaultName: '保险库名称',
   securityAudit: '安全审计日志',
   auditLogTitle: '用户活动与零信任安全审计日志',

@@ -49,6 +49,8 @@ export const jaJP: typeof enUS = {
   switchLanguage: '言語を切り替え',
   activeVault: '現在の保管庫',
   createVault: '新規保管庫を作成',
+  deleteVault: '保管庫を削除',
+  confirmDeleteVault: 'この保管庫とすべてのファイルを削除しますか？',
   vaultName: '保管庫名',
   securityAudit: 'セキュリティ監査ログ',
   auditLogTitle: 'アクティビティとゼロトラストセキュリティ監査ログ',
