@@ -1,0 +1,63 @@
+import { enUS } from './en-US';
+
+export const esES: typeof enUS = {
+  // Navigation & General
+  mainVault: 'Bóveda Principal',
+  encryptedVault: 'Bóveda Cifrada de Extremo a Extremo',
+  lockVault: 'Bloquear Bóveda',
+  logoutAccount: 'Cerrar Sesión',
+  newNote: 'Nueva Nota',
+  createDirectory: 'Crear Directorio',
+  addFileMedia: 'Añadir Archivo / Multimedia',
+  uploading: 'Subiendo...',
+  searchPlaceholder: 'Buscar notas y archivos...',
+  loadingVaultTree: 'Cargando árbol de archivos cifrados...',
+  noFilesFound: 'No se encontraron archivos',
+  download: 'Descargar',
+  delete: 'Eliminar',
+  deleting: 'Eliminando...',
+  cancel: 'Cancelar',
+  confirm: 'Confirmar',
+
+  // Authentication
+  welcomeTitle: 'Bienvenido a Markspace',
+  signIn: 'Iniciar Sesión',
+  register: 'Registrarse',
+  username: 'Nombre de Usuario',
+  password: 'Contraseña',
+  masterPassword: 'Contraseña Maestra',
+  unlockVault: 'Desbloquear Bóveda de Datos',
+  unlocking: 'Desbloqueando...',
+  unlock: 'Desbloquear',
+
+  // Settings & Profile
+  userProfile: 'Perfil de Usuario y Ajustes',
+  language: 'Idioma',
+  switchLanguage: 'Cambiar Idioma',
+  activeVault: 'Bóveda Activa',
+  createVault: 'Crear Nueva Bóveda',
+  vaultName: 'Nombre de la Bóveda',
+
+  // Status Capsule & Editor
+  words: 'Palabras',
+  chars: 'Caracteres',
+  selWords: 'Palabras Sel.',
+  selChars: 'Caracteres Sel.',
+  saving: 'Guardando...',
+  saved: 'Guardado',
+  preview: 'Vista Previa',
+  edit: 'Editar',
+  darkTheme: 'Tema Oscuro',
+  lightTheme: 'Tema Claro',
+  untitledNote: 'Nota Sin Título',
+
+  // Toasts & Messages
+  loadVaultFailed: 'Error al cargar el árbol de archivos. Compruebe su conexión.',
+  createNoteFailed: 'Error al crear la nota. Inténtelo de nuevo.',
+  createFolderFailed: 'Error al crear el directorio. Inténtelo de nuevo.',
+  uploadFileFailed: 'Error al añadir el archivo. Inténtelo de nuevo.',
+  moveFileFailed: 'Error al mover el archivo. Inténtelo de nuevo.',
+  deleteFailed: 'Error al eliminar el elemento. Inténtelo de nuevo.',
+  autoSaveFailed: 'Error al guardar automáticamente.',
+  noFilesToDownload: 'No hay archivos disponibles para descargar en este directorio.',
+};

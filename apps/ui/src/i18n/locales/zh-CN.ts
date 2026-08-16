@@ -1,0 +1,63 @@
+import { enUS } from './en-US';
+
+export const zhCN: typeof enUS = {
+  // Navigation & General
+  mainVault: '主保险库',
+  encryptedVault: '端到端加密保险库',
+  lockVault: '锁定保险库',
+  logoutAccount: '退出账号',
+  newNote: '新建笔记',
+  createDirectory: '新建目录',
+  addFileMedia: '添加文件 / 媒体',
+  uploading: '上传中...',
+  searchPlaceholder: '搜索笔记与文件...',
+  loadingVaultTree: '解密加载文件树中...',
+  noFilesFound: '未找到相关文件',
+  download: '下载',
+  delete: '删除',
+  deleting: '删除中...',
+  cancel: '取消',
+  confirm: '确认',
+
+  // Authentication
+  welcomeTitle: '欢迎使用 Markspace',
+  signIn: '登录账号',
+  register: '注册账号',
+  username: '用户名',
+  password: '密码',
+  masterPassword: '主解密密码',
+  unlockVault: '解锁数据保险库',
+  unlocking: '解密中...',
+  unlock: '解锁',
+
+  // Settings & Profile
+  userProfile: '个人中心与设置',
+  language: '语言设置',
+  switchLanguage: '切换语言',
+  activeVault: '当前保险库',
+  createVault: '新建保险库',
+  vaultName: '保险库名称',
+
+  // Status Capsule & Editor
+  words: '字数',
+  chars: '字符数',
+  selWords: '选中字数',
+  selChars: '选中字符数',
+  saving: '保存中...',
+  saved: '已保存',
+  preview: '预览',
+  edit: '编辑',
+  darkTheme: '深色模式',
+  lightTheme: '浅色模式',
+  untitledNote: '无标题笔记',
+
+  // Toasts & Messages
+  loadVaultFailed: '加载文件列表失败，请检查网络设置。',
+  createNoteFailed: '新建笔记失败，请重试。',
+  createFolderFailed: '新建文件夹失败，请重试。',
+  uploadFileFailed: '添加文件失败，请重试。',
+  moveFileFailed: '移动文件失败，请重试。',
+  deleteFailed: '删除失败，请重试。',
+  autoSaveFailed: '自动保存文本失败。',
+  noFilesToDownload: '该目录下无可下载的文件。',
+};

@@ -1,0 +1,63 @@
+import { enUS } from './en-US';
+
+export const deDE: typeof enUS = {
+  // Navigation & General
+  mainVault: 'Haupt-Tresor',
+  encryptedVault: 'Ende-zu-Ende verschlüsselter Tresor',
+  lockVault: 'Tresor sperren',
+  logoutAccount: 'Abmelden',
+  newNote: 'Neue Notiz',
+  createDirectory: 'Ordner erstellen',
+  addFileMedia: 'Datei / Medien hinzufügen',
+  uploading: 'Hochladen...',
+  searchPlaceholder: 'Notizen & Dateien suchen...',
+  loadingVaultTree: 'Verschlüsselter Dateibaum wird geladen...',
+  noFilesFound: 'Keine Dateien gefunden',
+  download: 'Herunterladen',
+  delete: 'Löschen',
+  deleting: 'Wird gelöscht...',
+  cancel: 'Abbrechen',
+  confirm: 'Bestätigen',
+
+  // Authentication
+  welcomeTitle: 'Willkommen bei Markspace',
+  signIn: 'Anmelden',
+  register: 'Registrieren',
+  username: 'Benutzername',
+  password: 'Passwort',
+  masterPassword: 'Master-Passwort',
+  unlockVault: 'Datentresor entschlüsseln',
+  unlocking: 'Entschlüsseln...',
+  unlock: 'Entschlüsseln',
+
+  // Settings & Profile
+  userProfile: 'Benutzerprofil & Einstellungen',
+  language: 'Sprache',
+  switchLanguage: 'Sprache wechseln',
+  activeVault: 'Aktiver Tresor',
+  createVault: 'Neuen Tresor erstellen',
+  vaultName: 'Tresor-Name',
+
+  // Status Capsule & Editor
+  words: 'Wörter',
+  chars: 'Zeichen',
+  selWords: 'Ausgew. Wörter',
+  selChars: 'Ausgew. Zeichen',
+  saving: 'Speichern...',
+  saved: 'Gespeichert',
+  preview: 'Vorschau',
+  edit: 'Bearbeiten',
+  darkTheme: 'Dunkles Design',
+  lightTheme: 'Helles Design',
+  untitledNote: 'Unbenannte Notiz',
+
+  // Toasts & Messages
+  loadVaultFailed: 'Fehler beim Laden der Dateiliste. Bitte Netzwerkeinstellungen prüfen.',
+  createNoteFailed: 'Erstellen der Notiz fehlgeschlagen. Bitte erneut versuchen.',
+  createFolderFailed: 'Erstellen des Ordners fehlgeschlagen. Bitte erneut versuchen.',
+  uploadFileFailed: 'Hinzufügen der Datei fehlgeschlagen. Bitte erneut versuchen.',
+  moveFileFailed: 'Verschieben der Datei fehlgeschlagen. Bitte erneut versuchen.',
+  deleteFailed: 'Löschen fehlgeschlagen. Bitte erneut versuchen.',
+  autoSaveFailed: 'Automatisches Speichern fehlgeschlagen.',
+  noFilesToDownload: 'In diesem Ordner sind keine Dateien zum Herunterladen vorhanden.',
+};

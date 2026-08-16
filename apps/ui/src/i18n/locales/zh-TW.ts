@@ -1,0 +1,63 @@
+import { enUS } from './en-US';
+
+export const zhTW: typeof enUS = {
+  // Navigation & General
+  mainVault: '主保險庫',
+  encryptedVault: '端到端加密保險庫',
+  lockVault: '鎖定保險庫',
+  logoutAccount: '登出帳號',
+  newNote: '新增筆記',
+  createDirectory: '新增資料夾',
+  addFileMedia: '新增檔案 / 媒體',
+  uploading: '上傳中...',
+  searchPlaceholder: '搜尋筆記與檔案...',
+  loadingVaultTree: '解密載入檔案樹中...',
+  noFilesFound: '未找到相關檔案',
+  download: '下載',
+  delete: '刪除',
+  deleting: '刪除中...',
+  cancel: '取消',
+  confirm: '確認',
+
+  // Authentication
+  welcomeTitle: '歡迎使用 Markspace',
+  signIn: '登入帳號',
+  register: '註冊帳號',
+  username: '使用者名稱',
+  password: '密碼',
+  masterPassword: '主解密密碼',
+  unlockVault: '解鎖資料保險庫',
+  unlocking: '解密中...',
+  unlock: '解鎖',
+
+  // Settings & Profile
+  userProfile: '個人中心與設定',
+  language: '語言設定',
+  switchLanguage: '切換語言',
+  activeVault: '目前保險庫',
+  createVault: '新增保險庫',
+  vaultName: '保險庫名稱',
+
+  // Status Capsule & Editor
+  words: '字數',
+  chars: '字元數',
+  selWords: '選取字數',
+  selChars: '選取字元數',
+  saving: '儲存中...',
+  saved: '已儲存',
+  preview: '預覽',
+  edit: '編輯',
+  darkTheme: '深色模式',
+  lightTheme: '淺色模式',
+  untitledNote: '無標題筆記',
+
+  // Toasts & Messages
+  loadVaultFailed: '載入檔案列表失敗，請檢查網路設定。',
+  createNoteFailed: '新增筆記失敗，請重試。',
+  createFolderFailed: '新增資料夾失敗，請重試。',
+  uploadFileFailed: '新增檔案失敗，請重試。',
+  moveFileFailed: '移動檔案失敗，請重試。',
+  deleteFailed: '刪除失敗，請重試。',
+  autoSaveFailed: '自動儲存文字失敗。',
+  noFilesToDownload: '該資料夾下無可下載的檔案。',
+};

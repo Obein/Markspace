@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Crown, Download, Plus, Database, ShieldCheck, LogOut } from 'lucide-react';
+import { X, Crown, Download, Plus, Database, ShieldCheck, LogOut, Globe } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { LANGUAGE_OPTIONS, Language, useI18n } from '../i18n/i18nContext';
 import { NoteItem, VaultInfo } from '../interfaces/INoteModels';
 import { VaultExportService } from '../services/VaultExportService';
 
@@ -24,6 +25,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   activeVaultNotes,
 }) => {
   const { username, role, logoutAccount, isVaultUnlocked } = useApp();
+  const { language, setLanguage, t } = useI18n();
   const [newVaultName, setNewVaultName] = useState('');
   const [showCreateVault, setShowCreateVault] = useState(false);
 
@@ -74,8 +76,32 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-400 mt-0.5">Account & Multi-Vault Management</p>
+            <p className="text-xs text-zinc-400 mt-0.5">{t('userProfile')}</p>
           </div>
+        </div>
+
+        {/* Language Selection Section */}
+        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-medium text-zinc-200">
+              <Globe className="w-4 h-4 text-blue-400" />
+              <span>{t('language')}</span>
+            </div>
+            <span className="text-[10px] text-blue-400 font-mono font-semibold">
+              {LANGUAGE_OPTIONS.find((l) => l.code === language)?.flag} {LANGUAGE_OPTIONS.find((l) => l.code === language)?.label}
+            </span>
+          </div>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as Language)}
+            className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-mono text-white focus:outline-none focus:border-blue-500/50 transition cursor-pointer"
+          >
+            {LANGUAGE_OPTIONS.map((opt) => (
+              <option key={opt.code} value={opt.code} className="bg-zinc-900 text-white">
+                {opt.flag} {opt.label} ({opt.code})
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Multi-Vault Management Section */}
@@ -83,14 +109,14 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
               <Database className="w-4 h-4 text-blue-400" />
-              <span>Vault Storage Management</span>
+              <span>{t('activeVault')}</span>
             </div>
             <button
               onClick={() => setShowCreateVault(!showCreateVault)}
               className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>New Vault</span>
+              <span>{t('createVault')}</span>
             </button>
           </div>
 
@@ -100,7 +126,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 type="text"
                 value={newVaultName}
                 onChange={(e) => setNewVaultName(e.target.value)}
-                placeholder="Vault name (e.g. Work Notes)..."
+                placeholder={`${t('vaultName')}...`}
                 className="flex-1 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white placeholder-zinc-500 focus:outline-none"
                 required
               />
@@ -108,7 +134,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 type="submit"
                 className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium"
               >
-                Create
+                {t('confirm')}
               </button>
             </form>
           )}
@@ -148,16 +174,13 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               {activeVaultNotes.length} Files
             </span>
           </div>
-          <p className="text-xs text-zinc-400">
-            Export all notes (`.md`) and `/assets` media files in <strong>{activeVault?.name}</strong> to local disk storage.
-          </p>
           <button
             onClick={handleExportVault}
             disabled={!isVaultUnlocked || activeVaultNotes.length === 0}
             className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center justify-center gap-2 transition disabled:opacity-50 border border-blue-400/20 shadow-lg shadow-blue-500/10"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Export "{activeVault?.name}" to Local Disk</span>
+            <span>{t('download')} "{activeVault?.name}"</span>
           </button>
         </div>
 
@@ -175,7 +198,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition flex items-center gap-1"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>Logout</span>
+            <span>{t('logoutAccount')}</span>
           </button>
         </div>
       </div>

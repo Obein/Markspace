@@ -22,6 +22,7 @@ import {
   Trash2,
   Loader2,
 } from 'lucide-react';
+import { useI18n } from '../i18n/i18nContext';
 import { FileTreeNode, VaultFileItem, VaultInfo } from '../interfaces/INoteModels';
 import { FileTreeBuilder } from '../utils/FileTreeBuilder';
 
@@ -80,6 +81,8 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
   isDeletingNodeId = null,
   isUploadingFiles = false,
 }) => {
+  const { t } = useI18n();
+
   const [isDragOver, setIsDragOver] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
@@ -371,11 +374,11 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             </div>
             <div>
               <h2 className="text-sm font-bold text-white font-mono truncate max-w-[140px]">
-                {activeVault ? activeVault.name : 'Main Vault'}
+                {activeVault ? activeVault.name : t('mainVault')}
               </h2>
               <p className="text-[11px] text-zinc-500 font-mono flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                Encrypted Vault
+                {t('encryptedVault')}
               </p>
             </div>
           </div>
@@ -384,14 +387,14 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             <button
               onClick={onLockVault}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition border border-white/10"
-              title="Lock Vault"
+              title={t('lockVault')}
             >
               <Lock className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={onLogoutAccount}
               className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition border border-red-500/20"
-              title="Logout Account"
+              title={t('logoutAccount')}
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>
@@ -410,14 +413,14 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             ) : (
               <Plus className="w-3.5 h-3.5" />
             )}
-            <span>New Note</span>
+            <span>{t('newNote')}</span>
           </button>
 
           <button
             onClick={() => setIsCreatingFolder(true)}
             disabled={isCreatingFolderLoading}
             className="p-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:bg-white/5 text-zinc-300 hover:text-white transition border border-white/10 flex items-center justify-center shrink-0 disabled:cursor-not-allowed"
-            title="Create New Directory"
+            title={t('createDirectory')}
           >
             {isCreatingFolderLoading ? (
               <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
@@ -442,7 +445,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
               type="submit"
               disabled={isCreatingFolderLoading}
               className="p-1.5 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition disabled:bg-blue-600/50 disabled:cursor-not-allowed flex items-center justify-center"
-              title="Confirm Folder Creation"
+              title={t('confirm')}
             >
               {isCreatingFolderLoading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -457,7 +460,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
                 setNewFolderName('');
               }}
               className="p-1.5 rounded-xl bg-white/5 text-zinc-400 hover:text-white transition"
-              title="Cancel"
+              title={t('cancel')}
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -471,7 +474,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search notes & files..."
+            placeholder={t('searchPlaceholder')}
             className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500/50 transition"
           />
         </div>
@@ -482,14 +485,14 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
         {isLoadingVaultTree ? (
           <div className="p-12 text-center text-zinc-400 text-xs font-mono space-y-3 flex flex-col items-center justify-center">
             <Loader2 className="w-6 h-6 text-blue-400 animate-spin opacity-80" />
-            <p className="text-zinc-400 font-medium">Loading vault tree...</p>
+            <p className="text-zinc-400 font-medium">{t('loadingVaultTree')}</p>
           </div>
         ) : fileTree.length > 0 ? (
           renderTreeNodes(fileTree)
         ) : (
           <div className="p-8 text-center text-zinc-600 text-xs font-mono space-y-2">
             <FileText className="w-8 h-8 opacity-20 mx-auto" />
-            <p>No files found</p>
+            <p>{t('noFilesFound')}</p>
           </div>
         )}
       </div>
@@ -506,7 +509,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
           ) : (
             <Upload className="w-3.5 h-3.5 text-blue-400" />
           )}
-          <span>{isUploadingFiles ? 'Uploading...' : 'Add File / Media'}</span>
+          <span>{isUploadingFiles ? t('uploading') : t('addFileMedia')}</span>
         </button>
       </div>
 
@@ -545,7 +548,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
               className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-zinc-200 hover:text-white flex items-center gap-2 transition my-0.5"
             >
               <Download className="w-3.5 h-3.5 text-blue-400" />
-              <span>Download</span>
+              <span>{t('download')}</span>
             </button>
 
             <button
@@ -564,7 +567,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
               ) : (
                 <Trash2 className="w-3.5 h-3.5 text-red-400" />
               )}
-              <span>{isDeletingNodeId === contextMenu.nodeId ? 'Deleting...' : 'Delete'}</span>
+              <span>{isDeletingNodeId === contextMenu.nodeId ? t('deleting') : t('delete')}</span>
             </button>
           </div>
         </div>

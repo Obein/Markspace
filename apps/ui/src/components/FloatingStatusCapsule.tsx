@@ -1,5 +1,6 @@
 import React from 'react';
 import { Eye, Edit3, Sun, Moon, Crown, Lock, User, Download, Trash2 } from 'lucide-react';
+import { useI18n } from '../i18n/i18nContext';
 import { UserRole } from '../interfaces/IApiClient';
 
 interface FloatingStatusCapsuleProps {
@@ -39,6 +40,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   onDownloadCurrentFile,
   onDeleteCurrentFile,
 }) => {
+  const { t } = useI18n();
   const hasSelection = selectedCharCount > 0;
 
   return (
@@ -77,7 +79,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
             title="Click to enter Data Password and Unlock Vault"
           >
             <Lock className="w-4 h-4 animate-pulse text-blue-400" />
-            <span className="underline">Vault Locked (Click to Unlock)</span>
+            <span className="underline">{t('unlockVault')}</span>
           </button>
         </>
       )}
@@ -91,16 +93,16 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
             {hasSelection ? (
               <>
                 <span className="text-blue-400 font-medium">
-                  {selectedWordCount}/{wordCount} selected {selectedWordCount === 1 ? 'word' : 'words'}
+                  {selectedWordCount}/{wordCount} {t('selWords')}
                 </span>
                 <span className="text-blue-400 font-medium">
-                  {selectedCharCount}/{charCount} selected {selectedCharCount === 1 ? 'char' : 'chars'}
+                  {selectedCharCount}/{charCount} {t('selChars')}
                 </span>
               </>
             ) : (
               <>
-                <span className="text-zinc-400">{wordCount} words</span>
-                <span className="text-zinc-400">{charCount} chars</span>
+                <span className="text-zinc-400">{wordCount} {t('words')}</span>
+                <span className="text-zinc-400">{charCount} {t('chars')}</span>
               </>
             )}
           </div>
@@ -112,10 +114,10 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
             {isSaving ? (
               <span className="text-blue-400 flex items-center gap-1 font-mono text-[11px]">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
-                Saving...
+                {t('saving')}
               </span>
             ) : (
-              <span className="text-zinc-500 font-mono text-[11px]">Synced</span>
+              <span className="text-zinc-500 font-mono text-[11px]">{t('saved')}</span>
             )}
           </div>
 
@@ -126,10 +128,10 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
               <button
                 onClick={onDownloadCurrentFile}
                 className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 transition flex items-center gap-1.5"
-                title="Download Current File to Local Disk"
+                title="Download Current File"
               >
                 <Download className="w-3.5 h-3.5 text-blue-400" />
-                <span className="text-[11px] font-medium">Download</span>
+                <span className="text-[11px] font-medium">{t('download')}</span>
               </button>
             </>
           )}
@@ -143,7 +145,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
                 title="Delete Current File"
               >
                 <Trash2 className="w-3.5 h-3.5 text-zinc-400 hover:text-blue-400" />
-                <span className="text-[11px] font-medium">Delete</span>
+                <span className="text-[11px] font-medium">{t('delete')}</span>
               </button>
             </>
           )}
@@ -157,7 +159,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
             title={isPreview ? 'Switch to Edit' : 'Switch to Preview'}
           >
             {isPreview ? <Edit3 className="w-3.5 h-3.5 text-blue-400" /> : <Eye className="w-3.5 h-3.5 text-blue-400" />}
-            <span className="text-[11px]">{isPreview ? 'Edit' : 'Preview'}</span>
+            <span className="text-[11px]">{isPreview ? t('edit') : t('preview')}</span>
           </button>
         </>
       )}

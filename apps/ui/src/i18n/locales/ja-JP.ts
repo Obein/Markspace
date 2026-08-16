@@ -1,0 +1,63 @@
+import { enUS } from './en-US';
+
+export const jaJP: typeof enUS = {
+  // Navigation & General
+  mainVault: 'メイン保管庫',
+  encryptedVault: 'エンドツーエンド暗号化保管庫',
+  lockVault: '保管庫をロック',
+  logoutAccount: 'ログアウト',
+  newNote: '新規ノート',
+  createDirectory: 'フォルダ作成',
+  addFileMedia: 'ファイル / メディア追加',
+  uploading: 'アップロード中...',
+  searchPlaceholder: 'ノートとファイルを検索...',
+  loadingVaultTree: '暗号化ファイルツリーを読み込み中...',
+  noFilesFound: 'ファイルが見つかりません',
+  download: 'ダウンロード',
+  delete: '削除',
+  deleting: '削除中...',
+  cancel: 'キャンセル',
+  confirm: '確認',
+
+  // Authentication
+  welcomeTitle: 'Markspaceへようこそ',
+  signIn: 'ログイン',
+  register: '新規登録',
+  username: 'ユーザー名',
+  password: 'パスワード',
+  masterPassword: 'マスターパスワード',
+  unlockVault: 'データ保管庫を解除',
+  unlocking: '解除中...',
+  unlock: '解除',
+
+  // Settings & Profile
+  userProfile: 'ユーザープロフィールと設定',
+  language: '言語',
+  switchLanguage: '言語を切り替え',
+  activeVault: '現在の保管庫',
+  createVault: '新規保管庫を作成',
+  vaultName: '保管庫名',
+
+  // Status Capsule & Editor
+  words: '単語数',
+  chars: '文字数',
+  selWords: '選択単語数',
+  selChars: '選択文字数',
+  saving: '保存中...',
+  saved: '保存済み',
+  preview: 'プレビュー',
+  edit: '編集',
+  darkTheme: 'ダークテーマ',
+  lightTheme: 'ライトテーマ',
+  untitledNote: '無題のノート',
+
+  // Toasts & Messages
+  loadVaultFailed: 'ファイルツリーの読み込みに失敗しました。ネットワークを確認してください。',
+  createNoteFailed: 'ノートの作成に失敗しました。もう一度お試しください。',
+  createFolderFailed: 'フォルダの作成に失敗しました。もう一度お試しください。',
+  uploadFileFailed: 'ファイルの追加に失敗しました。もう一度お試しください。',
+  moveFileFailed: 'ファイルの移動に失敗しました。もう一度お試しください。',
+  deleteFailed: '削除に失敗しました。もう一度お試しください。',
+  autoSaveFailed: '自動保存に失敗しました。',
+  noFilesToDownload: 'このフォルダにダウンロード可能なファイルはありません。',
+};

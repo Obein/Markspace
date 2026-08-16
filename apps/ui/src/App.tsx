@@ -7,6 +7,7 @@ import { ToastContainer, ToastMessage } from './components/Toast';
 import { UnlockModal } from './components/UnlockModal';
 import { UserProfileModal } from './components/UserProfileModal';
 import { useApp } from './context/AppContext';
+import { useI18n } from './i18n/i18nContext';
 import { NoteItem, VaultFileItem, VaultInfo } from './interfaces/INoteModels';
 import { FileTreeBuilder } from './utils/FileTreeBuilder';
 
@@ -45,6 +46,8 @@ export const AppContent: React.FC = () => {
     lockVault,
     logoutAccount,
   } = useApp();
+
+  const { t } = useI18n();
 
   const [vaults, setVaults] = useState<VaultInfo[]>([
     { id: 'vault_default', name: 'Main Vault', createdAt: Date.now() },
@@ -169,7 +172,7 @@ export const AppContent: React.FC = () => {
         }
       } catch (err) {
         console.error('Failed to load Vault tree from backend', err);
-        showToast('加载文件列表失败，请检查网络设置', 'error');
+        showToast(t('loadVaultFailed'), 'error');
       } finally {
         setIsLoadingVaultTree(false);
       }
@@ -232,7 +235,7 @@ export const AppContent: React.FC = () => {
       );
     } catch (err) {
       console.error('Failed to move node path', err);
-      showToast(err instanceof Error ? err.message : '移动文件失败，请重试', 'error');
+      showToast(err instanceof Error ? err.message : t('moveFileFailed'), 'error');
     }
   };
 
@@ -246,9 +249,9 @@ export const AppContent: React.FC = () => {
       const dek = await cryptoService.generateDEK();
       const wrappedDek = await cryptoService.wrapDEK(dek, cmk);
 
-      const defaultTitle = 'Untitled Note';
+      const defaultTitle = t('untitledNote');
       const filename = getUniqueFilename(defaultTitle, '.md');
-      const defaultContent = '# Welcome to Markspace\n\nWrite your encrypted notes here.\n\nImages are stored under `/assets` directory e.g. `![Media](assets/sample.png)`.';
+      const defaultContent = `# ${defaultTitle}\n\nWrite your encrypted notes here.`;
 
       const encryptedPayload = await cryptoService.encryptText(defaultContent, dek);
 
@@ -287,7 +290,7 @@ export const AppContent: React.FC = () => {
       setSelectedCharCount(0);
     } catch (err) {
       console.error('Failed to create note in Object Storage', err);
-      showToast(err instanceof Error ? err.message : '新建笔记失败，请重试', 'error');
+      showToast(err instanceof Error ? err.message : t('createNoteFailed'), 'error');
     } finally {
       setIsCreatingNote(false);
       setIsSaving(false);
@@ -334,7 +337,7 @@ export const AppContent: React.FC = () => {
       setFiles((prev) => [folderFileItem, ...prev]);
     } catch (err) {
       console.error('Failed to create directory node', err);
-      showToast(err instanceof Error ? err.message : '新建文件夹失败，请重试', 'error');
+      showToast(err instanceof Error ? err.message : t('createFolderFailed'), 'error');
     } finally {
       setIsCreatingFolderLoading(false);
     }
@@ -403,7 +406,7 @@ export const AppContent: React.FC = () => {
           });
         } catch (err) {
           console.error('Failed to add file to Object Storage', file.name, err);
-          showToast(`添加文件 ${file.name} 失败`, 'error');
+          showToast(t('uploadFileFailed'), 'error');
         }
       }
 
@@ -501,7 +504,7 @@ export const AppContent: React.FC = () => {
         );
       } catch (err) {
         console.error('Auto save to Object Storage error', err);
-        showToast('自动保存文本失败', 'error');
+        showToast(t('autoSaveFailed'), 'error');
       } finally {
         setIsSaving(false);
       }
@@ -549,7 +552,7 @@ export const AppContent: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to delete node via context menu', err);
-      showToast(err instanceof Error ? err.message : '删除失败，请重试', 'error');
+      showToast(err instanceof Error ? err.message : t('deleteFailed'), 'error');
     } finally {
       setIsDeletingNodeId(null);
     }
@@ -566,7 +569,7 @@ export const AppContent: React.FC = () => {
         (f) => f.path.startsWith(`${targetNode.path}/`) && f.mimeType !== 'inode/directory'
       );
       if (childFiles.length === 0) {
-        showToast('该目录下无可下载的文件', 'info');
+        showToast(t('noFilesToDownload'), 'info');
         return;
       }
       childFiles.forEach((file) => {

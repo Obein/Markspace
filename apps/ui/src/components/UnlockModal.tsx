@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Lock, ShieldCheck, KeyRound, LogOut } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../i18n/i18nContext';
 
 export const UnlockModal: React.FC = () => {
   const { cryptoService, setCmk, isAuthenticated, isVaultUnlocked, username, logoutAccount } = useApp();
+  const { t } = useI18n();
+
   const [dataPassword, setDataPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -45,9 +48,9 @@ export const UnlockModal: React.FC = () => {
           <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 mb-3 shadow-inner text-emerald-400">
             <Lock className="w-8 h-8 animate-pulse" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">Unlock Data Vault</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-white">{t('unlockVault')}</h2>
           <p className="text-xs text-zinc-400 mt-1 max-w-xs">
-            Logged in as <strong className="text-zinc-200 font-mono">{username}</strong>. Step 2: Enter your Data Password (数据解密密码) to derive CMK in browser memory.
+            Logged in as <strong className="text-zinc-200 font-mono">{username}</strong>.
           </p>
         </div>
 
@@ -59,7 +62,7 @@ export const UnlockModal: React.FC = () => {
 
         <form onSubmit={handleUnlock} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1">Data Password (数据解密密码)</label>
+            <label className="block text-xs font-medium text-zinc-400 mb-1">{t('masterPassword')}</label>
             <input
               type="password"
               value={dataPassword}
@@ -80,7 +83,7 @@ export const UnlockModal: React.FC = () => {
             ) : (
               <>
                 <KeyRound className="w-4 h-4" />
-                <span>Unlock Vault Data (Derive CMK)</span>
+                <span>{t('unlocking')}</span>
               </>
             )}
           </button>
@@ -89,14 +92,14 @@ export const UnlockModal: React.FC = () => {
         <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-zinc-400">
           <div className="flex items-center gap-1 text-emerald-400">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Never Sent to Server</span>
+            <span>E2EE Zero-Knowledge</span>
           </div>
           <button
             onClick={logoutAccount}
             className="text-red-400 hover:underline transition flex items-center gap-1"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>Logout Account</span>
+            <span>{t('logoutAccount')}</span>
           </button>
         </div>
       </div>

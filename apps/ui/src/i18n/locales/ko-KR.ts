@@ -1,0 +1,63 @@
+import { enUS } from './en-US';
+
+export const koKR: typeof enUS = {
+  // Navigation & General
+  mainVault: '메인 금고',
+  encryptedVault: '종단간 암호화 금고',
+  lockVault: '금고 잠금',
+  logoutAccount: '로그아웃',
+  newNote: '새 노트',
+  createDirectory: '폴더 생성',
+  addFileMedia: '파일 / 미디어 추가',
+  uploading: '업로드 중...',
+  searchPlaceholder: '노트 및 파일 검색...',
+  loadingVaultTree: '암호화된 파일 트리를 불러오는 중...',
+  noFilesFound: '파일을 찾을 수 없습니다',
+  download: '다운로드',
+  delete: '삭제',
+  deleting: '삭제 중...',
+  cancel: '취소',
+  confirm: '확인',
+
+  // Authentication
+  welcomeTitle: 'Markspace에 오신 것을 환영합니다',
+  signIn: '로그인',
+  register: '회원가입',
+  username: '사용자 이름',
+  password: '비밀번호',
+  masterPassword: '마스터 비밀번호',
+  unlockVault: '데이터 금고 잠금 해제',
+  unlocking: '해제 중...',
+  unlock: '잠금 해제',
+
+  // Settings & Profile
+  userProfile: '사용자 프로필 및 설정',
+  language: '언어',
+  switchLanguage: '언어 변경',
+  activeVault: '현재 금고',
+  createVault: '새 금고 생성',
+  vaultName: '금고 이름',
+
+  // Status Capsule & Editor
+  words: '단어 수',
+  chars: '글자 수',
+  selWords: '선택 단어 수',
+  selChars: '선택 글자 수',
+  saving: '저장 중...',
+  saved: '저장됨',
+  preview: '미리보기',
+  edit: '편집',
+  darkTheme: '다크 모드',
+  lightTheme: '라이트 모드',
+  untitledNote: '제목 없는 노트',
+
+  // Toasts & Messages
+  loadVaultFailed: '파일 트리를 불러오지 못했습니다. 네트워크 설정을 확인하세요.',
+  createNoteFailed: '노트 생성을 실패했습니다. 다시 시도해 주세요.',
+  createFolderFailed: '폴더 생성을 실패했습니다. 다시 시도해 주세요.',
+  uploadFileFailed: '파일 추가를 실패했습니다. 다시 시도해 주세요.',
+  moveFileFailed: '파일 이동을 실패했습니다. 다시 시도해 주세요.',
+  deleteFailed: '삭제를 실패했습니다. 다시 시도해 주세요.',
+  autoSaveFailed: '자동 저장을 실패했습니다.',
+  noFilesToDownload: '이 폴더에 다운로드할 수 있는 파일이 없습니다.',
+};

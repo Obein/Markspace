@@ -1,0 +1,61 @@
+export const enUS = {
+  // Navigation & General
+  mainVault: 'Main Vault',
+  encryptedVault: 'Encrypted Vault',
+  lockVault: 'Lock Vault',
+  logoutAccount: 'Logout Account',
+  newNote: 'New Note',
+  createDirectory: 'Create Directory',
+  addFileMedia: 'Add File / Media',
+  uploading: 'Uploading...',
+  searchPlaceholder: 'Search notes & files...',
+  loadingVaultTree: 'Loading vault tree...',
+  noFilesFound: 'No files found',
+  download: 'Download',
+  delete: 'Delete',
+  deleting: 'Deleting...',
+  cancel: 'Cancel',
+  confirm: 'Confirm',
+
+  // Authentication
+  welcomeTitle: 'Welcome to Markspace',
+  signIn: 'Sign In',
+  register: 'Register',
+  username: 'Username',
+  password: 'Password',
+  masterPassword: 'Master Password',
+  unlockVault: 'Unlock Data Vault',
+  unlocking: 'Unlocking...',
+  unlock: 'Unlock',
+
+  // Settings & Profile
+  userProfile: 'User Profile & Settings',
+  language: 'Language',
+  switchLanguage: 'Switch Language',
+  activeVault: 'Active Vault',
+  createVault: 'Create New Vault',
+  vaultName: 'Vault Name',
+
+  // Status Capsule & Editor
+  words: 'Words',
+  chars: 'Chars',
+  selWords: 'Sel Words',
+  selChars: 'Sel Chars',
+  saving: 'Saving...',
+  saved: 'Saved',
+  preview: 'Preview',
+  edit: 'Edit',
+  darkTheme: 'Dark Theme',
+  lightTheme: 'Light Theme',
+  untitledNote: 'Untitled Note',
+
+  // Toasts & Messages
+  loadVaultFailed: 'Failed to load vault tree. Please check network settings.',
+  createNoteFailed: 'Failed to create note. Please try again.',
+  createFolderFailed: 'Failed to create directory. Please try again.',
+  uploadFileFailed: 'Failed to add file. Please try again.',
+  moveFileFailed: 'Failed to move file. Please try again.',
+  deleteFailed: 'Failed to delete item. Please try again.',
+  autoSaveFailed: 'Auto-save failed.',
+  noFilesToDownload: 'No files available to download in this directory.',
+};

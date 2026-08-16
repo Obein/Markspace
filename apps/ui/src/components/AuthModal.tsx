@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { UserCheck, LogIn, UserPlus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../i18n/i18nContext';
 
 export const AuthModal: React.FC = () => {
   const { apiClient, cryptoService, setToken, setUsername, setRole, isAuthenticated } = useApp();
+  const { t } = useI18n();
+
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [usernameInput, setUsernameInput] = useState('');
   const [accountPassword, setAccountPassword] = useState('');
@@ -54,10 +57,10 @@ export const AuthModal: React.FC = () => {
             <UserCheck className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-bold tracking-tight text-white">
-            {isRegisterMode ? 'Create Account' : 'Account Login'}
+            {isRegisterMode ? t('register') : t('signIn')}
           </h2>
           <p className="text-xs text-zinc-400 mt-1 max-w-xs">
-            Step 1: Authenticate account with server. First registered user automatically becomes Admin!
+            {t('welcomeTitle')}
           </p>
         </div>
 
@@ -69,19 +72,19 @@ export const AuthModal: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1">Username (账号)</label>
+            <label className="block text-xs font-medium text-zinc-400 mb-1">{t('username')}</label>
             <input
               type="text"
               value={usernameInput}
               onChange={(e) => setUsernameInput(e.target.value)}
-              placeholder="e.g. alex"
+              placeholder="username"
               className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1">Account Password (账号密码)</label>
+            <label className="block text-xs font-medium text-zinc-400 mb-1">{t('password')}</label>
             <input
               type="password"
               value={accountPassword}
@@ -102,24 +105,24 @@ export const AuthModal: React.FC = () => {
             ) : isRegisterMode ? (
               <>
                 <UserPlus className="w-4 h-4" />
-                <span>Register Account</span>
+                <span>{t('register')}</span>
               </>
             ) : (
               <>
                 <LogIn className="w-4 h-4" />
-                <span>Sign In to Account</span>
+                <span>{t('signIn')}</span>
               </>
             )}
           </button>
         </form>
 
         <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-zinc-400">
-          <span>{isRegisterMode ? 'Already have an account?' : 'Need a new account?'}</span>
+          <span>{isRegisterMode ? t('signIn') : t('register')}</span>
           <button
             onClick={() => setIsRegisterMode(!isRegisterMode)}
             className="text-blue-400 hover:underline transition font-medium"
           >
-            {isRegisterMode ? 'Login' : 'Register'}
+            {isRegisterMode ? t('signIn') : t('register')}
           </button>
         </div>
       </div>
