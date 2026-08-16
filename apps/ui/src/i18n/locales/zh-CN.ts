@@ -32,6 +32,14 @@ export const zhCN: typeof enUS = {
   unlocking: '解密中...',
   unlock: '解锁',
 
+  // Version Control & History
+  versionHistory: '版本历史记录',
+  revert: '恢复此版本',
+  reverting: '恢复中...',
+  noHistory: '暂无版本历史记录',
+  commitHash: 'Git 提交 Hash',
+  unixTimestamp: 'Unix 时间戳',
+
   // Settings & Profile & Audit Logs
   userProfile: '个人中心与设置',
   language: '语言设置',

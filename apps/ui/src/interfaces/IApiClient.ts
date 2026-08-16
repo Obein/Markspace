@@ -24,6 +24,19 @@ export interface AuditLogResponse {
   timestamp: number;
 }
 
+export interface NodeVersionResponse {
+  id: string;
+  nodeId: string;
+  userId: string;
+  timestamp: number;
+  commitHash: string;
+  size: number;
+  encryptedDek: string;
+  objectKey: string;
+  commitMessage: string;
+  createdAt: number;
+}
+
 export interface VaultNodeResponse {
   id: string;
   userId: string;
@@ -63,6 +76,11 @@ export interface IApiClient {
   updateVaultNodeContent(id: string, contentBlob: ArrayBuffer | Uint8Array | string, mimeType?: string): Promise<VaultNodeResponse>;
   deleteVaultNode(id: string): Promise<void>;
   moveVaultNode(nodeId: string, newPath: string): Promise<VaultNodeResponse>;
+
+  // Git Version Control API
+  getNodeHistory(id: string): Promise<NodeVersionResponse[]>;
+  getVersionContent(id: string, timestamp: number): Promise<{ body: ArrayBuffer; encryptedDek: string; commitHash: string }>;
+  revertNodeVersion(id: string, timestamp: number): Promise<VaultNodeResponse>;
 
   // Legacy Notes API
   getNotesList(): Promise<NoteMetadataItem[]>;

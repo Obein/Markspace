@@ -32,6 +32,14 @@ export const zhTW: typeof enUS = {
   unlocking: '解密中...',
   unlock: '解鎖',
 
+  // Version Control & History
+  versionHistory: '版本歷史記錄',
+  revert: '恢復此版本',
+  reverting: '恢復中...',
+  noHistory: '暫無版本歷史記錄',
+  commitHash: 'Git 提交 Hash',
+  unixTimestamp: 'Unix 時間戳',
+
   // Settings & Profile & Audit Logs
   userProfile: '個人中心與設定',
   language: '語言設定',

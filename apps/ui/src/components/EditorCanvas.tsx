@@ -16,6 +16,7 @@ import {
   Calculator,
   Maximize2,
   Minimize2,
+  History,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { VaultFileItem } from '../interfaces/INoteModels';
@@ -28,6 +29,7 @@ interface EditorCanvasProps {
   onContentChange: (content: string) => void;
   isPreview: boolean;
   onDownloadFile: () => void;
+  onOpenHistory?: () => void;
   onSelectionStatsChange?: (selectedWords: number, selectedChars: number) => void;
 }
 
@@ -39,6 +41,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   onContentChange,
   isPreview,
   onDownloadFile,
+  onOpenHistory,
   onSelectionStatsChange,
 }) => {
   const { sheetEngine, highlightService } = useApp();
@@ -59,144 +62,92 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
 
-    if (start !== end) {
-      const selectedText = content.substring(start, end);
-      const selCharCount = selectedText.length;
-      const selWordCount = selectedText.trim() ? selectedText.trim().split(/\s+/).length : 0;
-      onSelectionStatsChange(selWordCount, selCharCount);
-    } else {
+    if (start === end) {
       onSelectionStatsChange(0, 0);
-    }
-  };
-
-  // Keyboard shortcut handler for Undo (Ctrl/Cmd+Z) and Redo (Ctrl/Cmd+Shift+Z / Ctrl+Y)
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    const isCmdOrCtrl = e.ctrlKey || e.metaKey;
-
-    if (isCmdOrCtrl && e.key.toLowerCase() === 'z') {
-      if (e.shiftKey) {
-        // Redo
-        e.preventDefault();
-        document.execCommand('redo');
-      } else {
-        // Undo
-        e.preventDefault();
-        document.execCommand('undo');
-      }
-    } else if (isCmdOrCtrl && e.key.toLowerCase() === 'y') {
-      // Redo
-      e.preventDefault();
-      document.execCommand('redo');
-    }
-  };
-
-  // Smart double click: Trim trailing whitespace from word selection
-  const handleDoubleClick = () => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    let start = textarea.selectionStart;
-    let end = textarea.selectionEnd;
-
-    // If selection ends with whitespace, trim trailing spaces
-    while (end > start && /\s/.test(content.charAt(end - 1))) {
-      end--;
+      return;
     }
 
-    textarea.setSelectionRange(start, end);
-    handleSelectionChange();
+    const selectedText = textarea.value.substring(start, end);
+    const selWords = selectedText.trim() ? selectedText.trim().split(/\s+/).length : 0;
+    const selChars = selectedText.length;
+
+    onSelectionStatsChange(selWords, selChars);
   };
 
-  // Helper to insert formatting syntax without dummy placeholder strings
+  // Helper to insert formatting tags (bold, italic, headers, tables, etc.)
   const insertFormatting = (prefix: string, suffix: string = '') => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    const scrollContainer = scrollContainerRef.current;
-    const currentScrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
-
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    const replacement = `${prefix}${selectedText}${suffix}`;
+    const currentText = textarea.value;
 
-    const newContent = content.substring(0, start) + replacement + content.substring(end);
+    const selected = currentText.substring(start, end);
+    const replacement = `${prefix}${selected || 'text'}${suffix}`;
+
+    const newContent = currentText.substring(0, start) + replacement + currentText.substring(end);
     onContentChange(newContent);
 
     setTimeout(() => {
       textarea.focus();
-      const cursorStart = start + prefix.length;
-      const cursorEnd = selectedText ? cursorStart + selectedText.length : cursorStart;
-      textarea.setSelectionRange(cursorStart, cursorEnd);
-
-      if (scrollContainer) {
-        scrollContainer.scrollTop = currentScrollTop;
-      }
-      handleSelectionChange();
-    }, 10);
+      textarea.setSelectionRange(
+        start + prefix.length,
+        start + prefix.length + (selected.length || 4)
+      );
+    }, 0);
   };
 
   if (!activeFile) {
     return (
-      <main className="flex-1 h-full glass-panel rounded-glass-lg border border-white/10 flex flex-col items-center justify-center p-8 text-center text-zinc-500 shadow-2xl relative z-10">
-        <FileText className="w-16 h-16 opacity-10 mb-3" />
-        <h3 className="text-lg font-semibold text-zinc-400">No File Selected</h3>
-        <p className="text-xs text-zinc-600 mt-1 max-w-sm">
-          Select a file from the sidebar tree or click <strong>Add File / Add Dir</strong> to import files into your Vault.
-        </p>
-      </main>
+      <div className="flex-1 flex flex-col items-center justify-center h-full glass-panel rounded-glass-lg border border-white/10 text-zinc-500 text-sm font-mono space-y-3 shadow-2xl">
+        <FileText className="w-12 h-12 opacity-20 text-zinc-400" />
+        <p className="text-zinc-400 font-medium">Select or create a note from the sidebar</p>
+      </div>
     );
   }
 
-  // Calculate top padding based on whether formatting toolbar is visible
-  const topPaddingClass = category === 'markdown' && !isPreview ? 'pt-28' : 'pt-16';
-
-  // Compute Lezer Markdown AST syntax highlighting for live editor canvas
-  const highlightedEditorLines = highlightService.highlightEditorLines(content);
-
   return (
-    <main className="flex-1 h-full glass-panel rounded-glass-lg border border-white/10 flex flex-col overflow-hidden shadow-2xl relative z-10 transition-all duration-300">
-      {/* Floating Translucent Glass Top Header & Toolbar Wrapper */}
-      <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none flex flex-col">
-        {/* Top Header Toolbar */}
-        <div className="px-8 py-3.5 backdrop-blur-xl bg-[#09090B]/75 border-b border-white/10 flex items-center justify-between pointer-events-auto">
-          <div className="flex items-center gap-3 flex-1">
-            <span className="text-xs font-mono text-zinc-500 px-2.5 py-1 rounded bg-white/5 border border-white/10">
-              {activeFile.path}
-            </span>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => onTitleChange(e.target.value)}
-              placeholder="Untitled Note"
-              className="text-xl font-bold bg-transparent text-white placeholder-zinc-600 focus:outline-none flex-1 truncate"
-              disabled={category !== 'markdown'}
-            />
-          </div>
+    <main className="flex-1 flex flex-col h-full glass-panel rounded-glass-lg border border-white/10 relative overflow-hidden shadow-2xl">
+      {/* Top Floating Utility Bar (Fixed Header: Stays on top of content) */}
+      <div className="absolute top-0 left-0 right-0 z-20 px-6 py-3 border-b border-white/10 bg-black/40 backdrop-blur-xl flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => onTitleChange(e.target.value)}
+            disabled={category !== 'markdown'}
+            placeholder="Note title..."
+            className="text-lg font-bold font-mono text-white bg-transparent focus:outline-none placeholder-zinc-600 truncate max-w-lg disabled:opacity-70"
+          />
 
-          {/* Layout Width Toggle Button (Limited-width 45em vs Full-width) */}
-          <button
-            onClick={() => setIsFullWidth(!isFullWidth)}
-            className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition flex items-center gap-1.5 text-xs font-mono"
-            title={isFullWidth ? 'Switch to Limited Width (45em)' : 'Switch to Full Width'}
-          >
-            {isFullWidth ? (
-              <>
-                <Minimize2 className="w-3.5 h-3.5 text-blue-400" />
-                <span>45em Width</span>
-              </>
-            ) : (
-              <>
-                <Maximize2 className="w-3.5 h-3.5 text-blue-400" />
-                <span>Full Width</span>
-              </>
+          <div className="flex items-center gap-2">
+            {/* Version History Button */}
+            {onOpenHistory && (
+              <button
+                onClick={onOpenHistory}
+                className="p-1.5 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition flex items-center gap-1.5 text-xs font-mono border border-white/10 cursor-pointer"
+                title="Version History"
+              >
+                <History className="w-3.5 h-3.5 text-blue-400" />
+                <span className="hidden sm:inline font-medium">History</span>
+              </button>
             )}
-          </button>
+
+            {/* Layout Toggle: Limited Width vs Full Width */}
+            <button
+              onClick={() => setIsFullWidth(!isFullWidth)}
+              className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition border border-white/10"
+              title={isFullWidth ? 'Switch to Limited Width' : 'Switch to Full Width'}
+            >
+              {isFullWidth ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            </button>
+          </div>
         </div>
 
-        {/* Markdown Formatting Helper Toolbar */}
+        {/* Formatting Toolbar (Only visible in Markdown edit mode) */}
         {category === 'markdown' && !isPreview && (
-          <div className="px-6 py-2 backdrop-blur-xl bg-[#09090B]/65 border-b border-white/10 flex items-center gap-1.5 overflow-x-auto text-zinc-400 pointer-events-auto">
+          <div className="flex items-center gap-1 pt-1 overflow-x-auto border-t border-white/5 scrollbar-none">
             <button
               onClick={() => insertFormatting('**', '**')}
               className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
@@ -248,7 +199,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             <button
               onClick={() => insertFormatting('> ')}
               className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
-              title="Quote (>)"
+              title="Blockquote (>)"
             >
               <Quote className="w-3.5 h-3.5" />
             </button>
@@ -291,204 +242,112 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         )}
       </div>
 
-      {/* Editor / Preview Canvas Container (Full Panel Height: Allows text to scroll UNDER top & bottom toolbars) */}
+      {/* Editor / Preview Canvas Container */}
       <div className={`absolute inset-0 z-10 flex flex-col w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[45em]'}`}>
-        {/* 1. Markdown / Plaintext Editor with Pure CSS Counters Line Numbers & Lezer Markdown AST Highlighting */}
         {category === 'markdown' && !isPreview && (
           <div
             ref={scrollContainerRef}
             className="flex-1 overflow-y-auto relative w-full h-full font-mono text-sm leading-relaxed"
+            style={{ counterReset: 'line' }}
           >
-            <div className="relative w-full min-h-full">
-              {/* Full-Height Vertical Separator Line to the Right of Line Numbers Gutter */}
-              <div
-                aria-hidden="true"
-                className="absolute left-[3.75rem] top-0 bottom-0 border-r border-white/10 pointer-events-none z-0"
-              />
+            {/* Top Toolbar Spacing */}
+            <div className="h-28" />
 
-              {/* Synchronized Line Numbers Gutter + Lezer Markdown AST Highlighted Line Rows */}
-              <div
-                aria-hidden="true"
-                className={`px-6 ${topPaddingClass} pb-16 select-none pointer-events-none font-mono text-sm leading-relaxed`}
-              >
-                {highlightedEditorLines.map((lineHtml, idx) => (
-                  <div
-                    key={idx}
-                    data-line={idx + 1}
-                    className="relative pl-12 text-zinc-100 whitespace-pre-wrap break-words font-mono text-sm leading-relaxed before:content-[attr(data-line)] before:absolute before:left-0 before:top-0 before:w-9 before:text-right before:text-zinc-600 before:font-mono before:text-sm before:leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: lineHtml }}
-                  />
-                ))}
-              </div>
+            {/* Lezer Markdown Syntax Layer */}
+            <div
+              className="absolute top-28 left-0 right-0 bottom-24 p-6 pl-14 pointer-events-none whitespace-pre-wrap break-words font-mono text-sm leading-relaxed z-0"
+              aria-hidden="true"
+              dangerouslySetInnerHTML={{
+                __html: highlightService.highlightMarkdownCodeBlocks(content),
+              }}
+            />
 
-              {/* Textarea Input (Transparent Text with Visible Caret & Selection Overlaid on Top) */}
-              <textarea
-                ref={textareaRef}
-                value={content}
-                onKeyDown={handleKeyDown}
-                onDoubleClick={handleDoubleClick}
-                onSelect={handleSelectionChange}
-                onKeyUp={handleSelectionChange}
-                onMouseUp={handleSelectionChange}
-                onChange={(e) => {
-                  onContentChange(e.target.value);
-                  handleSelectionChange();
-                }}
-                placeholder="Write your Markdown notes here..."
-                className={`absolute inset-0 w-full h-full pl-[4.5rem] pr-6 ${topPaddingClass} pb-16 bg-transparent text-transparent caret-blue-400 selection:bg-blue-500/30 selection:text-white focus:outline-none resize-none font-mono text-sm leading-relaxed z-10 overflow-hidden`}
-              />
-            </div>
+            {/* Active Editable Textarea */}
+            <textarea
+              ref={textareaRef}
+              value={content}
+              onChange={(e) => onContentChange(e.target.value)}
+              onSelect={handleSelectionChange}
+              onKeyUp={handleSelectionChange}
+              onClick={handleSelectionChange}
+              placeholder="Write your thoughts..."
+              className="w-full h-[calc(100%-13rem)] p-6 pl-14 bg-transparent text-white focus:outline-none resize-none font-mono text-sm leading-relaxed relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white"
+            />
+
+            {/* Bottom Status Bar Spacing */}
+            <div className="h-24" />
           </div>
         )}
 
-        {/* 2. Live Markdown Preview */}
         {category === 'markdown' && isPreview && (
-          <div className={`flex-1 overflow-y-auto px-8 ${topPaddingClass} pb-24 w-full mx-auto`}>
-            <div className="prose prose-invert max-w-none space-y-4 text-zinc-200">
-              {evaluatedMarkdown ? (
-                <div
-                  className="markdown-preview leading-relaxed space-y-4 whitespace-pre-wrap font-sans"
-                  dangerouslySetInnerHTML={{
-                    __html: formatBasicMarkdown(evaluatedMarkdown, highlightService),
-                  }}
-                />
-              ) : (
-                <p className="text-zinc-600 italic text-sm">Nothing to preview...</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* 3. Image Preview */}
-        {category === 'image' && (
-          <div className={`flex-1 overflow-y-auto px-8 ${topPaddingClass} pb-24 flex flex-col items-center justify-center space-y-4`}>
-            <div className="p-2 rounded-2xl glass-panel border border-white/10 max-w-2xl overflow-hidden shadow-2xl">
-              <img
-                src={activeFile.blobUrl || content}
-                alt={title}
-                className="max-h-[500px] w-auto object-contain rounded-xl"
+          <div className="flex-1 overflow-y-auto w-full h-full font-mono text-sm leading-relaxed text-zinc-200">
+            <div className="h-28" />
+            <div className="p-8 pb-28 prose prose-invert max-w-none">
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: evaluatedMarkdown,
+                }}
               />
             </div>
-            <p className="text-xs text-zinc-400 font-mono">{activeFile.name} ({(activeFile.size / 1024).toFixed(1)} KB)</p>
           </div>
         )}
 
-        {/* 4. Audio Preview */}
+        {category === 'image' && (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+            <div className="h-20" />
+            <img
+              src={content}
+              alt={title}
+              className="max-h-[60vh] max-w-full rounded-2xl object-contain shadow-2xl border border-white/10"
+            />
+            <p className="text-xs text-zinc-400 font-mono">{activeFile.filename}</p>
+          </div>
+        )}
+
         {category === 'audio' && (
-          <div className={`flex-1 overflow-y-auto px-8 ${topPaddingClass} pb-24 flex flex-col items-center justify-center space-y-6`}>
-            <div className="p-6 rounded-3xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
-              <Music className="w-16 h-16 animate-bounce text-blue-400" />
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+            <div className="h-20" />
+            <div className="p-6 rounded-3xl bg-white/5 border border-white/10 flex flex-col items-center gap-4 shadow-2xl max-w-md w-full">
+              <Music className="w-12 h-12 text-blue-400 animate-pulse" />
+              <audio controls src={content} className="w-full" />
+              <p className="text-xs text-zinc-400 font-mono">{activeFile.filename}</p>
             </div>
-            <h3 className="text-lg font-bold text-white font-mono">{activeFile.name}</h3>
-            <audio controls src={activeFile.blobUrl || content} className="w-full max-w-md rounded-xl" />
           </div>
         )}
 
-        {/* 5. Video Preview */}
         {category === 'video' && (
-          <div className={`flex-1 overflow-y-auto px-8 ${topPaddingClass} pb-24 flex flex-col items-center justify-center space-y-4`}>
-            <div className="p-2 rounded-2xl glass-panel border border-white/10 max-w-3xl overflow-hidden shadow-2xl">
-              <video controls src={activeFile.blobUrl || content} className="max-h-[500px] w-full rounded-xl" />
-            </div>
-            <p className="text-xs text-zinc-400 font-mono">{activeFile.name}</p>
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+            <div className="h-20" />
+            <video
+              controls
+              src={content}
+              className="max-h-[60vh] max-w-full rounded-2xl shadow-2xl border border-white/10"
+            />
+            <p className="text-xs text-zinc-400 font-mono">{activeFile.filename}</p>
           </div>
         )}
 
-        {/* 6. Non-viewable Binary File Fallback */}
         {category === 'binary' && (
-          <div className={`flex-1 overflow-y-auto px-8 ${topPaddingClass} pb-24 flex flex-col items-center justify-center text-center space-y-6 glass-panel rounded-glass-lg border border-white/10 my-8 max-w-2xl mx-auto`}>
-            <div className="p-5 rounded-3xl bg-white/5 border border-white/10 text-blue-400 shadow-inner">
-              <AlertCircle className="w-16 h-16 text-blue-400 animate-pulse" />
-            </div>
-
-            <div className="space-y-2 max-w-md">
-              <h3 className="text-xl font-bold text-white">This file format cannot be viewed directly</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                The file <strong className="text-zinc-200 font-mono">{activeFile.filename}</strong> is a non-text or binary format and cannot be rendered inside the Markdown editor.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 w-full max-w-sm text-left text-xs font-mono space-y-1.5 text-zinc-300">
-              <div className="flex justify-between">
-                <span className="text-zinc-500">File Path:</span>
-                <span className="truncate max-w-[200px] text-blue-400">{activeFile.path}</span>
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+            <div className="h-20" />
+            <div className="p-8 rounded-3xl bg-white/5 border border-white/10 flex flex-col items-center gap-4 shadow-2xl max-w-md">
+              <AlertCircle className="w-12 h-12 text-blue-400" />
+              <div>
+                <h3 className="text-base font-bold text-white font-mono">{activeFile.filename}</h3>
+                <p className="text-xs text-zinc-400 mt-1 font-mono">
+                  Binary payload ({activeFile.mimeType})
+                </p>
               </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Size:</span>
-                <span>{(activeFile.size / 1024).toFixed(1)} KB</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Type:</span>
-                <span>{activeFile.mimeType || 'application/octet-stream'}</span>
-              </div>
+              <button
+                onClick={onDownloadFile}
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium font-mono transition shadow-lg shadow-blue-500/20"
+              >
+                Download Binary Payload
+              </button>
             </div>
-
-            <button
-              onClick={onDownloadFile}
-              className="py-3 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center gap-2 transition shadow-lg shadow-blue-500/20"
-            >
-              <FileText className="w-4 h-4" />
-              <span>Download {activeFile.filename} to Local Disk</span>
-            </button>
           </div>
         )}
       </div>
     </main>
   );
 };
-
-import { IHighlightService } from '../interfaces/IHighlightService';
-
-/**
- * Basic Markdown formatting helper with Lezer code block syntax highlighting
- */
-function formatBasicMarkdown(md: string, highlightService?: IHighlightService): string {
-  if (highlightService) {
-    return highlightService.highlightMarkdownCodeBlocks(md);
-  }
-
-  let html = md
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-
-  html = html.replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-white mt-4 mb-2">$1</h3>');
-  html = html.replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-white mt-6 mb-3 border-b border-white/10 pb-1">$1</h2>');
-  html = html.replace(/^# (.*$)/gim, '<h1 class="text-3xl font-extrabold text-white mt-8 mb-4 border-b border-white/20 pb-2">$1</h1>');
-
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-blue-400">$1</strong>');
-  html = html.replace(/\*(.*?)\*/g, '<em class="italic text-zinc-400">$1</em>');
-
-  const lines = html.split('\n');
-  const result: string[] = [];
-  let inTable = false;
-
-  for (const line of lines) {
-    if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
-      if (!inTable) {
-        result.push('<div className="overflow-x-auto my-4"><table className="w-full text-left border-collapse border border-white/10 rounded-xl overflow-hidden">');
-        inTable = true;
-      }
-      const cells = line.split('|').slice(1, -1);
-      const isSeparator = cells.every((c) => c.trim().startsWith('---'));
-      if (!isSeparator) {
-        const cellTags = cells
-          .map((c) => `<td class="p-3 border border-white/10 bg-white/5 font-mono text-xs text-zinc-200">${c.trim()}</td>`)
-          .join('');
-        result.push(`<tr>${cellTags}</tr>`);
-      }
-    } else {
-      if (inTable) {
-        result.push('</table></div>');
-        inTable = false;
-      }
-      result.push(line);
-    }
-  }
-
-  if (inTable) {
-    result.push('</table></div>');
-  }
-
-  return result.join('\n');
-}

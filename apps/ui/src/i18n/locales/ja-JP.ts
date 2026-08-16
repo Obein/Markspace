@@ -32,6 +32,14 @@ export const jaJP: typeof enUS = {
   unlocking: '解除中...',
   unlock: '解除',
 
+  // Version Control & History
+  versionHistory: 'バージョン履歴',
+  revert: '復元',
+  reverting: '復元中...',
+  noHistory: 'バージョン履歴はまだ記録されていません。',
+  commitHash: 'Git Commit Hash',
+  unixTimestamp: 'Unix タイムスタンプ',
+
   // Settings & Profile & Audit Logs
   userProfile: 'ユーザープロフィールと設定',
   language: '言語',

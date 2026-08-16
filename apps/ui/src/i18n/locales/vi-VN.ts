@@ -18,7 +18,7 @@ export const viVN: typeof enUS = {
   download: 'Tải Về',
   delete: 'Xóa',
   deleting: 'Đang xóa...',
-  cancel: 'Hủy',
+  cancel: 'Cancel',
   confirm: 'Xác Nhận',
 
   // Authentication
@@ -31,6 +31,14 @@ export const viVN: typeof enUS = {
   unlockVault: 'Mở Khóa Kho Dữ Liệu',
   unlocking: 'Đang mở khóa...',
   unlock: 'Mở Khóa',
+
+  // Version Control & History
+  versionHistory: 'Lịch Sử Phiên Bản',
+  revert: 'Khôi Phục',
+  reverting: 'Đang khôi phục...',
+  noHistory: 'Chưa có lịch sử phiên bản nào.',
+  commitHash: 'Git Commit Hash',
+  unixTimestamp: 'Dấu thời gian Unix',
 
   // Settings & Profile & Audit Logs
   userProfile: 'Hồ Sơ Nguời Dùng & Cài Đặt',
@@ -52,7 +60,7 @@ export const viVN: typeof enUS = {
   words: 'Số Từ',
   chars: 'Ký Tự',
   selWords: 'Số Từ Chọn',
-  selChars: 'Ký Tự Chọn',
+  selChars: 'Số Ký Tự Chọn',
   saving: 'Đang lưu...',
   saved: 'Đã lưu',
   preview: 'Xem Trước',

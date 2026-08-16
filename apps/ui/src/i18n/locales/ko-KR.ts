@@ -32,6 +32,14 @@ export const koKR: typeof enUS = {
   unlocking: '해제 중...',
   unlock: '잠금 해제',
 
+  // Version Control & History
+  versionHistory: '버전 기록',
+  revert: '복원',
+  reverting: '복원 중...',
+  noHistory: '버전 기록이 없습니다.',
+  commitHash: 'Git Commit Hash',
+  unixTimestamp: 'Unix 타임스탬프',
+
   // Settings & Profile & Audit Logs
   userProfile: '사용자 프로필 및 설정',
   language: '언어',

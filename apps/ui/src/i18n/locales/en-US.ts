@@ -30,6 +30,14 @@ export const enUS = {
   unlocking: 'Unlocking...',
   unlock: 'Unlock',
 
+  // Version Control & History
+  versionHistory: 'Version History',
+  revert: 'Revert',
+  reverting: 'Reverting...',
+  noHistory: 'No version history recorded yet.',
+  commitHash: 'Commit',
+  unixTimestamp: 'Unix Timestamp',
+
   // Settings & Profile & Audit Logs
   userProfile: 'User Profile & Settings',
   language: 'Language',

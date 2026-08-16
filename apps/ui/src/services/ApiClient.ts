@@ -1,5 +1,5 @@
 import { DPoPSigner } from '../crypto/DPoPSigner';
-import { AuditLogResponse, AuthResponse, IApiClient, VaultNodeResponse } from '../interfaces/IApiClient';
+import { AuditLogResponse, AuthResponse, IApiClient, NodeVersionResponse, VaultNodeResponse } from '../interfaces/IApiClient';
 import { FileCategory, NoteItem, NoteMetadataItem } from '../interfaces/INoteModels';
 
 export class ApiClient implements IApiClient {
@@ -38,7 +38,6 @@ export class ApiClient implements IApiClient {
     }
 
     try {
-      // Attach RFC 9449 DPoP proof signed by non-extractable client key
       const dpopProof = await DPoPSigner.createProof(method, path);
       headers['DPoP'] = dpopProof;
     } catch (err) {
@@ -54,7 +53,7 @@ export class ApiClient implements IApiClient {
 
     const res = await fetch(`${this.baseUrl}${path}`, {
       ...options,
-      credentials: 'include', // Enforce HttpOnly cookie session transmission
+      credentials: 'include',
       headers: {
         ...defaultHeaders,
         ...(options.headers || {}),
@@ -186,6 +185,46 @@ export class ApiClient implements IApiClient {
     return this.request<VaultNodeResponse>('/vault/nodes/move', {
       method: 'POST',
       body: JSON.stringify({ nodeId, newPath }),
+    });
+  }
+
+  // Git Version Control API
+  async getNodeHistory(id: string): Promise<NodeVersionResponse[]> {
+    return this.request<NodeVersionResponse[]>(`/vault/nodes/${id}/history`, { method: 'GET' });
+  }
+
+  async getVersionContent(
+    id: string,
+    timestamp: number
+  ): Promise<{ body: ArrayBuffer; encryptedDek: string; commitHash: string }> {
+    const path = `/vault/nodes/${id}/versions/${timestamp}`;
+    const defaultHeaders = await this.getHeaders('GET', path);
+
+    const res = await fetch(`${this.baseUrl}${path}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: defaultHeaders,
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch version content: ${res.status}`);
+    }
+
+    const encryptedDek = res.headers.get('X-Encrypted-DEK') || '';
+    const commitHash = res.headers.get('X-Commit-Hash') || '';
+    const body = await res.arrayBuffer();
+
+    return {
+      body,
+      encryptedDek,
+      commitHash,
+    };
+  }
+
+  async revertNodeVersion(id: string, timestamp: number): Promise<VaultNodeResponse> {
+    return this.request<VaultNodeResponse>(`/vault/nodes/${id}/revert`, {
+      method: 'POST',
+      body: JSON.stringify({ timestamp }),
     });
   }
 

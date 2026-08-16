@@ -32,6 +32,14 @@ export const deDE: typeof enUS = {
   unlocking: 'Entschlüsseln...',
   unlock: 'Entschlüsseln',
 
+  // Version Control & History
+  versionHistory: 'Versionsverlauf',
+  revert: 'Wiederherstellen',
+  reverting: 'Wiederherstellung...',
+  noHistory: 'Noch kein Versionsverlauf aufgezeichnet.',
+  commitHash: 'Git Commit Hash',
+  unixTimestamp: 'Unix Zeitstempel',
+
   // Settings & Profile & Audit Logs
   userProfile: 'Benutzerprofil & Einstellungen',
   language: 'Sprache',

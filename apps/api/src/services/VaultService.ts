@@ -3,6 +3,7 @@ import {
   CreateVaultNodeDTO,
   IVaultNodeRepository,
   VaultNodeEntity,
+  VaultNodeVersionEntity,
 } from '../interfaces/IVaultNodeRepository';
 
 export interface CreateNodeRequest {
@@ -26,6 +27,36 @@ export class VaultService {
     return this.nodeRepo.listNodesByUser(userId);
   }
 
+  private async bodyToArrayBuffer(body: ArrayBuffer | ReadableStream): Promise<ArrayBuffer> {
+    if (body instanceof ArrayBuffer) return body;
+    const response = new Response(body as any);
+    return response.arrayBuffer();
+  }
+
+  private isTextFile(mimeType?: string, category?: string, contentBlob?: any): boolean {
+    if (category === 'markdown') return true;
+    if (
+      mimeType &&
+      (mimeType.startsWith('text/') ||
+        mimeType.includes('json') ||
+        mimeType.includes('xml') ||
+        mimeType.includes('javascript') ||
+        mimeType.includes('typescript'))
+    ) {
+      return true;
+    }
+    if (typeof contentBlob === 'string') return true;
+    if (contentBlob instanceof Uint8Array || contentBlob instanceof ArrayBuffer) {
+      const bytes = contentBlob instanceof ArrayBuffer ? new Uint8Array(contentBlob) : contentBlob;
+      const sampleSize = Math.min(bytes.length, 512);
+      for (let i = 0; i < sampleSize; i++) {
+        if (bytes[i] === 0) return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
   public async createNode(userId: string, req: CreateNodeRequest): Promise<VaultNodeEntity> {
     const normalizedPath = this.normalizePath(req.path);
     const parentPath = this.getParentPath(normalizedPath);
@@ -45,9 +76,7 @@ export class VaultService {
 
       if (typeof blob === 'string') {
         size = new TextEncoder().encode(blob).byteLength;
-      } else if (blob instanceof ArrayBuffer) {
-        size = blob.byteLength;
-      } else if (blob instanceof Uint8Array) {
+      } else if (blob instanceof ArrayBuffer || blob instanceof Uint8Array) {
         size = blob.byteLength;
       }
 
@@ -68,13 +97,26 @@ export class VaultService {
       objectKey,
     };
 
-    return this.nodeRepo.createNode(dto);
+    const createdNode = await this.nodeRepo.createNode(dto);
+
+    // Save initial Git version snapshot if it is a text file
+    if (!req.isDirectory && this.isTextFile(req.mimeType, req.category, req.contentBlob)) {
+      await this.recordVersionSnapshot(
+        userId,
+        createdNode,
+        req.contentBlob !== undefined ? req.contentBlob : '',
+        req.encryptedDek,
+        'Initial version commit'
+      );
+    }
+
+    return createdNode;
   }
 
   public async getNode(userId: string, nodeId: string): Promise<VaultNodeEntity> {
     const node = await this.nodeRepo.getNodeById(userId, nodeId);
     if (!node) {
-      throw new Error('NOT_FOUND: Vault node not found');
+      throw new Error(`NOT_FOUND: Node not found with id ${nodeId}`);
     }
     return node;
   }
@@ -82,10 +124,10 @@ export class VaultService {
   public async getFileContent(
     userId: string,
     nodeId: string
-  ): Promise<{ node: VaultNodeEntity; body: ArrayBuffer | ReadableStream; contentType: string }> {
+  ): Promise<{ node: VaultNodeEntity; body: ArrayBuffer; contentType: string }> {
     const node = await this.getNode(userId, nodeId);
     if (node.isDirectory || !node.objectKey) {
-      throw new Error('BAD_REQUEST: Cannot read content of a directory node');
+      throw new Error('BAD_REQUEST: Cannot fetch file content for a directory node');
     }
 
     const obj = await this.objectStorage.getObject(node.objectKey);
@@ -93,9 +135,11 @@ export class VaultService {
       throw new Error('NOT_FOUND: File content payload missing in Object Storage');
     }
 
+    const arrayBuf = await this.bodyToArrayBuffer(obj.body);
+
     return {
       node,
-      body: obj.body,
+      body: arrayBuf,
       contentType: obj.contentType,
     };
   }
@@ -126,7 +170,130 @@ export class VaultService {
       throw new Error('INTERNAL_ERROR: Failed to update node metadata size');
     }
 
+    // Auto-record Git version snapshot if it is a text file
+    if (this.isTextFile(contentType, node.category, contentBlob)) {
+      await this.recordVersionSnapshot(
+        userId,
+        updated,
+        contentBlob,
+        updated.encryptedDek,
+        'Auto-save commit snapshot'
+      );
+    }
+
     return updated;
+  }
+
+  private async recordVersionSnapshot(
+    userId: string,
+    node: VaultNodeEntity,
+    contentBlob: ArrayBuffer | Uint8Array | string,
+    encryptedDek: string,
+    commitMessage: string
+  ): Promise<void> {
+    const timestamp = Date.now();
+    const versionId = `ver_${crypto.randomUUID()}`;
+    const versionObjectKey = `vault_versions/${userId}/${node.id}/${timestamp}`;
+
+    let size = 0;
+    if (typeof contentBlob === 'string') {
+      size = new TextEncoder().encode(contentBlob).byteLength;
+    } else if (contentBlob instanceof ArrayBuffer || contentBlob instanceof Uint8Array) {
+      size = contentBlob.byteLength;
+    }
+
+    // Generate SHA-1 git commit hash
+    const rawHeader = `commit ${size}\0${timestamp}`;
+    const enc = new TextEncoder().encode(rawHeader);
+    const hashBuffer = await crypto.subtle.digest('SHA-1', enc);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const commitHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
+    // Save encrypted payload blob in Object Storage
+    await this.objectStorage.putObject(versionObjectKey, contentBlob, node.mimeType || 'text/markdown');
+
+    // Record index entry in D1 DB
+    await this.nodeRepo.createVersion({
+      id: versionId,
+      nodeId: node.id,
+      userId,
+      timestamp,
+      commitHash,
+      size,
+      encryptedDek,
+      objectKey: versionObjectKey,
+      commitMessage,
+    });
+  }
+
+  public async getNodeHistory(userId: string, nodeId: string): Promise<VaultNodeVersionEntity[]> {
+    await this.getNode(userId, nodeId);
+    return this.nodeRepo.listVersionsByNode(userId, nodeId);
+  }
+
+  public async getVersionContent(
+    userId: string,
+    nodeId: string,
+    timestamp: number
+  ): Promise<{ version: VaultNodeVersionEntity; body: ArrayBuffer }> {
+    const version = await this.nodeRepo.getVersionByTimestamp(userId, nodeId, timestamp);
+    if (!version) {
+      throw new Error(`NOT_FOUND: Version snapshot not found for timestamp ${timestamp}`);
+    }
+
+    const obj = await this.objectStorage.getObject(version.objectKey);
+    if (!obj) {
+      throw new Error('NOT_FOUND: Version content payload missing in Object Storage');
+    }
+
+    const arrayBuf = await this.bodyToArrayBuffer(obj.body);
+
+    return {
+      version,
+      body: arrayBuf,
+    };
+  }
+
+  public async revertNodeToVersion(
+    userId: string,
+    nodeId: string,
+    timestamp: number
+  ): Promise<VaultNodeEntity> {
+    const node = await this.getNode(userId, nodeId);
+    const version = await this.nodeRepo.getVersionByTimestamp(userId, nodeId, timestamp);
+    if (!version) {
+      throw new Error(`NOT_FOUND: Version snapshot not found for timestamp ${timestamp}`);
+    }
+
+    const versionObj = await this.objectStorage.getObject(version.objectKey);
+    if (!versionObj) {
+      throw new Error('NOT_FOUND: Version content payload missing in Object Storage');
+    }
+
+    const arrayBuf = await this.bodyToArrayBuffer(versionObj.body);
+
+    // Revert main R2 object content & update metadata size and DEK
+    await this.objectStorage.putObject(node.objectKey!, arrayBuf, node.mimeType);
+
+    const updatedNode = await this.nodeRepo.updateNode(userId, nodeId, {
+      size: version.size,
+      encryptedDek: version.encryptedDek,
+    });
+
+    if (!updatedNode) {
+      throw new Error('INTERNAL_ERROR: Failed to revert node metadata');
+    }
+
+    // Record a new revert commit snapshot
+    await this.recordVersionSnapshot(
+      userId,
+      updatedNode,
+      arrayBuf,
+      version.encryptedDek,
+      `Reverted to version from ${new Date(timestamp).toISOString()}`
+    );
+
+    return updatedNode;
   }
 
   public async deleteNode(userId: string, nodeId: string): Promise<void> {
@@ -174,21 +341,19 @@ export class VaultService {
       throw new Error('INTERNAL_ERROR: Failed to move node path');
     }
 
-    // If currentNode is a directory, update all child nodes whose paths start with old directory path
     if (currentNode.isDirectory) {
       const oldDirPath = currentNode.path;
       const allUserNodes = await this.nodeRepo.listNodesByUser(userId);
+
       for (const child of allUserNodes) {
-        if (child.id !== nodeId && child.path.startsWith(`${oldDirPath}/`)) {
-          const childSubPath = child.path.substring(oldDirPath.length);
-          const childNewPath = `${normalizedNewPath}${childSubPath}`;
-          const childNewParentPath = this.getParentPath(childNewPath);
-          const childNewName = this.getFileName(childNewPath);
+        if (child.path.startsWith(`${oldDirPath}/`)) {
+          const childSuffix = child.path.substring(oldDirPath.length);
+          const childNewPath = `${normalizedNewPath}${childSuffix}`;
+          const childNewParent = this.getParentPath(childNewPath);
 
           await this.nodeRepo.updateNode(userId, child.id, {
             path: childNewPath,
-            parentPath: childNewParentPath,
-            name: childNewName,
+            parentPath: childNewParent,
           });
         }
       }
@@ -197,23 +362,20 @@ export class VaultService {
     return updated;
   }
 
-  private normalizePath(path: string): string {
-    const cleaned = path.replace(/\\/g, '/').replace(/\/+/g, '/');
-    if (cleaned.startsWith('/')) return cleaned;
-    return '/' + cleaned;
+  private normalizePath(pathStr: string): string {
+    const cleaned = pathStr.replace(/\\/g, '/').replace(/\/+/g, '/');
+    return cleaned.startsWith('/') ? cleaned : '/' + cleaned;
   }
 
-  private getParentPath(path: string): string {
-    const normalized = this.normalizePath(path);
-    const lastSlash = normalized.lastIndexOf('/');
+  private getParentPath(pathStr: string): string {
+    const lastSlash = pathStr.lastIndexOf('/');
     if (lastSlash <= 0) return '/';
-    return normalized.substring(0, lastSlash);
+    return pathStr.substring(0, lastSlash);
   }
 
-  private getFileName(path: string): string {
-    const normalized = this.normalizePath(path);
-    const lastSlash = normalized.lastIndexOf('/');
-    if (lastSlash < 0) return normalized;
-    return normalized.substring(lastSlash + 1);
+  private getFileName(pathStr: string): string {
+    const lastSlash = pathStr.lastIndexOf('/');
+    if (lastSlash < 0) return pathStr;
+    return pathStr.substring(lastSlash + 1);
   }
 }

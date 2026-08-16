@@ -32,6 +32,14 @@ export const esES: typeof enUS = {
   unlocking: 'Desbloqueando...',
   unlock: 'Desbloquear',
 
+  // Version Control & History
+  versionHistory: 'Historial de Versiones',
+  revert: 'Restaurar',
+  reverting: 'Restaurando...',
+  noHistory: 'No hay historial de versiones guardado aún.',
+  commitHash: 'Git Commit Hash',
+  unixTimestamp: 'Marca de tiempo Unix',
+
   // Settings & Profile & Audit Logs
   userProfile: 'Perfil de Usuario y Ajustes',
   language: 'Idioma',

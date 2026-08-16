@@ -7,10 +7,10 @@ import { ToastContainer, ToastMessage } from './components/Toast';
 import { UnlockModal } from './components/UnlockModal';
 import { UserProfileModal } from './components/UserProfileModal';
 import { VaultSettingsModal } from './components/VaultSettingsModal';
+import { VersionHistoryModal } from './components/VersionHistoryModal';
 import { useApp } from './context/AppContext';
 import { useI18n } from './i18n/i18nContext';
 import { NoteItem, VaultFileItem, VaultInfo } from './interfaces/INoteModels';
-import { FileTreeBuilder } from './utils/FileTreeBuilder';
 
 function generateRandom4Chars(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -57,6 +57,7 @@ export const AppContent: React.FC = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isVaultSettingsOpen, setIsVaultSettingsOpen] = useState(false);
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const [files, setFiles] = useState<VaultFileItem[]>([]);
   const [activeFileId, setActiveFileId] = useState<string | null>(null);
@@ -356,7 +357,7 @@ export const AppContent: React.FC = () => {
       setIsUploadingFiles(true);
       for (const file of fileList) {
         try {
-          const category = FileTreeBuilder.detectCategory(file.name, file.type);
+          const category = file.name.endsWith('.md') ? 'markdown' : 'binary';
           const ext = `.${file.name.split('.').pop() || ''}`;
           const baseName = file.name.replace(/\.[^/.]+$/, '');
           const filename = getUniqueFilename(baseName, ext);
@@ -524,7 +525,6 @@ export const AppContent: React.FC = () => {
       setIsDeletingNodeId(targetId);
       await apiClient.deleteVaultNode(targetId);
 
-      // Filter out deleted node (or descendants if folder)
       const isDir = targetNode.mimeType === 'inode/directory';
       const targetPath = targetNode.path;
 
@@ -566,7 +566,6 @@ export const AppContent: React.FC = () => {
     if (!targetNode) return;
 
     if (targetNode.mimeType === 'inode/directory') {
-      // Download all files inside directory
       const childFiles = files.filter(
         (f) => f.path.startsWith(`${targetNode.path}/`) && f.mimeType !== 'inode/directory'
       );
@@ -660,6 +659,21 @@ export const AppContent: React.FC = () => {
         activeVaultNotes={activeNotesList}
       />
 
+      {/* Git Version History & Revert Modal */}
+      <VersionHistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        file={activeFile}
+        onRevertSuccess={(revertedFileItem, newContent) => {
+          setFiles((prev) =>
+            prev.map((f) => (f.id === revertedFileItem.id ? revertedFileItem : f))
+          );
+          setActiveTitle(revertedFileItem.name);
+          setActiveContent(newContent);
+          showToast(t('saved'), 'success');
+        }}
+      />
+
       {/* Main Workspace (Visible when Unlocked) */}
       {isAuthenticated && isVaultUnlocked && (
         <>
@@ -695,6 +709,7 @@ export const AppContent: React.FC = () => {
               onContentChange={setActiveContent}
               isPreview={isPreview}
               onDownloadFile={handleDownloadActiveFile}
+              onOpenHistory={() => setIsHistoryOpen(true)}
               onSelectionStatsChange={(selWords, selChars) => {
                 setSelectedWordCount(selWords);
                 setSelectedCharCount(selChars);

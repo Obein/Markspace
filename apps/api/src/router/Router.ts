@@ -104,6 +104,17 @@ export class Router {
       container.vaultController.moveNode(ctx)
     );
 
+    // 4.1 Git Version Control & History Endpoints (Protected)
+    this.addRoute('GET', '/api/v1/vault/nodes/:id/history', true, false, (container, ctx) =>
+      container.vaultController.getNodeHistory(ctx)
+    );
+    this.addRoute('GET', '/api/v1/vault/nodes/:id/versions/:timestamp', true, false, (container, ctx) =>
+      container.vaultController.getVersionContent(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vault/nodes/:id/revert', true, false, (container, ctx) =>
+      container.vaultController.revertNodeVersion(ctx)
+    );
+
     // 5. Admin Management Endpoints (Admin Only)
     this.addRoute('GET', '/api/v1/admin/users', true, true, (container, ctx) =>
       container.adminController.listUsers(ctx)
