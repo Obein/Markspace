@@ -44,6 +44,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const { sheetEngine, highlightService } = useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   // Layout width mode: default is Limited-width (false -> max-w-[45em])
   const [isFullWidth, setIsFullWidth] = useState(false);
@@ -135,11 +136,20 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   return (
     <main className="flex-1 flex flex-col h-full glass-panel rounded-glass-lg border border-white/10 relative overflow-hidden shadow-2xl">
       {/* Top Floating Utility Bar (Fixed Header: Stays on top of content) */}
-      <div className="absolute top-0 left-0 right-0 z-20 px-6 py-3 border-b border-white/10 bg-black/40 backdrop-blur-xl flex flex-col gap-2">
+      <div className="absolute top-0 left-0 right-0 z-20 px-6 py-3 glass-bar flex flex-col gap-2">
         <div className="flex items-center justify-between gap-4">
-          {/* Filename Input: Base name only is editable with auto-select on click; extension is semi-transparent */}
-          <div className="flex items-center flex-1 min-w-0">
+          {/* Filename Input Hot Zone: The entire area is clickable to focus and select the filename */}
+          <div
+            onClick={() => {
+              if (category === 'markdown') {
+                titleInputRef.current?.focus();
+                titleInputRef.current?.select();
+              }
+            }}
+            className="flex items-center flex-1 min-w-0 cursor-text group py-1"
+          >
             <input
+              ref={titleInputRef}
               type="text"
               value={baseName}
               onChange={(e) => onTitleChange(`${e.target.value}${extension}`)}
@@ -147,7 +157,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               onFocus={(e) => (e.target as HTMLInputElement).select()}
               disabled={category !== 'markdown'}
               placeholder="Filename"
-              className="text-lg font-bold font-editor-mono font-mono text-white bg-transparent focus:outline-none placeholder-zinc-600 disabled:opacity-70 max-w-full"
+              className="text-lg font-bold font-editor-mono font-mono text-white bg-transparent focus:outline-none placeholder-zinc-600 disabled:opacity-70 max-w-full cursor-text"
               style={{ width: `${Math.max(baseName.length, 1) + 1}ch` }}
             />
             {extension && (
@@ -155,6 +165,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 {extension}
               </span>
             )}
+            {/* Extended Hit Area to the right */}
+            <div className="flex-1 h-full min-w-[20px] self-stretch" />
           </div>
 
           <div className="flex items-center gap-2 shrink-0">

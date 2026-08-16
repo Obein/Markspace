@@ -129,7 +129,9 @@ export const AppContent: React.FC = () => {
   const [selectedCharCount, setSelectedCharCount] = useState(0);
 
   const activeVault = vaults.find((v) => v.id === activeVaultId) || vaults[0];
-  const activeVaultFiles = files.filter((f) => f.vaultId === activeVaultId);
+  const activeVaultFiles = files.filter(
+    (f) => !f.vaultId || f.vaultId === activeVaultId || f.vaultId === 'vault_default' || vaults.length === 1
+  );
   const activeFile = files.find((f) => f.id === activeFileId) || null;
 
   // Load Vault File Tree and fetch Object Storage content when unlocked
@@ -157,7 +159,7 @@ export const AppContent: React.FC = () => {
               encryptedTitle: node.name,
               encryptedPayload: '',
               encryptedDek: node.encryptedDek,
-              vaultId: 'vault_default',
+              vaultId: activeVaultId || 'vault_default',
               createdAt: node.createdAt,
               updatedAt: node.updatedAt,
             });
@@ -197,12 +199,31 @@ export const AppContent: React.FC = () => {
               encryptedTitle: nodeFilename,
               encryptedPayload: '',
               encryptedDek: node.encryptedDek,
-              vaultId: 'vault_default',
+              vaultId: activeVaultId || 'vault_default',
               createdAt: node.createdAt,
               updatedAt: node.updatedAt,
             });
           } catch (err) {
             console.error(`Failed to decrypt file content for node ${node.id}`, err);
+            // Fallback: Still display the file in the tree even if body decryption fails
+            const nodeFilename = node.path.split('/').pop() || node.name;
+            decryptedList.push({
+              id: node.id,
+              name: nodeFilename,
+              filename: nodeFilename,
+              path: node.path,
+              category: node.category,
+              mimeType: node.mimeType,
+              size: node.size,
+              content: '',
+              blobUrl: '',
+              encryptedTitle: nodeFilename,
+              encryptedPayload: '',
+              encryptedDek: node.encryptedDek,
+              vaultId: activeVaultId || 'vault_default',
+              createdAt: node.createdAt,
+              updatedAt: node.updatedAt,
+            });
           }
         }
 
