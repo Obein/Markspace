@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  UserCheck,
   LogIn,
   UserPlus,
   ArrowRight,
@@ -165,7 +164,11 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
         {/* Top Header Row with App Branding & Language Switcher */}
         <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
           <div className="flex items-center gap-2 text-xs font-mono text-zinc-300">
-            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+            <img
+              src="/assets/obex_cat_eye_logo-256.webp"
+              alt="Markspace Logo"
+              className="w-4 h-4 rounded object-contain"
+            />
             <span className="font-bold tracking-wider uppercase text-white">Markspace</span>
           </div>
 
@@ -199,8 +202,12 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
         )}
 
         <div className="flex flex-col items-center text-center mb-5">
-          <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 mb-2.5 text-blue-400">
-            <UserCheck className="w-7 h-7" />
+          <div className="p-2 bg-gradient-to-b from-blue-500/20 to-purple-500/10 rounded-2xl border border-white/15 mb-3 shadow-xl shadow-blue-500/10 flex items-center justify-center">
+            <img
+              src="/assets/obex_cat_eye_logo-256.webp"
+              alt="Markspace Logo"
+              className="w-12 h-12 rounded-xl object-contain drop-shadow-md"
+            />
           </div>
           <h2 className="text-xl font-bold tracking-tight text-white">
             {isRegisterMode ? t('register') : t('signIn')}

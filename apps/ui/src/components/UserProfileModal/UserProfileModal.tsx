@@ -90,25 +90,20 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </button>
 
         {/* User Header */}
-        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-white/10">
-          <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center font-bold text-white text-xl shadow-lg border border-white/10">
-            {username ? username.charAt(0).toUpperCase() : 'U'}
+        <div className="mb-6 pb-6 border-b border-white/10">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-xl font-bold text-white">{username || 'Anonymous'}</h2>
+            {role === 'admin' ? (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center gap-1">
+                <span>SYSTEM ADMIN</span>
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/5 text-zinc-400 border border-white/10">
+                STANDARD USER
+              </span>
+            )}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-white">{username || 'Anonymous'}</h2>
-              {role === 'admin' ? (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center gap-1">
-                  <span>SYSTEM ADMIN</span>
-                </span>
-              ) : (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/5 text-zinc-400 border border-white/10">
-                  STANDARD USER
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-zinc-400 mt-0.5">{t('userProfile')}</p>
-          </div>
+          <p className="text-xs text-zinc-400 mt-0.5">{t('userProfile')}</p>
         </div>
 
         {/* TOTP Multi-Factor Authentication Management */}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, SlidersHorizontal, Lock, LogOut } from 'lucide-react';
+import { SlidersHorizontal, Lock, LogOut } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
 import { VaultInfo } from '../../interfaces/INoteModels';
 
@@ -20,9 +20,13 @@ export const VaultHeader: React.FC<VaultHeaderProps> = ({
 
   return (
     <div className="p-4 border-b border-black/5 dark:border-white/10 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400">
-          <Database className="w-4 h-4" />
+      <div className="flex items-center gap-2.5">
+        <div className="p-1 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0 shadow-sm">
+          <img
+            src="/assets/obex_cat_eye_logo-256.webp"
+            alt="Markspace Logo"
+            className="w-7 h-7 object-contain rounded-lg"
+          />
         </div>
         <div>
           <h1 className="font-bold text-sm text-zinc-900 dark:text-white tracking-wide flex items-center gap-1.5">

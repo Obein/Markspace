@@ -66,9 +66,13 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
       >
         {/* Top Header Row */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="font-mono">
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
+            <img
+              src="/assets/obex_cat_eye_logo-256.webp"
+              alt="Markspace Logo"
+              className="w-4 h-4 rounded object-contain"
+            />
+            <span className="font-mono text-zinc-300">
               {mode === 'create' ? 'Setup Vault' : 'Vault Locked'}
             </span>
           </div>

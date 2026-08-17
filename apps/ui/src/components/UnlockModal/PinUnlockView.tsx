@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, KeyRound, Database, Loader2, AlertTriangle, HelpCircle, Plus, Trash2 } from 'lucide-react';
+import { KeyRound, Database, Loader2, AlertTriangle, HelpCircle, Plus, Trash2 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
 import { VaultInfo } from '../../interfaces/INoteModels';
@@ -121,8 +121,12 @@ export const PinUnlockView: React.FC<PinUnlockViewProps> = ({
   return (
     <div>
       <div className="flex flex-col items-center text-center mb-5">
-        <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 mb-3 text-blue-400 shadow-inner">
-          <Lock className="w-7 h-7" />
+        <div className="p-2 bg-gradient-to-b from-blue-500/20 to-purple-500/10 rounded-2xl border border-white/15 mb-3 shadow-xl shadow-blue-500/10 flex items-center justify-center">
+          <img
+            src="/assets/obex_cat_eye_logo-256.webp"
+            alt="Markspace Logo"
+            className="w-12 h-12 rounded-xl object-contain drop-shadow-md"
+          />
         </div>
         <h2 className="text-xl font-bold tracking-tight text-white">{t('unlockVault')}</h2>
         <p className="text-xs text-zinc-400 mt-1">
