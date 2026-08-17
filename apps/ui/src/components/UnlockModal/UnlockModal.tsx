@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, LogOut, User } from 'lucide-react';
+import { ShieldCheck, LogOut } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
 import { UnlockModalProps } from './UnlockModal.types';
@@ -80,10 +80,9 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
             <button
               type="button"
               onClick={onOpenProfile}
-              className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer"
+              className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-xs font-mono transition cursor-pointer"
               title={t('userProfile')}
             >
-              <User className="w-3.5 h-3.5 text-blue-400" />
               <span>{username}</span>
             </button>
           )}
