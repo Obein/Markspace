@@ -127,6 +127,11 @@ pre, code, textarea, .lezer-code-block {
   text-rendering: optimizeLegibility;
 }
 
+/* Right-pointing line selection cursor for line numbers gutter */
+.cursor-gutter {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M14 2L3 8L8 10L10 15L14 2Z' fill='%23ffffff' stroke='%2318181b' stroke-width='1.2' stroke-linejoin='round'/%3E%3C/svg%3E") 14 2, pointer;
+}
+
 /* Latest Apple Liquid Glassmorphism Utilities */
 .glass-panel {
   background: var(--glass-bg);

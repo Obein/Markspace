@@ -734,7 +734,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                         key={i}
                         onClick={() => handleSelectLine(i)}
                         style={{ height: lineHeights[i] ? `${lineHeights[i]}px` : '24px' }}
-                        className={`relative flex items-start justify-end leading-6 transition-all duration-150 cursor-ne-resize ${
+                        className={`relative flex items-start justify-end leading-6 transition-all duration-150 cursor-gutter ${
                           isActive
                             ? 'text-blue-400 font-bold opacity-100 scale-105'
                             : 'text-zinc-500 opacity-40 hover:opacity-75'
@@ -829,7 +829,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                       key={i}
                       onClick={() => handleSelectLine(i)}
                       style={{ height: lineHeights[i] ? `${lineHeights[i]}px` : '24px' }}
-                      className={`relative flex items-start justify-end leading-6 transition-all duration-150 cursor-ne-resize ${
+                      className={`relative flex items-start justify-end leading-6 transition-all duration-150 cursor-gutter ${
                         isActive
                           ? 'text-blue-400 font-bold opacity-100 scale-105'
                           : 'text-zinc-500 opacity-40 hover:opacity-75'
