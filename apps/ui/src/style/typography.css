@@ -26,9 +26,34 @@ pre, code, textarea, .lezer-code-block {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M14 2L3 8L8 10L10 15L14 2Z' fill='%23ffffff' stroke='%2318181b' stroke-width='1.2' stroke-linejoin='round'/%3E%3C/svg%3E") 14 2, pointer;
 }
 
-/* Editor Textarea Caret Enhancements */
+/* Editor Textarea Caret & Text Styling */
 textarea.editor-textarea {
-  caret-color: #38bdf8;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  caret-color: #f4f4f5;
   font-size: 15px;
   line-height: 24px;
+  letter-spacing: normal;
+  tab-size: 2;
+}
+
+:root:not(.dark) textarea.editor-textarea {
+  caret-color: #18181b;
+}
+
+textarea.editor-textarea::placeholder {
+  color: #52525b;
+  -webkit-text-fill-color: #52525b;
+}
+
+textarea.editor-textarea::selection {
+  background-color: rgba(59, 130, 246, 0.35);
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Syntax Backdrop Sizing */
+.syntax-backdrop {
+  tab-size: 2;
+  letter-spacing: normal;
 }

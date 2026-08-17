@@ -15,6 +15,7 @@ import { FormattingToolbar } from './FormattingToolbar';
 import { LineGutter } from './LineGutter';
 import { MarkdownPreviewPane } from './MarkdownPreviewPane';
 import { MediaPreview } from './MediaPreview';
+import { EditorCodeArea } from './EditorCodeArea';
 
 export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   activeFile,
@@ -28,7 +29,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   onDownloadFile,
   onSelectionStatsChange,
 }) => {
-  const { previewService } = useApp();
+  const { previewService, highlightService } = useApp();
 
   const [isFullWidth, setIsFullWidth] = useState<boolean>(false);
   const [activeLineIndex, setActiveLineIndex] = useState<number>(0);
@@ -191,20 +192,15 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   onSelectLine={handleSelectLine}
                   onOpenTableAtRange={handleOpenVisualTable}
                 />
-                <textarea
-                  ref={textareaRef}
+                <EditorCodeArea
+                  textareaRef={textareaRef}
                   value={content}
-                  onChange={(e) => {
-                    onContentChange(e.target.value);
-                    handleSelectionChange();
-                  }}
-                  onSelect={handleSelectionChange}
-                  onKeyUp={handleSelectionChange}
+                  onChange={onContentChange}
+                  onSelectionChange={handleSelectionChange}
                   onKeyDown={handleEditorKeyDown}
-                  onClick={handleSelectionChange}
-                  onFocus={handleSelectionChange}
+                  highlightService={highlightService}
+                  category={category}
                   placeholder="Write your thoughts..."
-                  className="flex-1 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-[15px] leading-6 caret-blue-400 editor-textarea relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
                 />
               </div>
 
@@ -248,20 +244,15 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 onOpenTableAtRange={handleOpenVisualTable}
               />
 
-              <textarea
-                ref={textareaRef}
+              <EditorCodeArea
+                textareaRef={textareaRef}
                 value={content}
-                onChange={(e) => {
-                  onContentChange(e.target.value);
-                  handleSelectionChange();
-                }}
-                onSelect={handleSelectionChange}
-                onKeyUp={handleSelectionChange}
+                onChange={onContentChange}
+                onSelectionChange={handleSelectionChange}
                 onKeyDown={handleEditorKeyDown}
-                onClick={handleSelectionChange}
-                onFocus={handleSelectionChange}
+                highlightService={highlightService}
+                category={category}
                 placeholder="Write your thoughts..."
-                className="flex-1 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-[15px] leading-6 caret-blue-400 editor-textarea relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
               />
             </div>
 
