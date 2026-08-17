@@ -1,49 +1,49 @@
 /* Latest Apple Liquid Glassmorphism Utilities */
 .glass-panel {
-  background: rgba(18, 18, 22, 0.75);
-  background: var(--glass-bg, rgba(18, 18, 22, 0.75));
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  background: rgba(18, 18, 22, 0.65);
+  background: var(--glass-bg, rgba(18, 18, 22, 0.65));
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
 }
 
 .glass-bar {
-  background: rgba(15, 15, 18, 0.76);
-  background: var(--glass-bar-bg, rgba(15, 15, 18, 0.76));
-  backdrop-filter: blur(40px) saturate(200%) contrast(105%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%) contrast(105%);
+  background: rgba(15, 15, 20, 0.45);
+  background: var(--glass-bar-bg, rgba(15, 15, 20, 0.45));
+  backdrop-filter: blur(20px) saturate(190%) contrast(102%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%) contrast(102%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
 }
 
 .glass-capsule {
-  background: rgba(18, 18, 22, 0.78);
-  background: var(--glass-capsule-bg, rgba(18, 18, 22, 0.78));
-  backdrop-filter: blur(40px) saturate(200%) contrast(105%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%) contrast(105%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 16px 40px rgba(0, 0, 0, 0.45);
+  background: rgba(18, 18, 24, 0.50);
+  background: var(--glass-capsule-bg, rgba(18, 18, 24, 0.50));
+  backdrop-filter: blur(20px) saturate(190%) contrast(102%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%) contrast(102%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14));
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15), 0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
 :root:not(.dark) .glass-panel,
 .light .glass-panel {
-  background: var(--glass-bg, rgba(255, 255, 255, 0.75));
+  background: var(--glass-bg, rgba(255, 255, 255, 0.70));
   border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
 }
 
 :root:not(.dark) .glass-bar,
 .light .glass-bar {
-  background: var(--glass-bar-bg, rgba(255, 255, 255, 0.78));
+  background: var(--glass-bar-bg, rgba(255, 255, 255, 0.48));
   border-bottom: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
 }
 
 :root:not(.dark) .glass-capsule,
 .light .glass-capsule {
-  background: var(--glass-capsule-bg, rgba(255, 255, 255, 0.80));
+  background: var(--glass-capsule-bg, rgba(255, 255, 255, 0.52));
   border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
 }
 

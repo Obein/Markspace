@@ -77,31 +77,36 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
 
   return (
     <div className="flex items-center justify-between gap-4">
-      {/* Hot-zone container for editing file name: clicking anywhere focuses & selects base filename */}
+      {/* Hot-zone container for editing file name (no hover background) */}
       <div
         onClick={handleContainerClick}
-        className="flex items-center gap-2 flex-1 min-w-0 cursor-text py-1 px-2 -mx-2 rounded-xl hover:bg-white/[0.04] transition group"
+        className="flex items-center gap-2 flex-1 min-w-0 cursor-text py-0.5"
         title="Click to rename note"
       >
-        <div className="flex items-baseline min-w-0 max-w-full flex-1">
-          <input
-            ref={inputRef}
-            type="text"
-            value={baseName}
-            onChange={handleBaseNameChange}
-            onFocus={handleFocus}
-            onClick={(e) => {
-              e.currentTarget.select();
-            }}
-            placeholder="Untitled Note"
-            className="text-xl font-bold bg-transparent text-white placeholder-zinc-500 focus:outline-none tracking-tight shrink min-w-[60px]"
-            style={{
-              width: `${Math.max(baseName.length, 1) + 2}ch`,
-              maxWidth: 'calc(100% - 4rem)',
-            }}
-          />
+        <div className="inline-flex items-baseline min-w-0 max-w-full">
+          <div className="relative inline-flex items-baseline max-w-full">
+            {/* Invisible sizer to make input width exactly match the typed text */}
+            <span
+              aria-hidden="true"
+              className="text-xl font-bold tracking-tight invisible whitespace-pre pointer-events-none select-none leading-normal"
+            >
+              {baseName || 'Untitled Note'}
+            </span>
+            <input
+              ref={inputRef}
+              type="text"
+              value={baseName}
+              onChange={handleBaseNameChange}
+              onFocus={handleFocus}
+              onClick={(e) => {
+                e.currentTarget.select();
+              }}
+              placeholder="Untitled Note"
+              className="absolute inset-0 w-full h-full text-xl font-bold bg-transparent text-white placeholder-zinc-500 focus:outline-none tracking-tight p-0 m-0 border-none leading-normal"
+            />
+          </div>
           {extension && (
-            <span className="text-xl font-bold font-mono text-zinc-400 opacity-40 select-none shrink-0 tracking-tight ml-0.5">
+            <span className="text-xl font-bold font-mono text-zinc-300 opacity-70 select-none shrink-0 tracking-tight leading-normal">
               {extension}
             </span>
           )}

@@ -11,9 +11,9 @@
     --bg-base: #F4F4F5;
     --text-main: #09090B;
     --text-muted: #71717A;
-    --glass-bg: rgba(255, 255, 255, 0.75);
-    --glass-bar-bg: rgba(255, 255, 255, 0.78);
-    --glass-capsule-bg: rgba(255, 255, 255, 0.80);
+    --glass-bg: rgba(255, 255, 255, 0.70);
+    --glass-bar-bg: rgba(255, 255, 255, 0.48);
+    --glass-capsule-bg: rgba(255, 255, 255, 0.52);
     --glass-border: rgba(0, 0, 0, 0.08);
 
     /* Monaspace Monospace + Noto Sans Mono Fallback */
@@ -69,9 +69,9 @@
     --bg-base: #09090B;
     --text-main: #F4F4F5;
     --text-muted: #A1A1AA;
-    --glass-bg: rgba(18, 18, 22, 0.75);
-    --glass-bar-bg: rgba(15, 15, 18, 0.76);
-    --glass-capsule-bg: rgba(18, 18, 22, 0.78);
+    --glass-bg: rgba(18, 18, 22, 0.65);
+    --glass-bar-bg: rgba(15, 15, 20, 0.45);
+    --glass-capsule-bg: rgba(18, 18, 24, 0.50);
     --glass-border: rgba(255, 255, 255, 0.12);
   }
 }

@@ -25,7 +25,7 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
   onOpenVisualTable,
 }) => {
   return (
-    <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-1 border-t border-white/10 select-none">
+    <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pt-1.5 pb-0 border-t border-white/10 select-none">
       <button
         onClick={() => onInsertFormatting('**', '**')}
         className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition cursor-pointer"

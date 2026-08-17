@@ -283,7 +283,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   }
 
   const hasFormattingToolbar = category === 'markdown' && (!isPreview || isSplitView);
-  const topToolbarSpacingClass = hasFormattingToolbar ? 'h-32' : 'h-24';
+  const topToolbarSpacingClass = hasFormattingToolbar ? 'h-24' : 'h-16';
   const bottomCapsuleSpacingClass = hasBottomCapsule ? 'h-24' : 'h-12';
 
   return (
@@ -316,7 +316,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       </div>
 
       {/* Floating Frosted Glass Header & Toolbar */}
-      <div className="absolute top-0 inset-x-0 z-30 px-6 py-4 glass-bar border-b border-white/10 space-y-3 shadow-md pointer-events-auto">
+      <div className="absolute top-0 inset-x-0 z-30 px-6 pt-3.5 pb-2.5 glass-bar border-b border-white/10 space-y-2 shadow-md pointer-events-auto">
         <EditorHeader
           title={title}
           onTitleChange={onTitleChange}
