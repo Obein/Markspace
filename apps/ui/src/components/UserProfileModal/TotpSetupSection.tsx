@@ -8,16 +8,20 @@ import {
   Loader2,
   AlertTriangle,
   Sparkles,
+  QrCode,
 } from 'lucide-react';
+import QRCode from 'qrcode';
 import { useApp } from '../../context/AppContext';
+import { useI18n } from '../../i18n/i18nContext';
 
 export const TotpSetupSection: React.FC = () => {
   const { apiClient } = useApp();
+  const { t } = useI18n();
 
   const [isTotpEnabled, setIsTotpEnabled] = useState(false);
   const [isSettingUp, setIsSettingUp] = useState(false);
   const [setupSecret, setSetupSecret] = useState('');
-  const [otpauthUri, setOtpauthUri] = useState('');
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [secondsRemaining, setSecondsRemaining] = useState(25);
   const [verifyCode, setVerifyCode] = useState('');
   const [copied, setCopied] = useState(false);
@@ -48,8 +52,23 @@ export const TotpSetupSection: React.FC = () => {
       setErrorMsg(null);
       const res = await apiClient.setupTotp();
       setSetupSecret(res.secret);
-      setOtpauthUri(res.otpauthUri);
       setSecondsRemaining(25);
+
+      if (res.otpauthUri) {
+        try {
+          const url = await QRCode.toDataURL(res.otpauthUri, {
+            margin: 1,
+            width: 190,
+            color: {
+              dark: '#0f172a',
+              light: '#ffffff',
+            },
+          });
+          setQrCodeDataUrl(url);
+        } catch (qrErr) {
+          console.error('Failed to render QR Code', qrErr);
+        }
+      }
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : 'Failed to initialize TOTP session');
     }
@@ -91,7 +110,7 @@ export const TotpSetupSection: React.FC = () => {
   const handleEnableSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!verifyCode || verifyCode.trim().length !== 6) {
-      setErrorMsg('Please enter the 6-digit code from your authenticator app');
+      setErrorMsg(t('enterTotpCode'));
       return;
     }
 
@@ -101,7 +120,7 @@ export const TotpSetupSection: React.FC = () => {
       await apiClient.enableTotp(verifyCode.trim(), setupSecret);
       setIsTotpEnabled(true);
       setIsSettingUp(false);
-      setSuccessMsg('Two-factor authentication (TOTP) successfully activated!');
+      setSuccessMsg(t('totpActivatedSuccess'));
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : 'Verification failed');
     } finally {
@@ -112,7 +131,7 @@ export const TotpSetupSection: React.FC = () => {
   const handleDisableSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!disableCode || disableCode.trim().length !== 6) {
-      setErrorMsg('Please enter the 6-digit code to confirm disabling');
+      setErrorMsg(t('enterDisableCode'));
       return;
     }
 
@@ -123,7 +142,7 @@ export const TotpSetupSection: React.FC = () => {
       setIsTotpEnabled(false);
       setIsDisabling(false);
       setDisableCode('');
-      setSuccessMsg('Two-factor authentication disabled.');
+      setSuccessMsg(t('totpDisabledSuccess'));
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : 'Failed to disable TOTP');
     } finally {
@@ -133,57 +152,58 @@ export const TotpSetupSection: React.FC = () => {
 
   return (
     <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div
-            className={`p-2 rounded-xl border ${
-              isTotpEnabled
-                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
-                : 'bg-amber-500/15 border-amber-500/30 text-amber-400'
-            }`}
-          >
-            {isTotpEnabled ? <ShieldCheck className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-white flex items-center gap-2">
-              <span>Two-Factor Authentication (TOTP)</span>
-              {isTotpEnabled && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono border border-emerald-500/30">
-                  Enabled
-                </span>
-              )}
-            </h4>
-            <p className="text-xs text-zinc-400">
-              {isTotpEnabled
-                ? 'Your account is protected with TOTP and supports passwordless login'
-                : 'Protect your account with Google Authenticator, 1Password or Authy'}
-            </p>
-          </div>
+      {/* Header Info */}
+      <div className="flex items-start gap-3">
+        <div
+          className={`p-2.5 rounded-xl border shrink-0 mt-0.5 ${
+            isTotpEnabled
+              ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+              : 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+          }`}
+        >
+          {isTotpEnabled ? <ShieldCheck className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
         </div>
-
-        {!isSettingUp && !isDisabling && (
-          <div>
-            {isTotpEnabled ? (
-              <button
-                type="button"
-                onClick={() => setIsDisabling(true)}
-                className="px-3 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 text-xs font-mono transition cursor-pointer"
-              >
-                Disable 2FA
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleStartSetup}
-                className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-500/20 transition cursor-pointer flex items-center gap-1.5"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Enable TOTP</span>
-              </button>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-bold text-white">
+              {t('twoFactorAuth')}
+            </h4>
+            {isTotpEnabled && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono border border-emerald-500/30">
+                {t('totpEnabled')}
+              </span>
             )}
           </div>
-        )}
+          <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
+            {isTotpEnabled ? t('totpEnabledDesc') : t('totpDisabledDesc')}
+          </p>
+        </div>
       </div>
+
+      {/* Standalone Full-Row Action Button */}
+      {!isSettingUp && !isDisabling && (
+        <div>
+          {isTotpEnabled ? (
+            <button
+              type="button"
+              onClick={() => setIsDisabling(true)}
+              className="w-full py-2.5 px-4 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 text-xs font-mono transition cursor-pointer flex items-center justify-center gap-2"
+            >
+              <AlertTriangle className="w-4 h-4" />
+              <span>{t('disableTotp')}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleStartSetup}
+              className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-500/20 transition cursor-pointer flex items-center justify-center gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>{t('enableTotp')}</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {errorMsg && (
         <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs font-mono">
@@ -197,39 +217,64 @@ export const TotpSetupSection: React.FC = () => {
         </div>
       )}
 
-      {/* Setup Form */}
+      {/* Setup Form with QR Code & Secret Key */}
       {isSettingUp && (
         <div className="p-4 rounded-xl bg-black/40 border border-blue-500/30 space-y-4 animate-in fade-in duration-150">
           <div className="flex items-center justify-between text-xs font-mono">
-            <span className="text-zinc-300 font-semibold">1. Enter Secret Key into Authenticator</span>
+            <span className="text-zinc-300 font-semibold flex items-center gap-1.5">
+              <QrCode className="w-4 h-4 text-blue-400" />
+              <span>1. {t('scanQrCodeOrSecret')}</span>
+            </span>
             <span className="flex items-center gap-1 text-amber-300 text-[11px]">
               <RefreshCw className="w-3 h-3 animate-spin" />
-              <span>Rotates in {secondsRemaining}s</span>
+              <span>{t('rotatesIn')} {secondsRemaining}s</span>
             </span>
           </div>
 
-          <div className="p-3 rounded-lg bg-blue-950/40 border border-blue-500/30 flex items-center justify-between">
-            <div className="font-mono text-xs text-blue-300 tracking-wider select-all break-all pr-2">
-              {setupSecret}
-            </div>
-            <button
-              type="button"
-              onClick={handleCopySecret}
-              className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-mono flex items-center gap-1 shrink-0 transition cursor-pointer"
-            >
-              {copied ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
-              <span>{copied ? 'Copied' : 'Copy'}</span>
-            </button>
+          {/* QR Code Container */}
+          <div className="flex flex-col items-center justify-center p-3.5 bg-black/50 border border-white/10 rounded-2xl">
+            {qrCodeDataUrl ? (
+              <div className="p-2.5 bg-white rounded-xl shadow-lg">
+                <img
+                  src={qrCodeDataUrl}
+                  alt="TOTP Setup QR Code"
+                  className="w-40 h-40 object-contain block"
+                />
+              </div>
+            ) : (
+              <div className="w-40 h-40 flex items-center justify-center text-zinc-500 text-xs font-mono">
+                <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+              </div>
+            )}
+            <p className="text-[11px] text-zinc-400 mt-2 font-mono text-center">
+              Google Authenticator / 1Password / Authy
+            </p>
           </div>
 
-          <div className="text-[11px] text-zinc-400 leading-relaxed font-mono">
-            Or open URL: <a href={otpauthUri} className="text-blue-400 underline break-all">{otpauthUri}</a>
+          {/* Manual Secret Key Copy Box */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] text-zinc-400 font-mono block">
+              {t('totpSecretKey')}:
+            </label>
+            <div className="p-2.5 rounded-xl bg-blue-950/40 border border-blue-500/30 flex items-center justify-between gap-2">
+              <div className="font-mono text-xs text-blue-300 tracking-wider select-all break-all pr-2">
+                {setupSecret}
+              </div>
+              <button
+                type="button"
+                onClick={handleCopySecret}
+                className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-mono flex items-center gap-1 shrink-0 transition cursor-pointer shadow-sm"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copied ? t('copied') : t('copy')}</span>
+              </button>
+            </div>
           </div>
 
           <form onSubmit={handleEnableSubmit} className="space-y-3 pt-2">
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1">
-                2. Enter 6-Digit Verification Code
+                2. {t('enterTotpCode')}
               </label>
               <input
                 type="text"
@@ -250,14 +295,14 @@ export const TotpSetupSection: React.FC = () => {
                 onClick={() => setIsSettingUp(false)}
                 className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-medium transition cursor-pointer"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-500/20 transition disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'Confirm & Enable'}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : t('confirmAndEnable')}
               </button>
             </div>
           </form>
@@ -272,11 +317,11 @@ export const TotpSetupSection: React.FC = () => {
         >
           <div className="flex items-center gap-2 text-red-300 text-xs font-semibold">
             <AlertTriangle className="w-4 h-4" />
-            <span>Confirm Disabling Two-Factor Authentication</span>
+            <span>{t('confirmDisableTotp')}</span>
           </div>
           <div>
             <label className="block text-xs font-medium text-zinc-300 mb-1">
-              Enter 6-Digit Authenticator Code
+              {t('enterDisableCode')}
             </label>
             <input
               type="text"
@@ -296,14 +341,14 @@ export const TotpSetupSection: React.FC = () => {
               onClick={() => setIsDisabling(false)}
               className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs transition cursor-pointer"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition disabled:opacity-50 cursor-pointer"
             >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin text-white mx-auto" /> : 'Disable'}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin text-white mx-auto" /> : t('disableTotp')}
             </button>
           </div>
         </form>

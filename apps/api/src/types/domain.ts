@@ -23,6 +23,7 @@ export interface AuditLogEntity {
     | 'AUTH_PASSWORDLESS_TOTP'
     | 'PASSWORD_CHANGE'
     | 'MFA_VERIFY'
+    | 'VAULT_OPRF_EVAL'
     | 'TOTP_SETUP'
     | 'TOTP_ENABLE'
     | 'TOTP_DISABLE'

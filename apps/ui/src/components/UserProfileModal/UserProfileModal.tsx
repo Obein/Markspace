@@ -66,6 +66,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         return 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30';
       case 'SECURITY_NONCE_VIOLATION':
         return 'bg-red-500/20 text-red-300 border-red-500/30';
+      case 'VAULT_OPRF_EVAL':
+        return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
       case 'TOTP_ENABLE':
       case 'TOTP_SETUP':
         return 'bg-blue-500/20 text-blue-300 border-blue-500/30';

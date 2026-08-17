@@ -70,7 +70,7 @@ export class VaultController {
       await this.auditLogRepo.recordLog({
         userId,
         username: ctx.user?.username || 'unknown',
-        action: 'MFA_VERIFY',
+        action: 'VAULT_OPRF_EVAL',
         authMethod: 'Vault OPRF Rate-Limiting Gate',
         ipAddress: this.getClientIp(ctx),
         userAgent: this.getUserAgent(ctx),
@@ -105,7 +105,7 @@ export class VaultController {
     await this.auditLogRepo.recordLog({
       userId,
       username: ctx.user?.username || 'unknown',
-      action: 'MFA_VERIFY',
+      action: 'VAULT_OPRF_EVAL',
       authMethod: 'Vault OPRF Evaluation',
       ipAddress: this.getClientIp(ctx),
       userAgent: this.getUserAgent(ctx),
