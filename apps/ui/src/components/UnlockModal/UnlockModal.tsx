@@ -346,7 +346,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-1 flex items-center justify-between">
+                  <label className="text-xs font-medium text-zinc-300 mb-1 flex items-center justify-between">
                     <span>Vault PIN (4 - 6 digits)</span>
                     <span className="text-[10px] text-zinc-500 font-mono">Numbers only</span>
                   </label>
@@ -568,7 +568,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1 flex items-center justify-between">
+                <label className="text-xs font-medium text-zinc-300 mb-1 flex items-center justify-between">
                   <span>Vault PIN (4 - 6 digits)</span>
                   <span className="text-[10px] text-zinc-500 font-mono">Numbers only</span>
                 </label>
@@ -673,7 +673,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1 flex items-center justify-between">
+                <label className="text-xs font-medium text-zinc-300 mb-1 flex items-center justify-between">
                   <span>Set New PIN (4 - 6 digits)</span>
                   <span className="text-[10px] text-zinc-500 font-mono">Numbers only</span>
                 </label>
