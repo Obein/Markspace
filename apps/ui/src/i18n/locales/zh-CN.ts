@@ -71,7 +71,9 @@ export const zhCN: typeof enUS = {
   preview: '预览',
   edit: '编辑',
   splitView: '分列视图',
-  darkTheme: '深色模式',
+  visualTableEditor: '可视化表格编辑',
+  convertToVisualTable: '可视化表格',
+  darkTheme: '暗黑主题',
   lightTheme: '浅色模式',
   untitledNote: '无标题笔记',
 

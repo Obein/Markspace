@@ -71,6 +71,8 @@ export const jaJP: typeof enUS = {
   preview: 'プレビュー',
   edit: '編集',
   splitView: '分割ビュー',
+  visualTableEditor: 'ビジュアルテーブルエディタ',
+  convertToVisualTable: 'ビジュアルテーブル',
   darkTheme: 'ダークテーマ',
   lightTheme: 'ライトテーマ',
   untitledNote: '無題のノート',

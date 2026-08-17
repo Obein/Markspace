@@ -69,6 +69,8 @@ export const enUS = {
   preview: 'Preview',
   edit: 'Edit',
   splitView: 'Split View',
+  visualTableEditor: 'Visual Table Editor',
+  convertToVisualTable: 'Visual Table',
   darkTheme: 'Dark Theme',
   lightTheme: 'Light Theme',
   untitledNote: 'Untitled Note',

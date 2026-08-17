@@ -18,11 +18,15 @@ import {
   GitBranch,
   Maximize2,
   Minimize2,
+  Sparkles,
 } from 'lucide-react';
 import mermaid from 'mermaid';
 import { normalizeMermaidCode } from '../services/MarkdownPreviewService';
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../i18n/i18nContext';
 import { VaultFileItem } from '../interfaces/INoteModels';
+import { VisualTableEditor } from './VisualTableEditor';
+import { findTableAtCursor, DetectedTableRange } from '../utils/TableConverter';
 
 interface EditorCanvasProps {
   activeFile: VaultFileItem | null;
@@ -49,6 +53,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   onDownloadFile,
   onSelectionStatsChange,
 }) => {
+  const { t } = useI18n();
   const { sheetEngine, previewService } = useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mirrorRef = useRef<HTMLDivElement>(null);
@@ -61,6 +66,11 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   // Layout width mode: default is Limited-width (false -> max-w-[45em])
   const [isFullWidth, setIsFullWidth] = useState(false);
   const [lineHeights, setLineHeights] = useState<number[]>([]);
+
+  // Visual Table Editor detection & modal state
+  const [activeTableRange, setActiveTableRange] = useState<DetectedTableRange | null>(null);
+  const [isVisualTableOpen, setIsVisualTableOpen] = useState(false);
+  const [activeLineIndex, setActiveLineIndex] = useState<number | null>(0);
 
   const category = activeFile?.category || 'markdown';
 
@@ -256,13 +266,23 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     }
   }, [previewHtml, isPreview, isSplitView, category]);
 
-  // Update selected word & character stats
+  // Update selected word & character stats and detect Markdown table under cursor
   const handleSelectionChange = () => {
     const textarea = textareaRef.current;
-    if (!textarea || !onSelectionStatsChange) return;
+    if (!textarea) return;
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
+
+    // Detect Markdown Table at cursor location
+    if (category === 'markdown' && (!isPreview || isSplitView)) {
+      const detected = findTableAtCursor(textarea.value, start);
+      setActiveTableRange(detected);
+    } else {
+      setActiveTableRange(null);
+    }
+
+    if (!onSelectionStatsChange) return;
 
     if (start === end) {
       onSelectionStatsChange(0, 0);
@@ -300,6 +320,36 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     }, 0);
   };
 
+  // Open Visual Table Editor: either on detected table or create new template table
+  const handleOpenVisualTable = () => {
+    if (activeTableRange) {
+      setIsVisualTableOpen(true);
+    } else {
+      // Create new table at cursor position
+      const textarea = textareaRef.current;
+      const start = textarea?.selectionStart ?? content.length;
+      const end = textarea?.selectionEnd ?? content.length;
+
+      setActiveTableRange({
+        startOffset: start,
+        endOffset: end,
+        startLine: 0,
+        endLine: 0,
+        tableMarkdown: '',
+        parsed: {
+          headers: ['Item', 'Quantity', 'Price', 'Total'],
+          alignments: ['left', 'center', 'right', 'right'],
+          rows: [
+            ['Apple', '5', '3.50', '=B1*C1'],
+            ['Orange', '10', '2.00', '=B2*C2'],
+            ['Total', '=SUM(B1:B2)', '', '=SUM(D1:D2)'],
+          ],
+        },
+      });
+      setIsVisualTableOpen(true);
+    }
+  };
+
   if (!activeFile) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 font-editor-mono font-mono text-sm select-none">
@@ -334,6 +384,39 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Floating Action Badge: Prompt to Convert Markdown Table to Visual Table */}
+      {activeTableRange && (!isPreview || isSplitView) && (
+        <div className="absolute top-20 right-6 z-30 animate-in fade-in slide-in-from-top-2 duration-200">
+          <button
+            onClick={() => setIsVisualTableOpen(true)}
+            className="px-3.5 py-1.5 rounded-full bg-blue-600/90 hover:bg-blue-500 text-white text-xs font-medium shadow-xl shadow-blue-500/30 backdrop-blur-md border border-white/20 transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 group cursor-pointer"
+            title="Convert Table Code to Visual Spreadsheet Mode"
+          >
+            <TableIcon className="w-3.5 h-3.5 text-blue-200 group-hover:rotate-6 transition" />
+            <span>{t('convertToVisualTable') || 'Visual Table'}</span>
+            <Sparkles className="w-3 h-3 text-amber-300 animate-pulse" />
+          </button>
+        </div>
+      )}
+
+      {/* Visual Table Editor Modal Overlay */}
+      {isVisualTableOpen && activeTableRange && (
+        <VisualTableEditor
+          initialData={activeTableRange.parsed}
+          onSave={(newTableMarkdown) => {
+            const before = content.substring(0, activeTableRange.startOffset);
+            const after = content.substring(activeTableRange.endOffset);
+            const newContent = before + newTableMarkdown + after;
+            onContentChange(newContent);
+            setIsVisualTableOpen(false);
+            setActiveTableRange(null);
+          }}
+          onClose={() => {
+            setIsVisualTableOpen(false);
+          }}
+        />
+      )}
 
       {/* Top Floating Utility Bar (Fixed Header: Stays on top of content) */}
       <div className="absolute top-0 left-0 right-0 z-20 px-6 py-3 glass-bar rounded-t-glass-lg flex flex-col gap-2">
@@ -456,9 +539,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             <div className="w-px h-4 bg-white/10 mx-1" />
 
             <button
-              onClick={() => insertFormatting('\n| Header 1 | Header 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |\n')}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition flex items-center gap-1 text-[11px]"
-              title="Insert Table"
+              onClick={handleOpenVisualTable}
+              className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 border border-blue-500/20 transition flex items-center gap-1 text-[11px]"
+              title="Insert or Edit Visual Table"
             >
               <TableIcon className="w-3.5 h-3.5" />
               <span>Table</span>
@@ -535,7 +618,10 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 <textarea
                   ref={textareaRef}
                   value={content}
-                  onChange={(e) => onContentChange(e.target.value)}
+                  onChange={(e) => {
+                    onContentChange(e.target.value);
+                    handleSelectionChange();
+                  }}
                   onSelect={handleSelectionChange}
                   onKeyUp={handleSelectionChange}
                   onClick={handleSelectionChange}
@@ -598,7 +684,10 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               <textarea
                 ref={textareaRef}
                 value={content}
-                onChange={(e) => onContentChange(e.target.value)}
+                onChange={(e) => {
+                  onContentChange(e.target.value);
+                  handleSelectionChange();
+                }}
                 onSelect={handleSelectionChange}
                 onKeyUp={handleSelectionChange}
                 onClick={handleSelectionChange}

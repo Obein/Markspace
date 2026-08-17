@@ -70,8 +70,10 @@ export const koKR: typeof enUS = {
   saved: '저장됨',
   preview: '미리보기',
   edit: '편집',
-  splitView: '분할 보기',
-  darkTheme: '다크 모드',
+  splitView: '분할 뷰',
+  visualTableEditor: '비주얼 테이블 편집기',
+  convertToVisualTable: '비주얼 테이블',
+  darkTheme: '다크 테마',
   lightTheme: '라이트 모드',
   untitledNote: '제목 없는 노트',
 
