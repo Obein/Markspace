@@ -123,7 +123,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
               </div>
             )}
 
-            <form onSubmit={handleFormSubmit} className="space-y-4">
+            <form onSubmit={handleFormSubmit} autoComplete="off" className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-zinc-300 mb-1">{t('vaultName')}</label>
                 <input
@@ -146,6 +146,12 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
                   type="password"
                   inputMode="numeric"
                   maxLength={6}
+                  name="vault-create-pin"
+                  autoComplete="one-time-code"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  data-bwignore="true"
+                  data-form-type="other"
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                   placeholder="••••"
@@ -160,6 +166,12 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
                   type="password"
                   inputMode="numeric"
                   maxLength={6}
+                  name="vault-create-pin-confirm"
+                  autoComplete="one-time-code"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  data-bwignore="true"
+                  data-form-type="other"
                   value={confirmPin}
                   onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
                   placeholder="••••"

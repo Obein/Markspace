@@ -8,6 +8,8 @@ import {
   AlertTriangle,
   Loader2,
   Languages,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useI18n, LANGUAGE_OPTIONS, Language } from '../../i18n/i18nContext';
@@ -31,6 +33,8 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
   const [usernameInput, setUsernameInput] = useState('');
   const [accountPassword, setAccountPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [totpCode, setTotpCode] = useState('');
   const [isTotpEnabledForUser, setIsTotpEnabledForUser] = useState(false);
   const [loginMethod, setLoginMethod] = useState<'totp' | 'password'>('password');
@@ -148,6 +152,8 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
     setErrorMsg(null);
     setAccountPassword('');
     setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
     setTotpCode('');
   };
 
@@ -226,26 +232,46 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
 
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1">{t('password')}</label>
-              <input
-                type="password"
-                value={accountPassword}
-                onChange={(e) => setAccountPassword(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={accountPassword}
+                  onChange={(e) => setAccountPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-white transition cursor-pointer"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1">Confirm Password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-white transition cursor-pointer"
+                  title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <button
@@ -364,15 +390,25 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-zinc-300 mb-1">{t('password')}</label>
-                  <input
-                    type="password"
-                    value={accountPassword}
-                    onChange={(e) => setAccountPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
-                    required
-                    autoFocus
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={accountPassword}
+                      onChange={(e) => setAccountPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full pl-4 pr-10 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
+                      required
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-white transition cursor-pointer"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 {isTotpEnabledForUser && (

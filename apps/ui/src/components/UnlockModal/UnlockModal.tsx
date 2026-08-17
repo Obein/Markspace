@@ -331,7 +331,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                 </div>
               )}
 
-              <form onSubmit={handleCreateVaultSubmit} className="space-y-3.5">
+              <form onSubmit={handleCreateVaultSubmit} autoComplete="off" className="space-y-3.5">
                 <div>
                   <label className="block text-xs font-medium text-zinc-300 mb-1">{t('vaultName')}</label>
                   <input
@@ -354,6 +354,12 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                     type="password"
                     inputMode="numeric"
                     maxLength={6}
+                    name="vault-create-pin"
+                    autoComplete="one-time-code"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    data-bwignore="true"
+                    data-form-type="other"
                     value={newVaultPin}
                     onChange={(e) => setNewVaultPin(e.target.value.replace(/\D/g, ''))}
                     placeholder="••••"
@@ -368,6 +374,12 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                     type="password"
                     inputMode="numeric"
                     maxLength={6}
+                    name="vault-create-pin-confirm"
+                    autoComplete="one-time-code"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    data-bwignore="true"
+                    data-form-type="other"
                     value={newVaultConfirmPin}
                     onChange={(e) => setNewVaultConfirmPin(e.target.value.replace(/\D/g, ''))}
                     placeholder="••••"
@@ -521,7 +533,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
               </div>
             )}
 
-            <form onSubmit={handlePinUnlock} className="space-y-4">
+            <form onSubmit={handlePinUnlock} autoComplete="off" className="space-y-4">
               {/* Prominent Vault Selector Dropdown */}
               <div className="p-3 rounded-xl bg-black/40 border border-white/10 space-y-1.5">
                 <div className="flex items-center justify-between text-xs text-zinc-400">
@@ -564,6 +576,12 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                   type="password"
                   inputMode="numeric"
                   maxLength={6}
+                  name="vault-unlock-pin"
+                  autoComplete="one-time-code"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  data-bwignore="true"
+                  data-form-type="other"
                   disabled={isLockedOut}
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
@@ -639,7 +657,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
               </div>
             )}
 
-            <form onSubmit={handleRecoveryUnlock} className="space-y-3.5">
+            <form onSubmit={handleRecoveryUnlock} autoComplete="off" className="space-y-3.5">
               <div>
                 <label className="block text-xs font-medium text-zinc-300 mb-1">
                   8-Word Recovery Key (BIP-39 Mnemonic)
@@ -663,6 +681,12 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                   type="password"
                   inputMode="numeric"
                   maxLength={6}
+                  name="vault-recovery-new-pin"
+                  autoComplete="one-time-code"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  data-bwignore="true"
+                  data-form-type="other"
                   value={newPinAfterRecovery}
                   onChange={(e) => setNewPinAfterRecovery(e.target.value.replace(/\D/g, ''))}
                   placeholder="••••"
