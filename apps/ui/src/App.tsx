@@ -107,6 +107,33 @@ export const AppContent: React.FC = () => {
   const [isDark, setIsDark] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Undo / Redo History Stack
+  const [historyPast, setHistoryPast] = useState<string[]>([]);
+  const [historyFuture, setHistoryFuture] = useState<string[]>([]);
+
+  const handleContentChange = (newContent: string) => {
+    if (newContent === activeContent) return;
+    setHistoryPast((prev) => [...prev.slice(-99), activeContent]);
+    setHistoryFuture([]);
+    setActiveContent(newContent);
+  };
+
+  const handleUndo = () => {
+    if (historyPast.length === 0) return;
+    const previous = historyPast[historyPast.length - 1];
+    setHistoryPast((prev) => prev.slice(0, -1));
+    setHistoryFuture((prev) => [activeContent, ...prev]);
+    setActiveContent(previous);
+  };
+
+  const handleRedo = () => {
+    if (historyFuture.length === 0) return;
+    const next = historyFuture[0];
+    setHistoryFuture((prev) => prev.slice(1));
+    setHistoryPast((prev) => [...prev.slice(-99), activeContent]);
+    setActiveContent(next);
+  };
+
   // Operation Loading / Buffering States
   const [isLoadingVaultTree, setIsLoadingVaultTree] = useState(false);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
@@ -253,6 +280,8 @@ export const AppContent: React.FC = () => {
       setActiveFileId(id);
       setActiveTitle(selected.filename);
       setActiveContent(selected.content);
+      setHistoryPast([]);
+      setHistoryFuture([]);
       setSelectedWordCount(0);
       setSelectedCharCount(0);
     }
@@ -896,7 +925,7 @@ export const AppContent: React.FC = () => {
               title={activeTitle}
               onTitleChange={setActiveTitle}
               content={activeContent}
-              onContentChange={setActiveContent}
+              onContentChange={handleContentChange}
               isPreview={isPreview}
               isSplitView={isSplitView}
               hasBottomCapsule={isAuthenticated && isVaultUnlocked}
@@ -928,12 +957,10 @@ export const AppContent: React.FC = () => {
               onOpenHistory={() => setIsHistoryOpen(true)}
               onDownloadCurrentFile={handleDownloadActiveFile}
               onDeleteCurrentFile={handleDeleteFile}
-              onUndo={() => {
-                document.execCommand('undo');
-              }}
-              onRedo={() => {
-                document.execCommand('redo');
-              }}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              canUndo={historyPast.length > 0}
+              canRedo={historyFuture.length > 0}
             />
           </section>
         </div>

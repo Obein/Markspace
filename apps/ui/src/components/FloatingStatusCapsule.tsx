@@ -26,6 +26,8 @@ interface FloatingStatusCapsuleProps {
   onOpenHistory?: () => void;
   onUndo?: () => void;
   onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
@@ -51,6 +53,8 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   onOpenHistory,
   onUndo,
   onRedo,
+  canUndo = false,
+  canRedo = false,
 }) => {
   const { t } = useI18n();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -157,8 +161,9 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
                 {onUndo && (
                   <button
                     onClick={onUndo}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition flex items-center justify-center shrink-0 cursor-pointer"
-                    title="Undo (Ctrl+Z)"
+                    disabled={!canUndo}
+                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition flex items-center justify-center shrink-0 cursor-pointer disabled:opacity-25 disabled:pointer-events-none disabled:cursor-not-allowed"
+                    title={canUndo ? 'Undo (Ctrl+Z)' : 'Nothing to undo'}
                   >
                     <Undo2 className="w-3.5 h-3.5 text-zinc-300" />
                   </button>
@@ -166,8 +171,9 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
                 {onRedo && (
                   <button
                     onClick={onRedo}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition flex items-center justify-center shrink-0 cursor-pointer"
-                    title="Redo (Ctrl+Y / Ctrl+Shift+Z)"
+                    disabled={!canRedo}
+                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition flex items-center justify-center shrink-0 cursor-pointer disabled:opacity-25 disabled:pointer-events-none disabled:cursor-not-allowed"
+                    title={canRedo ? 'Redo (Ctrl+Y / Ctrl+Shift+Z)' : 'Nothing to redo'}
                   >
                     <Redo2 className="w-3.5 h-3.5 text-zinc-300" />
                   </button>
