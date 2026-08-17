@@ -1,5 +1,5 @@
 import { highlightTree, classHighlighter } from '@lezer/highlight';
-import { parser as markdownParser } from '@lezer/markdown';
+import { parser as baseMarkdownParser, parseCode, GFM } from '@lezer/markdown';
 import { parser as jsParser } from '@lezer/javascript';
 import { parser as jsonParser } from '@lezer/json';
 import { parser as pythonParser } from '@lezer/python';
@@ -9,26 +9,55 @@ import { Parser } from '@lezer/common';
 import { IHighlightService } from '../interfaces/IHighlightService';
 
 export class HighlightService implements IHighlightService {
-  private parsers: Record<string, Parser> = {
-    markdown: markdownParser,
-    md: markdownParser,
-    js: jsParser,
-    jsx: jsParser.configure({ dialect: 'jsx' }),
-    ts: jsParser.configure({ dialect: 'ts' }),
-    tsx: jsParser.configure({ dialect: 'jsx ts' }),
-    javascript: jsParser,
-    typescript: jsParser.configure({ dialect: 'ts' }),
-    json: jsonParser,
-    python: pythonParser,
-    py: pythonParser,
-    html: htmlParser,
-    xml: htmlParser,
-    css: cssParser,
-  };
+  private parsers: Record<string, Parser>;
+  private markdownParser: Parser;
+
+  constructor() {
+    const js = jsParser;
+    const ts = jsParser.configure({ dialect: 'ts' });
+    const jsx = jsParser.configure({ dialect: 'jsx' });
+    const tsx = jsParser.configure({ dialect: 'jsx ts' });
+    const json = jsonParser;
+    const python = pythonParser;
+    const html = htmlParser;
+    const css = cssParser;
+
+    this.parsers = {
+      js,
+      javascript: js,
+      ts,
+      typescript: ts,
+      jsx,
+      tsx,
+      json,
+      python,
+      py: python,
+      html,
+      xml: html,
+      css,
+    };
+
+    // Configure Markdown parser with GFM and nested fenced code block language parsers
+    this.markdownParser = baseMarkdownParser.configure([
+      GFM,
+      parseCode({
+        codeParser: (info: string) => {
+          const lang = info.trim().toLowerCase().split(/\s+/)[0];
+          return this.parsers[lang] || null;
+        },
+        htmlParser,
+      }),
+    ]);
+
+    this.parsers.markdown = this.markdownParser;
+    this.parsers.md = this.markdownParser;
+  }
 
   public highlightCode(code: string, language: string = 'javascript'): string {
     const langKey = (language || 'javascript').toLowerCase().trim();
-    const parser = this.parsers[langKey] || this.parsers['js'];
+    const parser =
+      this.parsers[langKey] ||
+      (langKey === 'markdown' || langKey === 'md' ? this.markdownParser : this.parsers['js']);
 
     try {
       const tree = parser.parse(code);
@@ -60,7 +89,7 @@ export class HighlightService implements IHighlightService {
     if (!content) return ['\u200B'];
 
     try {
-      const tree = markdownParser.parse(content);
+      const tree = this.markdownParser.parse(content);
       let fullHtml = '';
       let pos = 0;
 
