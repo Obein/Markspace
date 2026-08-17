@@ -448,7 +448,13 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           >
             <div className={topToolbarSpacingClass} />
 
-            <div className="flex w-full min-h-[calc(100%-13rem)]">
+            <div
+              className={`flex min-h-[calc(100%-13rem)] transition-all duration-300 ${
+                isFullWidth
+                  ? 'w-full px-4 sm:px-8'
+                  : 'w-full max-w-4xl mx-auto px-4 sm:px-6'
+              }`}
+            >
               <LineGutter
                 lines={lines}
                 lineHeights={lineHeights}
@@ -491,6 +497,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             topToolbarSpacingClass={topToolbarSpacingClass}
             bottomCapsuleSpacingClass={bottomCapsuleSpacingClass}
             isSplitView={false}
+            isFullWidth={isFullWidth}
           />
         )}
       </div>
