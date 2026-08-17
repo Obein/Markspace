@@ -76,19 +76,19 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between gap-4">
-      {/* Hot-zone container for editing file name (no hover background) */}
+    <div className="flex items-center justify-between gap-4 min-h-[32px]">
+      {/* Hot-zone container for editing file name (vertically centered) */}
       <div
         onClick={handleContainerClick}
         className="flex items-center gap-2 flex-1 min-w-0 cursor-text py-0.5"
         title="Click to rename note"
       >
-        <div className="inline-flex items-baseline min-w-0 max-w-full">
-          <div className="relative inline-flex items-baseline max-w-full">
+        <div className="inline-flex items-center min-w-0 max-w-full">
+          <div className="relative inline-flex items-center max-w-full">
             {/* Invisible sizer to make input width exactly match the typed text */}
             <span
               aria-hidden="true"
-              className="text-xl font-bold tracking-tight invisible whitespace-pre pointer-events-none select-none leading-normal"
+              className="text-xl font-bold tracking-tight invisible whitespace-pre pointer-events-none select-none leading-none"
             >
               {baseName || 'Untitled Note'}
             </span>
@@ -102,11 +102,11 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
                 e.currentTarget.select();
               }}
               placeholder="Untitled Note"
-              className="absolute inset-0 w-full h-full text-xl font-bold bg-transparent text-white placeholder-zinc-500 focus:outline-none tracking-tight p-0 m-0 border-none leading-normal"
+              className="absolute inset-0 w-full h-full text-xl font-bold bg-transparent text-white placeholder-zinc-500 focus:outline-none tracking-tight p-0 m-0 border-none leading-none flex items-center"
             />
           </div>
           {extension && (
-            <span className="text-xl font-bold font-mono text-zinc-300 opacity-70 select-none shrink-0 tracking-tight leading-normal">
+            <span className="text-xl font-bold font-mono text-zinc-300 opacity-70 select-none shrink-0 tracking-tight leading-none">
               {extension}
             </span>
           )}
@@ -118,7 +118,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={onToggleFullWidth}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer flex items-center justify-center"
             title={isFullWidth ? 'Standard Width' : 'Full Width'}
           >
             {isFullWidth ? (
