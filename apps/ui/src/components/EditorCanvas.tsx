@@ -88,8 +88,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       ? previewService.renderPreview(evaluatedMarkdown)
       : '';
 
-  // Lines count for edit mode line-number gutter
-  const lines = content.split('\n');
+  // Lines count for edit mode line-number gutter (Empty content without newlines has 0 lines)
+  const lines = content ? content.split('\n') : [];
 
   // Measure rendered pixel height of every line in textarea (including wrapped lines)
   const measureLineHeights = () => {
@@ -507,7 +507,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               <div className={topToolbarSpacingClass} />
 
               <div className="flex w-full min-h-[calc(100%-13rem)]">
-                <div className="w-10 sm:w-12 py-6 pr-2 sm:pr-3 text-right select-none text-zinc-500 font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-white/5 space-y-0 opacity-60">
+                <div className="w-10 sm:w-12 pr-2 sm:pr-3 text-right select-none text-zinc-500 font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-white/5 space-y-0 opacity-60">
                   {lines.map((_, i) => (
                     <div
                       key={i}
@@ -526,7 +526,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   onKeyUp={handleSelectionChange}
                   onClick={handleSelectionChange}
                   placeholder="Write your thoughts..."
-                  className="flex-1 py-6 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-6 relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
+                  className="flex-1 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-6 relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
                 />
               </div>
 
@@ -543,7 +543,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               {/* Dynamic Top Toolbar Spacing */}
               <div className={topToolbarSpacingClass} />
 
-              <div className="px-6 sm:px-8 py-6 markdown-preview">
+              <div className="px-6 sm:px-8 markdown-preview">
                 <div
                   dangerouslySetInnerHTML={{
                     __html: previewHtml,
@@ -568,7 +568,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
             <div className="flex w-full min-h-[calc(100%-13rem)]">
               {/* Left Line Number Gutter Column */}
-              <div className="w-12 py-6 pr-3 text-right select-none text-zinc-500 font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-white/5 space-y-0 opacity-60">
+              <div className="w-12 pr-3 text-right select-none text-zinc-500 font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-white/5 space-y-0 opacity-60">
                 {lines.map((_, i) => (
                   <div
                     key={i}
@@ -589,7 +589,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 onKeyUp={handleSelectionChange}
                 onClick={handleSelectionChange}
                 placeholder="Write your thoughts..."
-                className="flex-1 py-6 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-6 relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
+                className="flex-1 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-6 relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
               />
             </div>
 
