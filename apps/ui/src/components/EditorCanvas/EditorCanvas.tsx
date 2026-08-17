@@ -316,7 +316,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       </div>
 
       {/* Floating Frosted Glass Header & Toolbar */}
-      <div className="absolute top-0 inset-x-0 z-30 px-6 pt-3 pb-2.5 glass-bar backdrop-blur-xl border-b border-white/10 flex flex-col justify-center space-y-2 shadow-md pointer-events-auto min-h-[52px]">
+      <div className="absolute top-0 inset-x-0 z-30 px-6 pt-3 pb-2.5 glass-bar backdrop-blur-[10px] border-b border-white/10 flex flex-col justify-center space-y-2 shadow-md pointer-events-auto min-h-[52px]">
         <EditorHeader
           title={title}
           onTitleChange={onTitleChange}

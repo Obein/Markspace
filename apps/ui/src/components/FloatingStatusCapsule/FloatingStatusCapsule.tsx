@@ -36,7 +36,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   const hasSelection = selectedCharCount > 0;
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none px-5 py-2.5 glass-capsule backdrop-blur-xl rounded-capsule flex items-center gap-3 sm:gap-4 text-xs text-zinc-200 transition-all hover:scale-[1.01] select-none pointer-events-auto whitespace-nowrap">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none px-5 py-2.5 glass-capsule backdrop-blur-[10px] rounded-capsule flex items-center gap-3 sm:gap-4 text-xs text-zinc-200 transition-all hover:scale-[1.01] select-none pointer-events-auto whitespace-nowrap">
       {/* User Profile & Role Link */}
       <UserBadge username={username} role={role} onOpenProfile={onOpenProfile} />
 
