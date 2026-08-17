@@ -13,7 +13,7 @@ import {
 import { useApp } from './context/AppContext';
 import { useI18n } from './i18n/i18nContext';
 import { NoteItem } from './interfaces/INoteModels';
-import { useToast, useTheme, useModals, useVaults, useVaultFiles } from './hooks';
+import { useToast, useTheme, useModals, useVaults, useVaultFiles, useAutoLock } from './hooks';
 
 export const AppContent: React.FC = () => {
   const {
@@ -29,6 +29,19 @@ export const AppContent: React.FC = () => {
   const { t } = useI18n();
   const { toasts, showToast, dismissToast } = useToast();
   const { isDark, toggleTheme } = useTheme();
+
+  // Auto-Lock Hook for Inactivity Timeout (1 - 60 min)
+  const {
+    autoLockEnabled,
+    setAutoLockEnabled,
+    autoLockMinutes,
+    setAutoLockMinutes,
+  } = useAutoLock({
+    username,
+    isVaultUnlocked,
+    onLockVault: () => lockVault(activeVaultId),
+    onAutoLocked: () => showToast(t('vaultAutoLocked'), 'info'),
+  });
   const {
     isProfileOpen,
     openProfile,
@@ -185,6 +198,10 @@ export const AppContent: React.FC = () => {
       <UserProfileModal
         isOpen={isProfileOpen}
         onClose={closeProfile}
+        autoLockEnabled={autoLockEnabled}
+        onToggleAutoLock={setAutoLockEnabled}
+        autoLockMinutes={autoLockMinutes}
+        onChangeAutoLockMinutes={setAutoLockMinutes}
       />
 
       {/* Step 4: Vault Settings Modal */}

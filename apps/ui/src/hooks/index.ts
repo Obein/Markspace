@@ -3,3 +3,4 @@ export * from './useTheme';
 export * from './useModals';
 export * from './useVaults';
 export * from './useVaultFiles';
+export * from './useAutoLock';

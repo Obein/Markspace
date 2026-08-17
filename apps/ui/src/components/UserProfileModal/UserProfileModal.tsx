@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ShieldCheck, LogOut, Globe, FileText, Loader2, ChevronRight, ChevronDown } from 'lucide-react';
+import { X, ShieldCheck, LogOut, Globe, FileText, Loader2, ChevronRight, ChevronDown, Lock } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { LANGUAGE_OPTIONS, Language, useI18n } from '../../i18n/i18nContext';
 import { AuditLogResponse } from '../../interfaces/IApiClient';
@@ -9,6 +9,10 @@ import { UserProfileModalProps } from './UserProfileModal.types';
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   isOpen,
   onClose,
+  autoLockEnabled = true,
+  onToggleAutoLock,
+  autoLockMinutes = 15,
+  onChangeAutoLockMinutes,
 }) => {
   const { username, role, logoutAccount, apiClient } = useApp();
   const { language, setLanguage, t } = useI18n();
@@ -108,6 +112,78 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         {/* TOTP Multi-Factor Authentication Management */}
         <div className="mb-4">
           <TotpSetupSection />
+        </div>
+
+        {/* Vault Auto-Lock Idle Settings */}
+        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                <Lock className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-zinc-200 block">{t('autoLockVault')}</span>
+                <span className="text-[10px] text-zinc-400 block">{t('autoLockDesc')}</span>
+              </div>
+            </div>
+            {/* Toggle Switch */}
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoLockEnabled}
+                onChange={(e) => onToggleAutoLock && onToggleAutoLock(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {autoLockEnabled && (
+            <div className="pt-2 border-t border-white/10 space-y-3 animate-in fade-in duration-150">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-zinc-300">{t('autoLockTimeout')}</span>
+                <span className="text-blue-400 font-bold">
+                  {autoLockMinutes} {t('minutes')}
+                </span>
+              </div>
+
+              {/* Quick Preset Buttons (5m, 15m, 30m, 60m) */}
+              <div className="grid grid-cols-4 gap-1.5 font-mono text-xs">
+                {[5, 15, 30, 60].map((mins) => (
+                  <button
+                    key={mins}
+                    type="button"
+                    onClick={() => onChangeAutoLockMinutes && onChangeAutoLockMinutes(mins)}
+                    className={`py-1 rounded-lg border transition text-[11px] cursor-pointer ${
+                      autoLockMinutes === mins
+                        ? 'bg-blue-600 text-white font-bold border-blue-500 shadow-sm'
+                        : 'bg-black/30 hover:bg-white/10 text-zinc-400 hover:text-white border-white/10'
+                    }`}
+                  >
+                    {mins} {t('minutes')}
+                  </button>
+                ))}
+              </div>
+
+              {/* Slider for Custom 1 - 60 Min Range */}
+              <div className="flex items-center gap-3 pt-1">
+                <span className="text-[10px] text-zinc-500 font-mono">1m</span>
+                <input
+                  type="range"
+                  min={1}
+                  max={60}
+                  step={1}
+                  value={autoLockMinutes}
+                  onChange={(e) =>
+                    onChangeAutoLockMinutes &&
+                    onChangeAutoLockMinutes(parseInt(e.target.value, 10))
+                  }
+                  className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                />
+                <span className="text-[10px] text-zinc-500 font-mono">60m</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Language Selection Section */}
