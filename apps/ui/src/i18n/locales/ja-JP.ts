@@ -86,4 +86,8 @@ export const jaJP: typeof enUS = {
   deleteFailed: '削除に失敗しました。もう一度お試しください。',
   autoSaveFailed: '自動保存に失敗しました。',
   noFilesToDownload: 'このフォルダにダウンロード可能なファイルはありません。',
+  findPlaceholder: '検索...',
+  replacePlaceholder: '置換...',
+  replace: '置換',
+  replaceAll: 'すべて置換',
 };

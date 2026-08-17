@@ -86,4 +86,8 @@ export const deDE: typeof enUS = {
   deleteFailed: 'Löschen fehlgeschlagen. Bitte erneut versuchen.',
   autoSaveFailed: 'Automatisches Speichern fehlgeschlagen.',
   noFilesToDownload: 'In diesem Ordner sind keine Dateien zum Herunterladen vorhanden.',
+  findPlaceholder: 'Suchen...',
+  replacePlaceholder: 'Ersetzen durch...',
+  replace: 'Ersetzen',
+  replaceAll: 'Alle ersetzen',
 };

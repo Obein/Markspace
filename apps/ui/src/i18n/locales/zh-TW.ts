@@ -86,4 +86,8 @@ export const zhTW: typeof enUS = {
   deleteFailed: '刪除失敗，請重試。',
   autoSaveFailed: '自動儲存文字失敗。',
   noFilesToDownload: '該資料夾下無可下載的檔案。',
+  findPlaceholder: '尋找...',
+  replacePlaceholder: '取代為...',
+  replace: '取代',
+  replaceAll: '全部取代',
 };

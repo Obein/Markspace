@@ -86,4 +86,8 @@ export const esES: typeof enUS = {
   deleteFailed: 'Error al eliminar el elemento. Inténtelo de nuevo.',
   autoSaveFailed: 'Error al guardar automáticamente.',
   noFilesToDownload: 'No hay archivos disponibles para descargar en este directorio.',
+  findPlaceholder: 'Buscar...',
+  replacePlaceholder: 'Reemplazar con...',
+  replace: 'Reemplazar',
+  replaceAll: 'Todo',
 };

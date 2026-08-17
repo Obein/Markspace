@@ -9,6 +9,7 @@ import {
   useMarkdownPreview,
   useSyncScroll,
   useEditorFormatting,
+  useFindReplace,
 } from './hooks';
 import { EditorHeader } from './EditorHeader';
 import { FormattingToolbar } from './FormattingToolbar';
@@ -16,6 +17,7 @@ import { LineGutter } from './LineGutter';
 import { MarkdownPreviewPane } from './MarkdownPreviewPane';
 import { MediaPreview } from './MediaPreview';
 import { EditorCodeArea } from './EditorCodeArea';
+import { FindReplaceBar } from './FindReplaceBar';
 
 export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   activeFile,
@@ -46,6 +48,13 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     isFullWidth
   );
 
+  // Hook: Find & Replace
+  const findReplace = useFindReplace({
+    content,
+    onContentChange,
+    textareaRef,
+  });
+
   // Track active line and selection word/char counts
   const handleSelectionChange = useCallback(() => {
     const textarea = textareaRef.current;
@@ -74,6 +83,24 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     onContentChange,
     handleSelectionChange,
     textareaRef
+  );
+
+  // Handle keyboard shortcuts (Ctrl+F for Find, Ctrl+H for Replace)
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        findReplace.openFind();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        findReplace.openReplace();
+        return;
+      }
+      handleEditorKeyDown(e);
+    },
+    [findReplace, handleEditorKeyDown]
   );
 
   // Hook: Real-time Markdown live parsing & Mermaid rendering
@@ -162,9 +189,40 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           <FormattingToolbar
             onInsertFormatting={insertFormatting}
             onOpenVisualTable={handleOpenVisualTable}
+            onToggleFindReplace={() =>
+              findReplace.isOpen
+                ? findReplace.closeFindReplace()
+                : findReplace.openFind()
+            }
+            isFindOpen={findReplace.isOpen}
           />
         )}
       </div>
+
+      {/* Floating Find & Replace Panel */}
+      <FindReplaceBar
+        isOpen={findReplace.isOpen}
+        isReplaceMode={findReplace.isReplaceMode}
+        setIsReplaceMode={findReplace.setIsReplaceMode}
+        searchQuery={findReplace.searchQuery}
+        setSearchQuery={findReplace.setSearchQuery}
+        replaceQuery={findReplace.replaceQuery}
+        setReplaceQuery={findReplace.setReplaceQuery}
+        isRegex={findReplace.isRegex}
+        setIsRegex={findReplace.setIsRegex}
+        isCaseSensitive={findReplace.isCaseSensitive}
+        setIsCaseSensitive={findReplace.setIsCaseSensitive}
+        isWholeWord={findReplace.isWholeWord}
+        setIsWholeWord={findReplace.setIsWholeWord}
+        matchesCount={findReplace.matches.length}
+        currentMatchIndex={findReplace.currentMatchIndex}
+        regexError={findReplace.regexError}
+        onFindNext={findReplace.findNext}
+        onFindPrev={findReplace.findPrev}
+        onReplaceCurrent={findReplace.replaceCurrent}
+        onReplaceAll={findReplace.replaceAll}
+        onClose={findReplace.closeFindReplace}
+      />
 
       {/* Editor Content Body */}
       <div className="flex-1 flex overflow-hidden relative">
@@ -203,7 +261,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   value={content}
                   onChange={onContentChange}
                   onSelectionChange={handleSelectionChange}
-                  onKeyDown={handleEditorKeyDown}
+                  onKeyDown={handleKeyDown}
                   highlightService={highlightService}
                   category={category}
                   placeholder="Write your thoughts..."
@@ -255,7 +313,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 value={content}
                 onChange={onContentChange}
                 onSelectionChange={handleSelectionChange}
-                onKeyDown={handleEditorKeyDown}
+                onKeyDown={handleKeyDown}
                 highlightService={highlightService}
                 category={category}
                 placeholder="Write your thoughts..."

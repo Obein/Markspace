@@ -86,4 +86,8 @@ export const koKR: typeof enUS = {
   deleteFailed: '삭제를 실패했습니다. 다시 시도해 주세요.',
   autoSaveFailed: '자동 저장을 실패했습니다.',
   noFilesToDownload: '이 폴더에 다운로드할 수 있는 파일이 없습니다.',
+  findPlaceholder: '찾기...',
+  replacePlaceholder: '바꾸기...',
+  replace: '바꾸기',
+  replaceAll: '모두 바꾸기',
 };

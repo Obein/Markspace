@@ -84,4 +84,8 @@ export const enUS = {
   deleteFailed: 'Failed to delete item. Please try again.',
   autoSaveFailed: 'Auto-save failed.',
   noFilesToDownload: 'No files available to download in this directory.',
+  findPlaceholder: 'Find...',
+  replacePlaceholder: 'Replace with...',
+  replace: 'Replace',
+  replaceAll: 'All',
 };

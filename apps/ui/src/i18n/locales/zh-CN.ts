@@ -86,4 +86,8 @@ export const zhCN: typeof enUS = {
   deleteFailed: '删除失败，请重试。',
   autoSaveFailed: '自动保存文本失败。',
   noFilesToDownload: '该目录下无可下载的文件。',
+  findPlaceholder: '查找...',
+  replacePlaceholder: '替换为...',
+  replace: '替换',
+  replaceAll: '全部替换',
 };

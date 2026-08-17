@@ -86,4 +86,8 @@ export const viVN: typeof enUS = {
   deleteFailed: 'Xóa thất bại. Vui lòng thử lại.',
   autoSaveFailed: 'Tự động lưu thất bại.',
   noFilesToDownload: 'Không có tệp nào để tải về trong thư mục này.',
+  findPlaceholder: 'Tìm kiếm...',
+  replacePlaceholder: 'Thay thế bằng...',
+  replace: 'Thay thế',
+  replaceAll: 'Tất cả',
 };
