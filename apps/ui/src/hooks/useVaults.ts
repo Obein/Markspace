@@ -151,8 +151,6 @@ export function useVaults({
 
   const handleDeleteVault = useCallback(
     async (vaultId: string) => {
-      if (vaults.length <= 1) return;
-
       const vaultToDelete = vaults.find((v) => v.id === vaultId);
       if (!vaultToDelete) return;
 
@@ -163,17 +161,16 @@ export function useVaults({
       const updatedVaults = vaults.filter((v) => v.id !== vaultId);
       setVaults(updatedVaults);
 
-      const nextVaultId = activeVaultId === vaultId ? updatedVaults[0].id : activeVaultId;
-      if (activeVaultId === vaultId) {
-        setActiveVaultId(nextVaultId);
-      }
+      const nextVaultId = updatedVaults.length > 0 ? (activeVaultId === vaultId ? updatedVaults[0].id : activeVaultId) : '';
+      setActiveVaultId(nextVaultId);
+      setVaultKey(vaultId, null);
 
       if (onVaultDeleted) {
         onVaultDeleted(vaultId, nextVaultId);
       }
       showToast(t('deleteVault'), 'success');
     },
-    [vaults, activeVaultId, onDeleteVaultNodes, onVaultDeleted, setActiveVaultId, showToast, t]
+    [vaults, activeVaultId, onDeleteVaultNodes, onVaultDeleted, setActiveVaultId, setVaultKey, showToast, t]
   );
 
   return {

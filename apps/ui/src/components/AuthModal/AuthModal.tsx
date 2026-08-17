@@ -5,12 +5,12 @@ import {
   UserPlus,
   ArrowRight,
   ArrowLeft,
-  KeyRound,
   AlertTriangle,
   Loader2,
+  Languages,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { useI18n } from '../../i18n/i18nContext';
+import { useI18n, LANGUAGE_OPTIONS, Language } from '../../i18n/i18nContext';
 import { AuthModalProps } from './AuthModal.types';
 
 export const AuthModal: React.FC<AuthModalProps> = () => {
@@ -24,7 +24,7 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
     securityAlert,
     clearSecurityAlert,
   } = useApp();
-  const { t } = useI18n();
+  const { t, language, setLanguage } = useI18n();
 
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [loginStep, setLoginStep] = useState<1 | 2>(1);
@@ -114,7 +114,7 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!usernameInput.trim() || !accountPassword) {
-      setErrorMsg('Please enter both username and password');
+      setErrorMsg('Please fill in all fields');
       return;
     }
     if (accountPassword !== confirmPassword) {
@@ -125,6 +125,8 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
     try {
       setLoading(true);
       setErrorMsg(null);
+      clearSecurityAlert();
+
       const authToken = await cryptoService.deriveAuthToken(
         accountPassword,
         'markspace-account-auth-salt'
@@ -140,8 +142,8 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
     }
   };
 
-  const resetToMode = (register: boolean) => {
-    setIsRegisterMode(register);
+  const switchMode = (toRegister: boolean) => {
+    setIsRegisterMode(toRegister);
     setLoginStep(1);
     setErrorMsg(null);
     setAccountPassword('');
@@ -151,9 +153,33 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-md p-8 glass-panel rounded-glass-lg border border-white/15 text-white shadow-2xl relative overflow-hidden">
-        {/* Glow */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+      {/* Clean Solid Dark Modal without distracting multi-color gradients */}
+      <div className="w-full max-w-md p-7 rounded-3xl bg-[#0e0e11] dark:bg-[#09090b] border border-white/15 text-white shadow-2xl relative overflow-hidden">
+        
+        {/* Top Header Row with App Branding & Language Switcher */}
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+          <div className="flex items-center gap-2 text-xs font-mono text-zinc-300">
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+            <span className="font-bold tracking-wider uppercase text-white">Markspace</span>
+          </div>
+
+          {/* Language Switcher Dropdown */}
+          <div className="relative flex items-center">
+            <Languages className="w-3.5 h-3.5 text-blue-400 absolute left-2.5 pointer-events-none z-10" />
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+              className="pl-7 pr-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-xs font-mono transition cursor-pointer appearance-none focus:outline-none focus:border-blue-500"
+              title="Change Language / 切换语言"
+            >
+              {LANGUAGE_OPTIONS.map((opt) => (
+                <option key={opt.code} value={opt.code} className="bg-zinc-900 text-white">
+                  {opt.flag} {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         {/* Security Alert Toast if triggered by Nonce Violation */}
         {securityAlert && (
@@ -166,11 +192,11 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
           </div>
         )}
 
-        <div className="flex flex-col items-center text-center mb-6">
-          <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 mb-3 shadow-inner text-blue-400">
-            <UserCheck className="w-8 h-8" />
+        <div className="flex flex-col items-center text-center mb-5">
+          <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 mb-2.5 text-blue-400">
+            <UserCheck className="w-7 h-7" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">
+          <h2 className="text-xl font-bold tracking-tight text-white">
             {isRegisterMode ? t('register') : t('signIn')}
           </h2>
           <p className="text-xs text-zinc-400 mt-1 max-w-xs">{t('welcomeTitle')}</p>
@@ -184,7 +210,7 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
 
         {isRegisterMode ? (
           /* Register Form */
-          <form onSubmit={handleRegisterSubmit} className="space-y-4">
+          <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1">{t('username')}</label>
               <input
@@ -192,7 +218,7 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
                 value={usernameInput}
                 onChange={(e) => setUsernameInput(e.target.value)}
                 placeholder="choose a username"
-                className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
                 required
                 autoFocus
               />
@@ -205,7 +231,7 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
                 value={accountPassword}
                 onChange={(e) => setAccountPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
                 required
               />
             </div>
@@ -217,7 +243,7 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
                 required
               />
             </div>
@@ -225,7 +251,7 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer text-xs"
+              className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer text-xs"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -256,45 +282,70 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer text-xs"
+              className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer text-xs"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin text-white" />
               ) : (
                 <>
-                  <span>Continue</span>
+                  <span>Next: Authenticate</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
         ) : (
-          /* Login Step 2: Authenticate */
-          <form onSubmit={handleLoginSubmit} className="space-y-4 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+          /* Login Step 2: Adaptive Authentication (Password vs Passwordless TOTP) */
+          <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10 text-xs font-mono">
+              <span className="text-zinc-400">User: <strong className="text-zinc-200">{usernameInput}</strong></span>
               <button
                 type="button"
                 onClick={() => {
-                  setErrorMsg(null);
                   setLoginStep(1);
+                  setErrorMsg(null);
                 }}
-                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition font-mono cursor-pointer"
+                className="text-blue-400 hover:underline flex items-center gap-1 text-[11px] cursor-pointer"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>{usernameInput}</span>
+                <ArrowLeft className="w-3 h-3" />
+                <span>Change</span>
               </button>
-              {isTotpEnabledForUser && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
-                  TOTP MFA Active
-                </span>
-              )}
             </div>
 
+            {/* If TOTP is enabled, show method switch tabs */}
+            {isTotpEnabledForUser && (
+              <div className="flex rounded-xl bg-black/40 p-1 border border-white/10 text-xs font-mono">
+                <button
+                  type="button"
+                  onClick={() => setLoginMethod('totp')}
+                  className={`flex-1 py-1.5 rounded-lg transition text-center cursor-pointer ${
+                    loginMethod === 'totp'
+                      ? 'bg-blue-600 text-white font-semibold shadow'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Passwordless TOTP
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLoginMethod('password')}
+                  className={`flex-1 py-1.5 rounded-lg transition text-center cursor-pointer ${
+                    loginMethod === 'password'
+                      ? 'bg-blue-600 text-white font-semibold shadow'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Password + 2FA
+                </button>
+              </div>
+            )}
+
             {loginMethod === 'totp' ? (
-              <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1 flex items-center justify-between">
-                  <span>6-Digit Authenticator Code (Passwordless)</span>
-                  <KeyRound className="w-3.5 h-3.5 text-blue-400" />
+              /* Passwordless TOTP Input */
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-zinc-300 flex items-center justify-between">
+                  <span>6-Digit Authenticator Code</span>
+                  <span className="text-[10px] text-blue-400 font-mono">MFA Enabled</span>
                 </label>
                 <input
                   type="text"
@@ -303,13 +354,14 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
                   value={totpCode}
                   onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
                   placeholder="000000"
-                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500 text-lg tracking-[0.3em] font-mono text-center"
+                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500 text-center tracking-[0.3em] font-mono text-lg"
                   required
                   autoFocus
                 />
               </div>
             ) : (
-              <>
+              /* Password Input */
+              <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-zinc-300 mb-1">{t('password')}</label>
                   <input
@@ -326,7 +378,7 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
                 {isTotpEnabledForUser && (
                   <div>
                     <label className="block text-xs font-medium text-zinc-300 mb-1">
-                      TOTP 2FA Verification Code
+                      2FA Verification Code (Optional fallback)
                     </label>
                     <input
                       type="text"
@@ -334,19 +386,18 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
                       maxLength={6}
                       value={totpCode}
                       onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
-                      placeholder="6-digit code"
-                      className="w-full px-4 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500 text-xs font-mono tracking-widest text-center"
-                      required
+                      placeholder="000000"
+                      className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500 text-center tracking-widest font-mono text-xs"
                     />
                   </div>
                 )}
-              </>
+              </div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer text-xs"
+              className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer text-xs"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -357,32 +408,18 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
                 </>
               )}
             </button>
-
-            {/* Switch between Passwordless TOTP and Password */}
-            {isTotpEnabledForUser && (
-              <div className="text-center pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setErrorMsg(null);
-                    setLoginMethod(loginMethod === 'totp' ? 'password' : 'totp');
-                  }}
-                  className="text-xs text-blue-400 hover:text-blue-300 transition font-mono cursor-pointer"
-                >
-                  {loginMethod === 'totp' ? 'Or log in with Password' : 'Or log in with TOTP Code (Passwordless)'}
-                </button>
-              </div>
-            )}
           </form>
         )}
 
-        <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-zinc-400">
-          <span>{isRegisterMode ? 'Already have an account?' : "Don't have an account?"}</span>
+        <div className="mt-5 pt-3 border-t border-white/10 text-center">
           <button
-            onClick={() => resetToMode(!isRegisterMode)}
-            className="text-blue-400 hover:underline transition font-medium cursor-pointer"
+            type="button"
+            onClick={() => switchMode(!isRegisterMode)}
+            className="text-xs text-zinc-400 hover:text-white transition font-mono cursor-pointer"
           >
-            {isRegisterMode ? t('signIn') : t('register')}
+            {isRegisterMode
+              ? `Already have an account? ${t('signIn')}`
+              : `Don't have an account? ${t('register')}`}
           </button>
         </div>
       </div>

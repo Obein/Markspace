@@ -93,7 +93,12 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
                         <button
                           onClick={() => {
                             setConfirmDeleteVaultId(null);
-                            if (onDeleteVault) onDeleteVault(v.id);
+                            if (onDeleteVault) {
+                              onDeleteVault(v.id);
+                              if (vaults.length <= 1) {
+                                onClose();
+                              }
+                            }
                           }}
                           className="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold text-xs transition shadow-md shadow-red-500/20 cursor-pointer"
                         >
@@ -193,8 +198,8 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
                         </button>
                       )}
 
-                      {/* Delete Vault Button (Only when more than 1 vault exists) */}
-                      {onDeleteVault && vaults.length > 1 && (
+                      {/* Delete Vault Button (Allowed for all vaults including the last one) */}
+                      {onDeleteVault && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
