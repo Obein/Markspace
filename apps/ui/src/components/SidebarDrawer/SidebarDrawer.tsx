@@ -1,21 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Plus,
   Search,
-  FileText,
-  Lock,
-  LogOut,
-  Database,
-  Folder,
-  FolderOpen,
   ChevronRight,
   ChevronLeft,
-  ChevronDown,
   Upload,
-  Image as ImageIcon,
-  Film,
-  Music,
-  File,
   FolderPlus,
   X,
   Check,
@@ -23,47 +12,14 @@ import {
   Trash2,
   Edit2,
   Loader2,
-  SlidersHorizontal,
+  Folder,
 } from 'lucide-react';
-import { useI18n } from '../i18n/i18nContext';
-import { FileTreeNode, VaultFileItem, VaultInfo } from '../interfaces/INoteModels';
-import { FileTreeBuilder } from '../utils/FileTreeBuilder';
-
-interface SidebarDrawerProps {
-  files: VaultFileItem[];
-  activeFileId: string | null;
-  onSelectFile: (id: string) => void;
-  onCreateNote: () => void;
-  onCreateFolder: (folderName: string) => void;
-  onAddFiles: (files: FileList | File[]) => void;
-  onMoveFileToDirectory: (fileId: string, targetFolderPath: string) => void;
-  onLockVault: () => void;
-  onOpenVaultSettings?: () => void;
-  onLogoutAccount: () => void;
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  activeVault: VaultInfo | null;
-  onRenameNode?: (nodeId: string, newFilename: string) => Promise<void> | void;
-  onDeleteNode?: (nodeId: string) => void;
-  onDownloadNode?: (nodeId: string) => void;
-
-  // Operation Buffering / Loading States
-  isLoadingVaultTree?: boolean;
-  isCreatingNote?: boolean;
-  isCreatingFolderLoading?: boolean;
-  isDeletingNodeId?: string | null;
-  isUploadingFiles?: boolean;
-}
-
-interface ContextMenuState {
-  x: number;
-  y: number;
-  nodeId: string;
-  nodeName: string;
-  nodePath: string;
-  isDirectory: boolean;
-  fileItem?: VaultFileItem;
-}
+import { useI18n } from '../../i18n/i18nContext';
+import { VaultFileItem } from '../../interfaces/INoteModels';
+import { FileTreeBuilder } from '../../utils/FileTreeBuilder';
+import { SidebarDrawerProps, ContextMenuState } from './SidebarDrawer.types';
+import { VaultHeader } from './VaultHeader';
+import { FileTreeItem } from './FileTreeItem';
 
 export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
   files,
@@ -97,30 +53,13 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [confirmDeleteNodeId, setConfirmDeleteNodeId] = useState<string | null>(null);
 
-  // Inline node renaming state
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
-  const editInputRef = useRef<HTMLInputElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Auto-focus and select base filename only (excluding extension) on entering edit mode
-  useEffect(() => {
-    if (editingNodeId && editInputRef.current) {
-      const input = editInputRef.current;
-      input.focus();
-      const lastDot = input.value.lastIndexOf('.');
-      if (lastDot > 0) {
-        input.setSelectionRange(0, lastDot);
-      } else {
-        input.select();
-      }
-    }
-  }, [editingNodeId]);
-
-  // Build hierarchical tree
   const treeNodes = FileTreeBuilder.buildTree(files);
 
   const toggleFolder = (path: string) => {
@@ -158,7 +97,6 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
     }
   };
 
-  // Drag and drop node into directory
   const handleNodeDragStart = (e: React.DragEvent, fileId: string) => {
     e.dataTransfer.setData('text/plain', fileId);
   };
@@ -180,23 +118,6 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
     }
   };
 
-  // Category Icon helper
-  const getFileIcon = (category: string) => {
-    switch (category) {
-      case 'image':
-        return <ImageIcon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />;
-      case 'video':
-        return <Film className="w-3.5 h-3.5 text-purple-400 shrink-0" />;
-      case 'audio':
-        return <Music className="w-3.5 h-3.5 text-pink-400 shrink-0" />;
-      case 'binary':
-        return <File className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
-      default:
-        return <FileText className="w-3.5 h-3.5 text-blue-400 shrink-0" />;
-    }
-  };
-
-  // Context Menu handler for right-click
   const handleContextMenu = (
     e: React.MouseEvent,
     nodeId: string,
@@ -219,7 +140,6 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
     });
   };
 
-  // Touch long press handler for mobile/tablet devices
   const handleTouchStart = (
     e: React.TouchEvent,
     nodeId: string,
@@ -256,167 +176,10 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
     }
   };
 
-  const renderTreeNodes = (nodes: FileTreeNode[], depth = 0) => {
-    return nodes.map((node) => {
-      if (node.isDirectory) {
-        const isOpen = expandedFolders[node.path] !== false;
-        const isTarget = dragOverFolderPath === node.path;
-        const isDeleting = isDeletingNodeId === node.id;
-
-        if (editingNodeId === node.id) {
-          return (
-            <form
-              key={node.id}
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (editingName.trim() && onRenameNode) {
-                  onRenameNode(node.id, editingName.trim());
-                }
-                setEditingNodeId(null);
-              }}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/40 text-xs font-mono my-0.5"
-              style={{ paddingLeft: `${depth * 12 + 8}px` }}
-            >
-              <Folder className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-              <input
-                ref={editInputRef}
-                type="text"
-                value={editingName}
-                onChange={(e) => setEditingName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Escape') {
-                    setEditingNodeId(null);
-                  }
-                }}
-                onBlur={() => {
-                  if (editingName.trim() && editingName.trim() !== node.name && onRenameNode) {
-                    onRenameNode(node.id, editingName.trim());
-                  }
-                  setEditingNodeId(null);
-                }}
-                className="flex-1 bg-transparent text-white font-mono text-xs focus:outline-none min-w-0"
-              />
-              <button type="submit" className="p-0.5 text-blue-400 hover:text-white shrink-0" title={t('confirm')}>
-                <Check className="w-3 h-3" />
-              </button>
-            </form>
-          );
-        }
-
-        return (
-          <div
-            key={node.id}
-            className="select-none"
-            onDragOver={(e) => handleFolderDragOverNode(e, node.path)}
-            onDragLeave={() => setDragOverFolderPath(null)}
-            onDrop={(e) => handleFolderDropNode(e, node.path)}
-          >
-            <button
-              onClick={() => toggleFolder(node.path)}
-              onContextMenu={(e) => handleContextMenu(e, node.id, node.name, node.path, true)}
-              onTouchStart={(e) => handleTouchStart(e, node.id, node.name, node.path, true)}
-              onTouchEnd={handleTouchEndOrMove}
-              onTouchMove={handleTouchEndOrMove}
-              disabled={isDeleting}
-              className={`w-full text-left px-2 py-1.5 rounded-lg flex items-center gap-1.5 text-xs text-zinc-300 font-mono transition border ${
-                isTarget ? 'bg-blue-500/20 border-blue-500/40 text-blue-300' : 'hover:bg-white/5 border-transparent'
-              } ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
-              style={{ paddingLeft: `${depth * 12 + 8}px` }}
-            >
-              {isDeleting ? (
-                <Loader2 className="w-3 h-3 text-red-400 animate-spin" />
-              ) : isOpen ? (
-                <ChevronDown className="w-3 h-3 text-zinc-500" />
-              ) : (
-                <ChevronRight className="w-3 h-3 text-zinc-500" />
-              )}
-              {isOpen ? <FolderOpen className="w-3.5 h-3.5 text-blue-400 shrink-0" /> : <Folder className="w-3.5 h-3.5 text-blue-400 shrink-0" />}
-              <span className="truncate">{node.name}</span>
-            </button>
-
-            {isOpen && node.children && (
-              <div className="space-y-0.5">{renderTreeNodes(node.children, depth + 1)}</div>
-            )}
-          </div>
-        );
-      }
-
-      const fileItem = node.fileItem!;
-      const isActive = fileItem.id === activeFileId;
-      const isDeleting = isDeletingNodeId === fileItem.id;
-
-      if (editingNodeId === node.id) {
-        return (
-          <form
-            key={node.id}
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (editingName.trim() && onRenameNode) {
-                onRenameNode(node.id, editingName.trim());
-              }
-              setEditingNodeId(null);
-            }}
-            className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/40 text-xs font-mono my-0.5"
-            style={{ paddingLeft: `${depth * 12 + 12}px` }}
-          >
-            {getFileIcon(fileItem.category)}
-            <input
-              ref={editInputRef}
-              type="text"
-              value={editingName}
-              onChange={(e) => setEditingName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') {
-                  setEditingNodeId(null);
-                }
-              }}
-              onBlur={() => {
-                if (editingName.trim() && editingName.trim() !== fileItem.filename && onRenameNode) {
-                  onRenameNode(node.id, editingName.trim());
-                }
-                setEditingNodeId(null);
-              }}
-              className="flex-1 bg-transparent text-white font-mono text-xs focus:outline-none min-w-0"
-            />
-            <button type="submit" className="p-0.5 text-blue-400 hover:text-white shrink-0" title={t('confirm')}>
-              <Check className="w-3 h-3" />
-            </button>
-          </form>
-        );
-      }
-
-      return (
-        <button
-          key={node.id}
-          draggable={!isDeleting}
-          onDragStart={(e) => handleNodeDragStart(e, fileItem.id)}
-          onClick={() => onSelectFile(fileItem.id)}
-          onContextMenu={(e) => handleContextMenu(e, fileItem.id, fileItem.filename, fileItem.path, false, fileItem)}
-          onTouchStart={(e) => handleTouchStart(e, fileItem.id, fileItem.filename, fileItem.path, false, fileItem)}
-          onTouchEnd={handleTouchEndOrMove}
-          onTouchMove={handleTouchEndOrMove}
-          disabled={isDeleting}
-          className={`w-full text-left px-2 py-1.5 rounded-lg transition flex items-center justify-between text-xs font-mono border cursor-grab active:cursor-grabbing ${
-            isActive
-              ? 'bg-blue-600/20 border-blue-500/40 text-white font-medium'
-              : 'bg-white/0 hover:bg-white/5 border-transparent text-zinc-300'
-          } ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
-          style={{ paddingLeft: `${depth * 12 + 12}px` }}
-        >
-          <div className="flex items-center gap-2 truncate pr-2">
-            {isDeleting ? (
-              <Loader2 className="w-3.5 h-3.5 text-red-400 animate-spin shrink-0" />
-            ) : (
-              getFileIcon(fileItem.category)
-            )}
-            <span className="truncate">{fileItem.filename}</span>
-          </div>
-          <span className="text-[10px] text-zinc-500 shrink-0 font-mono">
-            {(fileItem.size / 1024).toFixed(0)}K
-          </span>
-        </button>
-      );
-    });
+  const handleRenameSubmit = (nodeId: string, newName: string) => {
+    if (onRenameNode) {
+      onRenameNode(nodeId, newName);
+    }
   };
 
   return (
@@ -456,52 +219,12 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       />
 
       {/* Header Profile / Vault Title */}
-      <div className="p-4 border-b border-white/10 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
-            <Database className="w-4 h-4" />
-          </div>
-          <div>
-            <h1 className="font-bold text-sm text-white tracking-wide flex items-center gap-1.5">
-              <span>Markspace</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono">
-                E2EE
-              </span>
-            </h1>
-            <p className="text-xs text-zinc-400 truncate max-w-[140px] font-mono">
-              {activeVault ? activeVault.name : t('encryptedVault')}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1">
-          {onOpenVaultSettings && (
-            <button
-              onClick={onOpenVaultSettings}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"
-              title={t('vaultSettings')}
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-            </button>
-          )}
-
-          <button
-            onClick={onLockVault}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"
-            title={t('lockVault')}
-          >
-            <Lock className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={onLogoutAccount}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"
-            title={t('logoutAccount')}
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+      <VaultHeader
+        activeVault={activeVault}
+        onOpenVaultSettings={onOpenVaultSettings}
+        onLockVault={onLockVault}
+        onLogoutAccount={onLogoutAccount}
+      />
 
       {/* Action Utility Bar: New Note, New Folder, Upload Media */}
       <div className="p-3 border-b border-white/10 flex items-center gap-2">
@@ -547,7 +270,10 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
 
       {/* Inline Folder Creation Form */}
       {isFolderInputOpen && (
-        <form onSubmit={handleCreateFolderSubmit} className="p-3 border-b border-white/10 flex items-center gap-2">
+        <form
+          onSubmit={handleCreateFolderSubmit}
+          className="p-3 border-b border-white/10 flex items-center gap-2"
+        >
           <input
             ref={folderInputRef}
             type="text"
@@ -596,7 +322,27 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             {t('noFilesFound')}
           </div>
         ) : (
-          renderTreeNodes(treeNodes)
+          <FileTreeItem
+            nodes={treeNodes}
+            activeFileId={activeFileId}
+            expandedFolders={expandedFolders}
+            dragOverFolderPath={dragOverFolderPath}
+            editingNodeId={editingNodeId}
+            editingName={editingName}
+            isDeletingNodeId={isDeletingNodeId}
+            onSelectFile={onSelectFile}
+            onToggleFolder={toggleFolder}
+            onRenameSubmit={handleRenameSubmit}
+            onCancelRename={() => setEditingNodeId(null)}
+            onEditingNameChange={setEditingName}
+            onContextMenu={handleContextMenu}
+            onTouchStart={handleTouchStart}
+            onTouchEndOrMove={handleTouchEndOrMove}
+            onNodeDragStart={handleNodeDragStart}
+            onFolderDragOverNode={handleFolderDragOverNode}
+            onFolderDragLeaveNode={() => setDragOverFolderPath(null)}
+            onFolderDropNode={handleFolderDropNode}
+          />
         )}
       </div>
 
@@ -619,11 +365,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-3 py-1.5 border-b border-white/10 text-[11px] text-zinc-400 font-semibold truncate flex items-center gap-1.5">
-              {contextMenu.isDirectory ? (
-                <Folder className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-              ) : (
-                getFileIcon(contextMenu.fileItem?.category || 'markdown')
-              )}
+              <Folder className="w-3.5 h-3.5 text-blue-400 shrink-0" />
               <span className="truncate">{contextMenu.nodeName}</span>
             </div>
 
@@ -636,7 +378,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
                   onDownloadNode(targetId);
                 }
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-zinc-200 hover:text-white flex items-center gap-2 transition my-0.5"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-zinc-200 hover:text-white flex items-center gap-2 transition my-0.5 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-blue-400" />
               <span>{t('download')}</span>
@@ -653,7 +395,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
                   setEditingNodeId(targetId);
                   setEditingName(targetName);
                 }}
-                className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-zinc-200 hover:text-white flex items-center gap-2 transition my-0.5"
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-zinc-200 hover:text-white flex items-center gap-2 transition my-0.5 cursor-pointer"
               >
                 <Edit2 className="w-3.5 h-3.5 text-blue-400" />
                 <span>{t('rename')}</span>
@@ -673,13 +415,13 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
                         onDeleteNode(targetId);
                       }
                     }}
-                    className="px-2.5 py-1 rounded bg-red-600 hover:bg-red-500 text-white text-[10px] font-semibold transition shadow-sm"
+                    className="px-2.5 py-1 rounded bg-red-600 hover:bg-red-500 text-white text-[10px] font-semibold transition shadow-sm cursor-pointer"
                   >
                     {t('confirm')}
                   </button>
                   <button
                     onClick={() => setConfirmDeleteNodeId(null)}
-                    className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/15 text-zinc-300 text-[10px] transition"
+                    className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/15 text-zinc-300 text-[10px] transition cursor-pointer"
                   >
                     {t('cancel')}
                   </button>
@@ -689,7 +431,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
               <button
                 onClick={() => setConfirmDeleteNodeId(contextMenu.nodeId)}
                 disabled={isDeletingNodeId === contextMenu.nodeId}
-                className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isDeletingNodeId === contextMenu.nodeId ? (
                   <Loader2 className="w-3.5 h-3.5 text-red-400 animate-spin" />

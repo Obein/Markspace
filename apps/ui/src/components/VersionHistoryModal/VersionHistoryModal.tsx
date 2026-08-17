@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { X, History, RotateCcw, Loader2, GitCommit, Clock, FileText } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { useI18n } from '../i18n/i18nContext';
-import { NodeVersionResponse } from '../interfaces/IApiClient';
-import { VaultFileItem } from '../interfaces/INoteModels';
-
-interface VersionHistoryModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  file: VaultFileItem | null;
-  onRevertSuccess: (revertedFile: VaultFileItem, newContent: string) => void;
-}
+import { useApp } from '../../context/AppContext';
+import { useI18n } from '../../i18n/i18nContext';
+import { NodeVersionResponse } from '../../interfaces/IApiClient';
+import { VaultFileItem } from '../../interfaces/INoteModels';
+import { VersionHistoryModalProps } from './VersionHistoryModal.types';
 
 export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
   isOpen,
@@ -50,7 +44,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
       if (list.length > 0) {
         handleSelectVersion(list[0]);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to fetch version history');
     } finally {
       setLoading(false);
@@ -97,7 +91,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
 
       onRevertSuccess(revertedFileItem, newText);
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to revert file version', err);
       setError(err instanceof Error ? err.message : 'Failed to revert version');
     } finally {

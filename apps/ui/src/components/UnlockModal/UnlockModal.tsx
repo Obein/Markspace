@@ -1,15 +1,8 @@
 import React, { useState } from 'react';
 import { Lock, ShieldCheck, KeyRound, LogOut, Database, User, Loader2 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { useI18n } from '../i18n/i18nContext';
-import { VaultInfo } from '../interfaces/INoteModels';
-
-interface UnlockModalProps {
-  vaults?: VaultInfo[];
-  activeVaultId?: string;
-  onSelectVault?: (id: string) => void;
-  onOpenProfile?: () => void;
-}
+import { useApp } from '../../context/AppContext';
+import { useI18n } from '../../i18n/i18nContext';
+import { UnlockModalProps } from './UnlockModal.types';
 
 export const UnlockModal: React.FC<UnlockModalProps> = ({
   vaults = [],

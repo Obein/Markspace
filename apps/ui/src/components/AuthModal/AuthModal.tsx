@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { UserCheck, LogIn, UserPlus } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { useI18n } from '../i18n/i18nContext';
+import { useApp } from '../../context/AppContext';
+import { useI18n } from '../../i18n/i18nContext';
+import { AuthModalProps } from './AuthModal.types';
 
-export const AuthModal: React.FC = () => {
+export const AuthModal: React.FC<AuthModalProps> = () => {
   const { apiClient, cryptoService, setToken, setUsername, setRole, isAuthenticated } = useApp();
   const { t } = useI18n();
 

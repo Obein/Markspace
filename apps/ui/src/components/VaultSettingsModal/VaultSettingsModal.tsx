@@ -1,21 +1,9 @@
 import React, { useState } from 'react';
 import { X, Download, Plus, Database, ShieldCheck, Trash2, Edit2, Check } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { useI18n } from '../i18n/i18nContext';
-import { NoteItem, VaultInfo } from '../interfaces/INoteModels';
-import { VaultExportService } from '../services/VaultExportService';
-
-interface VaultSettingsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  vaults: VaultInfo[];
-  activeVaultId: string;
-  onSelectVault: (id: string) => void;
-  onCreateVault: (name: string) => void;
-  onRenameVault?: (vaultId: string, newName: string) => void;
-  onDeleteVault?: (vaultId: string) => void;
-  activeVaultNotes: NoteItem[];
-}
+import { useApp } from '../../context/AppContext';
+import { useI18n } from '../../i18n/i18nContext';
+import { VaultExportService } from '../../services/VaultExportService';
+import { VaultSettingsModalProps } from './VaultSettingsModal.types';
 
 export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
   isOpen,

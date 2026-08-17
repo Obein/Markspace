@@ -1,16 +1,6 @@
 import React, { useEffect } from 'react';
 import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
-
-export interface ToastMessage {
-  id: string;
-  type: 'error' | 'success' | 'info';
-  message: string;
-}
-
-interface ToastProps {
-  toasts: ToastMessage[];
-  onDismiss: (id: string) => void;
-}
+import { ToastMessage, ToastProps } from './Toast.types';
 
 export const ToastContainer: React.FC<ToastProps> = ({ toasts, onDismiss }) => {
   if (toasts.length === 0) return null;

@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 import { X, ShieldCheck, LogOut, Globe, FileText, Loader2, ChevronRight, ChevronDown } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { LANGUAGE_OPTIONS, Language, useI18n } from '../i18n/i18nContext';
-import { AuditLogResponse } from '../interfaces/IApiClient';
-
-interface UserProfileModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import { useApp } from '../../context/AppContext';
+import { LANGUAGE_OPTIONS, Language, useI18n } from '../../i18n/i18nContext';
+import { AuditLogResponse } from '../../interfaces/IApiClient';
+import { UserProfileModalProps } from './UserProfileModal.types';
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   isOpen,
@@ -33,7 +29,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         setLogsError(null);
         const logs = await apiClient.getAuditLogs();
         setAuditLogs(logs);
-      } catch (err: any) {
+      } catch (err: unknown) {
         setLogsError(err instanceof Error ? err.message : 'Failed to fetch audit logs');
       } finally {
         setLoadingLogs(false);
