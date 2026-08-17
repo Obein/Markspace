@@ -44,28 +44,28 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
     switch (cat) {
       case 'image':
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shrink-0">
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shrink-0 self-center">
             <ImageIcon className="w-3 h-3" />
             <span>IMAGE</span>
           </span>
         );
       case 'video':
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1 shrink-0">
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1 shrink-0 self-center">
             <Film className="w-3 h-3" />
             <span>VIDEO</span>
           </span>
         );
       case 'audio':
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30 flex items-center gap-1 shrink-0">
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30 flex items-center gap-1 shrink-0 self-center">
             <Music className="w-3 h-3" />
             <span>AUDIO</span>
           </span>
         );
       case 'binary':
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1 shrink-0">
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1 shrink-0 self-center">
             <File className="w-3 h-3" />
             <span>FILE</span>
           </span>
@@ -77,18 +77,18 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
 
   return (
     <div className="flex items-center justify-between gap-4 min-h-[32px]">
-      {/* Hot-zone container for editing file name (vertically centered) */}
+      {/* Hot-zone container for editing file name */}
       <div
         onClick={handleContainerClick}
         className="flex items-center gap-2 flex-1 min-w-0 cursor-text py-0.5"
         title="Click to rename note"
       >
-        <div className="inline-flex items-center min-w-0 max-w-full">
-          <div className="relative inline-flex items-center max-w-full">
+        <div className="inline-flex items-baseline min-w-0 max-w-full">
+          <div className="relative inline-flex items-baseline max-w-full">
             {/* Invisible sizer to make input width exactly match the typed text */}
             <span
               aria-hidden="true"
-              className="text-xl font-bold tracking-tight invisible whitespace-pre pointer-events-none select-none leading-none"
+              className="text-xl font-bold tracking-tight invisible whitespace-pre pointer-events-none select-none leading-7"
             >
               {baseName || 'Untitled Note'}
             </span>
@@ -102,11 +102,11 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
                 e.currentTarget.select();
               }}
               placeholder="Untitled Note"
-              className="absolute inset-0 w-full h-full text-xl font-bold bg-transparent text-white placeholder-zinc-500 focus:outline-none tracking-tight p-0 m-0 border-none leading-none flex items-center"
+              className="absolute inset-0 w-full h-full text-xl font-bold bg-transparent text-white placeholder-zinc-500 focus:outline-none tracking-tight p-0 m-0 border-none leading-7"
             />
           </div>
           {extension && (
-            <span className="text-xl font-bold font-mono text-zinc-300 opacity-70 select-none shrink-0 tracking-tight leading-none">
+            <span className="text-xl font-bold text-zinc-300 opacity-70 select-none shrink-0 tracking-tight leading-7">
               {extension}
             </span>
           )}

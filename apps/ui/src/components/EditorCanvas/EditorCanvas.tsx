@@ -287,7 +287,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const bottomCapsuleSpacingClass = hasBottomCapsule ? 'h-24' : 'h-12';
 
   return (
-    <main className="flex-1 flex flex-col h-full glass-panel rounded-glass-lg border border-white/10 relative overflow-hidden shadow-2xl">
+    <main className="flex-1 flex flex-col h-full bg-[#121216]/85 dark:bg-[#121216]/85 rounded-glass-lg border border-white/10 relative overflow-hidden shadow-2xl">
       {/* Hidden line measurement mirror */}
       <div
         ref={mirrorRef}
@@ -316,14 +316,14 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       </div>
 
       {/* Floating Frosted Glass Header & Toolbar */}
-      <div className="absolute top-0 inset-x-0 z-30 px-6 pt-3 pb-2.5 glass-bar border-b border-white/10 flex flex-col justify-center space-y-2 shadow-md pointer-events-auto min-h-[52px]">
+      <div className="absolute top-0 inset-x-0 z-30 px-6 pt-3 pb-2.5 glass-bar backdrop-blur-xl border-b border-white/10 flex flex-col justify-center space-y-2 shadow-md pointer-events-auto min-h-[52px]">
         <EditorHeader
           title={title}
           onTitleChange={onTitleChange}
           category={category}
           isFullWidth={isFullWidth}
           onToggleFullWidth={() => setIsFullWidth(!isFullWidth)}
-          showFullWidthToggle={category === 'markdown'}
+          showFullWidthToggle={category === 'markdown' && !isSplitView}
         />
 
         {hasFormattingToolbar && (
