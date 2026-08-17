@@ -16,6 +16,30 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 4000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+              return 'vendor-react';
+            }
+            if (id.includes('mermaid') || id.includes('cytoscape') || id.includes('dagre') || id.includes('roughjs')) {
+              return 'vendor-mermaid';
+            }
+            if (id.includes('katex')) {
+              return 'vendor-katex';
+            }
+            if (id.includes('marked') || id.includes('@lezer')) {
+              return 'vendor-markdown';
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons';
+            }
+            return 'vendor-utils';
+          }
+        },
+      },
+    },
   },
 });
