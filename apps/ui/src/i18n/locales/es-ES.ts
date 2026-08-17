@@ -72,7 +72,7 @@ export const esES: typeof enUS = {
   edit: 'Editar',
   splitView: 'Vista dividida',
   visualTableEditor: 'Editor visual de tablas',
-  convertToVisualTable: 'Tabla visual',
+  convertToVisualTable: 'Edición visual',
   darkTheme: 'Tema oscuro',
   lightTheme: 'Tema Claro',
   untitledNote: 'Nota Sin Título',

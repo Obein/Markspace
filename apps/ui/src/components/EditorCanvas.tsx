@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   FileText,
   AlertCircle,
   Music,
   Bold,
   Italic,
+  Strikethrough,
   Heading1,
   Heading2,
   Heading3,
@@ -13,12 +14,10 @@ import {
   Code,
   Table as TableIcon,
   Link as LinkIcon,
-  Calculator,
   Sigma,
   GitBranch,
   Maximize2,
   Minimize2,
-  Sparkles,
 } from 'lucide-react';
 import mermaid from 'mermaid';
 import { normalizeMermaidCode } from '../services/MarkdownPreviewService';
@@ -26,7 +25,11 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../i18n/i18nContext';
 import { VaultFileItem } from '../interfaces/INoteModels';
 import { VisualTableEditor } from './VisualTableEditor';
-import { findTableAtCursor, DetectedTableRange } from '../utils/TableConverter';
+import {
+  findTableAtCursor,
+  findAllTablesInDocument,
+  DetectedTableRange,
+} from '../utils/TableConverter';
 
 interface EditorCanvasProps {
   activeFile: VaultFileItem | null;
@@ -100,6 +103,12 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
   // Lines count for edit mode line-number gutter (Empty content without newlines has 0 lines)
   const lines = content ? content.split('\n') : [];
+
+  // Detect all tables across the document
+  const documentTables = useMemo(() => {
+    if (category !== 'markdown' || !content) return [];
+    return findAllTablesInDocument(content);
+  }, [content, category]);
 
   // Measure rendered pixel height of every line in textarea (including wrapped lines)
   const measureLineHeights = () => {
@@ -274,6 +283,11 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
 
+    // Calculate active line index for cursor line highlighting
+    const textBefore = textarea.value.substring(0, start);
+    const currentLine = textBefore.split('\n').length - 1;
+    setActiveLineIndex(currentLine);
+
     // Detect Markdown Table at cursor location
     if (category === 'markdown' && (!isPreview || isSplitView)) {
       const detected = findTableAtCursor(textarea.value, start);
@@ -320,12 +334,12 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     }, 0);
   };
 
-  // Open Visual Table Editor: either on detected table or create new template table
+  // Open Visual Table Editor: either on detected table or create clean empty new table
   const handleOpenVisualTable = () => {
     if (activeTableRange) {
       setIsVisualTableOpen(true);
     } else {
-      // Create new table at cursor position
+      // Create new clean empty table at cursor position without dummy initial data
       const textarea = textareaRef.current;
       const start = textarea?.selectionStart ?? content.length;
       const end = textarea?.selectionEnd ?? content.length;
@@ -337,16 +351,140 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         endLine: 0,
         tableMarkdown: '',
         parsed: {
-          headers: ['Item', 'Quantity', 'Price', 'Total'],
-          alignments: ['left', 'center', 'right', 'right'],
+          headers: ['', '', ''],
+          alignments: ['left', 'left', 'left'],
           rows: [
-            ['Apple', '5', '3.50', '=B1*C1'],
-            ['Orange', '10', '2.00', '=B2*C2'],
-            ['Total', '=SUM(B1:B2)', '', '=SUM(D1:D2)'],
+            ['', '', ''],
+            ['', '', ''],
           ],
         },
       });
       setIsVisualTableOpen(true);
+    }
+  };
+
+  // Select entire line on clicking line number in gutter (similar to triple-click)
+  const handleSelectLine = (lineIndex: number) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const linesArr = content.split('\n');
+    if (lineIndex < 0 || lineIndex >= linesArr.length) return;
+
+    let startOffset = 0;
+    for (let i = 0; i < lineIndex; i++) {
+      startOffset += linesArr[i].length + 1; // +1 for '\n'
+    }
+
+    const lineLen = linesArr[lineIndex].length;
+    const hasNewline = lineIndex < linesArr.length - 1;
+    const endOffset = startOffset + lineLen + (hasNewline ? 1 : 0);
+
+    textarea.focus();
+    textarea.setSelectionRange(startOffset, endOffset);
+    handleSelectionChange();
+  };
+
+  // Smart Markdown list auto-continuation & auto-numbering on Enter key
+  const handleEditorKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (category !== 'markdown') return;
+
+    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+
+      const val = textarea.value;
+      const pos = textarea.selectionStart;
+
+      // Find current line text up to cursor
+      const lastNewline = val.lastIndexOf('\n', pos - 1);
+      const lineStart = lastNewline === -1 ? 0 : lastNewline + 1;
+      const currentLine = val.substring(lineStart, pos);
+
+      // 1. Task list item: - [ ] or * [ ] or + [ ]
+      const taskMatch = currentLine.match(/^(\s*)([-*+])\s+\[([ xX])\]\s*(.*)$/);
+      if (taskMatch) {
+        e.preventDefault();
+        const indent = taskMatch[1];
+        const bullet = taskMatch[2];
+        const textAfter = taskMatch[4];
+
+        if (textAfter.trim() === '') {
+          // Empty task item: cancel task item prefix
+          const before = val.substring(0, lineStart);
+          const after = val.substring(pos);
+          const newContent = before + after;
+          onContentChange(newContent);
+          setTimeout(() => {
+            textarea.selectionStart = lineStart;
+            textarea.selectionEnd = lineStart;
+            handleSelectionChange();
+          }, 0);
+        } else {
+          // Insert new task item
+          const insertText = `\n${indent}${bullet} [ ] `;
+          document.execCommand('insertText', false, insertText);
+          handleSelectionChange();
+        }
+        return;
+      }
+
+      // 2. Unordered bullet list item: - or * or +
+      const unorderedMatch = currentLine.match(/^(\s*)([-*+])\s+(.*)$/);
+      if (unorderedMatch) {
+        e.preventDefault();
+        const indent = unorderedMatch[1];
+        const bullet = unorderedMatch[2];
+        const textAfter = unorderedMatch[3];
+
+        if (textAfter.trim() === '') {
+          // Empty bullet item: cancel bullet prefix
+          const before = val.substring(0, lineStart);
+          const after = val.substring(pos);
+          const newContent = before + after;
+          onContentChange(newContent);
+          setTimeout(() => {
+            textarea.selectionStart = lineStart;
+            textarea.selectionEnd = lineStart;
+            handleSelectionChange();
+          }, 0);
+        } else {
+          // Insert next bullet item
+          const insertText = `\n${indent}${bullet} `;
+          document.execCommand('insertText', false, insertText);
+          handleSelectionChange();
+        }
+        return;
+      }
+
+      // 3. Ordered numbered list item: 1. or 1)
+      const orderedMatch = currentLine.match(/^(\s*)(\d+)(\.|\))\s+(.*)$/);
+      if (orderedMatch) {
+        e.preventDefault();
+        const indent = orderedMatch[1];
+        const num = parseInt(orderedMatch[2], 10);
+        const delimiter = orderedMatch[3];
+        const textAfter = orderedMatch[4];
+
+        if (textAfter.trim() === '') {
+          // Empty number item: cancel number prefix
+          const before = val.substring(0, lineStart);
+          const after = val.substring(pos);
+          const newContent = before + after;
+          onContentChange(newContent);
+          setTimeout(() => {
+            textarea.selectionStart = lineStart;
+            textarea.selectionEnd = lineStart;
+            handleSelectionChange();
+          }, 0);
+        } else {
+          // Insert next ordered list number (increment by 1)
+          const insertText = `\n${indent}${num + 1}${delimiter} `;
+          document.execCommand('insertText', false, insertText);
+          handleSelectionChange();
+        }
+        return;
+      }
     }
   };
 
@@ -384,21 +522,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           </div>
         ))}
       </div>
-
-      {/* Floating Action Badge: Prompt to Convert Markdown Table to Visual Table */}
-      {activeTableRange && (!isPreview || isSplitView) && (
-        <div className="absolute top-20 right-6 z-30 animate-in fade-in slide-in-from-top-2 duration-200">
-          <button
-            onClick={() => setIsVisualTableOpen(true)}
-            className="px-3.5 py-1.5 rounded-full bg-blue-600/90 hover:bg-blue-500 text-white text-xs font-medium shadow-xl shadow-blue-500/30 backdrop-blur-md border border-white/20 transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 group cursor-pointer"
-            title="Convert Table Code to Visual Spreadsheet Mode"
-          >
-            <TableIcon className="w-3.5 h-3.5 text-blue-200 group-hover:rotate-6 transition" />
-            <span>{t('convertToVisualTable') || 'Visual Table'}</span>
-            <Sparkles className="w-3 h-3 text-amber-300 animate-pulse" />
-          </button>
-        </div>
-      )}
 
       {/* Visual Table Editor Modal Overlay */}
       {isVisualTableOpen && activeTableRange && (
@@ -487,6 +610,13 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             >
               <Italic className="w-3.5 h-3.5" />
             </button>
+            <button
+              onClick={() => insertFormatting('~~', '~~')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
+              title="Strikethrough (~~text~~)"
+            >
+              <Strikethrough className="w-3.5 h-3.5" />
+            </button>
 
             <div className="w-px h-4 bg-white/10 mx-1" />
 
@@ -536,17 +666,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               <Code className="w-3.5 h-3.5" />
             </button>
 
-            <div className="w-px h-4 bg-white/10 mx-1" />
-
-            <button
-              onClick={handleOpenVisualTable}
-              className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 border border-blue-500/20 transition flex items-center gap-1 text-[11px]"
-              title="Insert or Edit Visual Table"
-            >
-              <TableIcon className="w-3.5 h-3.5" />
-              <span>Table</span>
-            </button>
-
             <button
               onClick={() => insertFormatting('[', '](https://)')}
               className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
@@ -556,12 +675,12 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             </button>
 
             <button
-              onClick={() => insertFormatting('=SUM(A1:A5)')}
+              onClick={handleOpenVisualTable}
               className="p-1.5 rounded-lg hover:bg-white/10 text-blue-400 hover:text-blue-300 transition flex items-center gap-1 text-[11px] font-editor-mono font-mono"
-              title="Insert Formula (=SUM(A1:A5))"
+              title="Insert or Edit Visual Table"
             >
-              <Calculator className="w-3.5 h-3.5 text-blue-400" />
-              <span>Formula</span>
+              <TableIcon className="w-3.5 h-3.5 text-blue-400" />
+              <span>Table</span>
             </button>
 
             <button
@@ -604,16 +723,46 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               <div className={topToolbarSpacingClass} />
 
               <div className="flex w-full min-h-[calc(100%-13rem)]">
-                <div className="w-10 sm:w-12 pr-2 sm:pr-3 text-right select-none text-zinc-500 font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-white/5 space-y-0 opacity-60">
-                  {lines.map((_, i) => (
-                    <div
-                      key={i}
-                      style={{ height: lineHeights[i] ? `${lineHeights[i]}px` : '24px' }}
-                      className="flex items-start justify-end leading-6"
-                    >
-                      {i + 1}
-                    </div>
-                  ))}
+                {/* Left Line Number Gutter Column with room for Table Action Button */}
+                <div className="w-20 pl-1.5 pr-2.5 text-right select-none font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-white/5 space-y-0 relative">
+                  {lines.map((_, i) => {
+                    const isActive = activeLineIndex === i;
+                    const tableAtLine = documentTables.find((tbl) => tbl.startLine === i);
+
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => handleSelectLine(i)}
+                        style={{ height: lineHeights[i] ? `${lineHeights[i]}px` : '24px' }}
+                        className={`relative flex items-start justify-end leading-6 transition-all duration-150 cursor-ne-resize ${
+                          isActive
+                            ? 'text-blue-400 font-bold opacity-100 scale-105'
+                            : 'text-zinc-500 opacity-40 hover:opacity-75'
+                        }`}
+                      >
+                        {/* Floating Table Action Button on the left side of table first row line number */}
+                        {tableAtLine && (
+                          <div className="absolute left-0 top-0.5 z-30 flex items-center">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setActiveTableRange(tableAtLine);
+                                setIsVisualTableOpen(true);
+                              }}
+                              className="px-1.5 py-0.5 rounded bg-blue-600/90 hover:bg-blue-500 text-white text-[10px] font-sans font-medium shadow-md shadow-blue-500/30 border border-blue-400/30 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1"
+                              title={t('visualTableEditor') || 'Visual Table Editor'}
+                            >
+                              <TableIcon className="w-2.5 h-2.5 text-blue-200" />
+                              <span>{t('convertToVisualTable') || '可视化编辑'}</span>
+                            </button>
+                          </div>
+                        )}
+                        <span>{i + 1}</span>
+                      </div>
+                    );
+                  })}
                 </div>
                 <textarea
                   ref={textareaRef}
@@ -624,7 +773,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   }}
                   onSelect={handleSelectionChange}
                   onKeyUp={handleSelectionChange}
+                  onKeyDown={handleEditorKeyDown}
                   onClick={handleSelectionChange}
+                  onFocus={handleSelectionChange}
                   placeholder="Write your thoughts..."
                   className="flex-1 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-6 relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
                 />
@@ -667,17 +818,46 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             <div className={topToolbarSpacingClass} />
 
             <div className="flex w-full min-h-[calc(100%-13rem)]">
-              {/* Left Line Number Gutter Column */}
-              <div className="w-12 pr-3 text-right select-none text-zinc-500 font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-white/5 space-y-0 opacity-60">
-                {lines.map((_, i) => (
-                  <div
-                    key={i}
-                    style={{ height: lineHeights[i] ? `${lineHeights[i]}px` : '24px' }}
-                    className="flex items-start justify-end leading-6"
-                  >
-                    {i + 1}
-                  </div>
-                ))}
+              {/* Left Line Number Gutter Column with room for Table Action Button */}
+              <div className="w-20 pl-1.5 pr-2.5 text-right select-none font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-white/5 space-y-0 relative">
+                {lines.map((_, i) => {
+                  const isActive = activeLineIndex === i;
+                  const tableAtLine = documentTables.find((tbl) => tbl.startLine === i);
+
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => handleSelectLine(i)}
+                      style={{ height: lineHeights[i] ? `${lineHeights[i]}px` : '24px' }}
+                      className={`relative flex items-start justify-end leading-6 transition-all duration-150 cursor-ne-resize ${
+                        isActive
+                          ? 'text-blue-400 font-bold opacity-100 scale-105'
+                          : 'text-zinc-500 opacity-40 hover:opacity-75'
+                      }`}
+                    >
+                      {/* Floating Table Action Button on the left side of table first row line number */}
+                      {tableAtLine && (
+                        <div className="absolute left-0 top-0.5 z-30 flex items-center">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setActiveTableRange(tableAtLine);
+                              setIsVisualTableOpen(true);
+                            }}
+                            className="px-1.5 py-0.5 rounded bg-blue-600/90 hover:bg-blue-500 text-white text-[10px] font-sans font-medium shadow-md shadow-blue-500/30 border border-blue-400/30 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1"
+                            title={t('visualTableEditor') || 'Visual Table Editor'}
+                          >
+                            <TableIcon className="w-2.5 h-2.5 text-blue-200" />
+                            <span>{t('convertToVisualTable') || '可视化编辑'}</span>
+                          </button>
+                        </div>
+                      )}
+                      <span>{i + 1}</span>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Active Clean Textarea Editor */}
@@ -690,7 +870,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 }}
                 onSelect={handleSelectionChange}
                 onKeyUp={handleSelectionChange}
+                onKeyDown={handleEditorKeyDown}
                 onClick={handleSelectionChange}
+                onFocus={handleSelectionChange}
                 placeholder="Write your thoughts..."
                 className="flex-1 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-6 relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
               />

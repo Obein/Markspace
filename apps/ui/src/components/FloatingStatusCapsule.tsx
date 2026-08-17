@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Edit3, Sun, Moon, Lock, User, Download, Trash2, History, Columns2 } from 'lucide-react';
+import { Eye, Edit3, Sun, Moon, Lock, User, Download, Trash2, History, Columns2, Undo2, Redo2 } from 'lucide-react';
 import { useI18n } from '../i18n/i18nContext';
 import { UserRole } from '../interfaces/IApiClient';
 
@@ -24,6 +24,8 @@ interface FloatingStatusCapsuleProps {
   onDownloadCurrentFile?: () => void;
   onDeleteCurrentFile?: () => void;
   onOpenHistory?: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
 }
 
 export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
@@ -47,6 +49,8 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   onDownloadCurrentFile,
   onDeleteCurrentFile,
   onOpenHistory,
+  onUndo,
+  onRedo,
 }) => {
   const { t } = useI18n();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -142,6 +146,33 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
                 <History className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span className="text-[11px] font-medium whitespace-nowrap">{t('history')}</span>
               </button>
+            </>
+          )}
+
+          {/* Undo / Redo Actions */}
+          {(onUndo || onRedo) && (
+            <>
+              <div className="w-px h-4 bg-white/10 shrink-0" />
+              <div className="flex items-center gap-1 shrink-0">
+                {onUndo && (
+                  <button
+                    onClick={onUndo}
+                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition flex items-center justify-center shrink-0 cursor-pointer"
+                    title="Undo (Ctrl+Z)"
+                  >
+                    <Undo2 className="w-3.5 h-3.5 text-zinc-300" />
+                  </button>
+                )}
+                {onRedo && (
+                  <button
+                    onClick={onRedo}
+                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition flex items-center justify-center shrink-0 cursor-pointer"
+                    title="Redo (Ctrl+Y / Ctrl+Shift+Z)"
+                  >
+                    <Redo2 className="w-3.5 h-3.5 text-zinc-300" />
+                  </button>
+                )}
+              </div>
             </>
           )}
 

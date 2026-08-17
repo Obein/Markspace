@@ -72,7 +72,7 @@ export const zhCN: typeof enUS = {
   edit: '编辑',
   splitView: '分列视图',
   visualTableEditor: '可视化表格编辑',
-  convertToVisualTable: '可视化表格',
+  convertToVisualTable: '可视化编辑',
   darkTheme: '暗黑主题',
   lightTheme: '浅色模式',
   untitledNote: '无标题笔记',

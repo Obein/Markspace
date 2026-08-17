@@ -72,7 +72,7 @@ export const jaJP: typeof enUS = {
   edit: '編集',
   splitView: '分割ビュー',
   visualTableEditor: 'ビジュアルテーブルエディタ',
-  convertToVisualTable: 'ビジュアルテーブル',
+  convertToVisualTable: 'ビジュアル編集',
   darkTheme: 'ダークテーマ',
   lightTheme: 'ライトテーマ',
   untitledNote: '無題のノート',

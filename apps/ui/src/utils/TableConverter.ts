@@ -25,7 +25,9 @@ export interface DetectedTableRange {
  */
 export function isMarkdownTableRow(line: string): boolean {
   const trimmed = line.trim();
-  return trimmed.startsWith('|') && trimmed.endsWith('|') && trimmed.length >= 2;
+  if (!trimmed) return false;
+  // Must contain pipe and at least 2 cells
+  return (trimmed.startsWith('|') || trimmed.endsWith('|') || trimmed.includes('|')) && trimmed.split('|').length >= 3;
 }
 
 /**
@@ -33,10 +35,66 @@ export function isMarkdownTableRow(line: string): boolean {
  */
 export function isMarkdownTableSeparator(line: string): boolean {
   const trimmed = line.trim();
-  if (!isMarkdownTableRow(trimmed)) return false;
-  const cells = trimmed.split('|').slice(1, -1);
-  if (cells.length === 0) return false;
-  return cells.every((cell) => /^[:\s]*-+[:\s]*$/.test(cell.trim()));
+  if (!trimmed) return false;
+  const parts = trimmed.split('|').map((c) => c.trim()).filter((c, idx, arr) => {
+    // If leading/trailing pipes exist, filter out outermost empty splits
+    if ((idx === 0 || idx === arr.length - 1) && c === '') return false;
+    return true;
+  });
+  if (parts.length === 0) return false;
+  return parts.every((cell) => /^[:\s]*-+[:\s]*$/.test(cell));
+}
+
+/**
+ * Detect all valid Markdown tables across the document.
+ */
+export function findAllTablesInDocument(content: string): DetectedTableRange[] {
+  if (!content) return [];
+
+  const lines = content.split('\n');
+  const tables: DetectedTableRange[] = [];
+  let i = 0;
+  let runningOffset = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    if (isMarkdownTableRow(line)) {
+      const startLine = i;
+      let endLine = i;
+      while (endLine + 1 < lines.length && isMarkdownTableRow(lines[endLine + 1])) {
+        endLine++;
+      }
+
+      const tableLines = lines.slice(startLine, endLine + 1);
+      if (tableLines.length >= 2 && isMarkdownTableSeparator(tableLines[1])) {
+        const tableMarkdown = tableLines.join('\n');
+        const startOffset = runningOffset;
+        let tableLen = 0;
+        for (let t = startLine; t <= endLine; t++) {
+          tableLen += lines[t].length + (t < lines.length - 1 ? 1 : 0);
+        }
+        const endOffset = startOffset + tableLen;
+        const parsed = parseMarkdownTable(tableMarkdown);
+
+        tables.push({
+          startOffset,
+          endOffset,
+          startLine,
+          endLine,
+          tableMarkdown,
+          parsed,
+        });
+
+        runningOffset += tableLen;
+        i = endLine + 1;
+        continue;
+      }
+    }
+    runningOffset += line.length + (i < lines.length - 1 ? 1 : 0);
+    i++;
+  }
+
+  return tables;
 }
 
 /**
@@ -45,71 +103,13 @@ export function isMarkdownTableSeparator(line: string): boolean {
 export function findTableAtCursor(content: string, cursorOffset: number): DetectedTableRange | null {
   if (!content) return null;
 
-  const lines = content.split('\n');
-  let currentOffset = 0;
-  let cursorLineIndex = 0;
-
-  // Find line index for cursor
-  for (let i = 0; i < lines.length; i++) {
-    const lineLen = lines[i].length + 1; // +1 for '\n'
-    if (cursorOffset >= currentOffset && cursorOffset <= currentOffset + lineLen) {
-      cursorLineIndex = i;
-      break;
+  const tables = findAllTablesInDocument(content);
+  for (const tbl of tables) {
+    if (cursorOffset >= tbl.startOffset && cursorOffset <= tbl.endOffset) {
+      return tbl;
     }
-    currentOffset += lineLen;
   }
-
-  // Check if current line is part of a table
-  if (!isMarkdownTableRow(lines[cursorLineIndex])) {
-    return null;
-  }
-
-  // Search upwards for table start
-  let startLine = cursorLineIndex;
-  while (startLine > 0 && isMarkdownTableRow(lines[startLine - 1])) {
-    startLine--;
-  }
-
-  // Search downwards for table end
-  let endLine = cursorLineIndex;
-  while (endLine < lines.length - 1 && isMarkdownTableRow(lines[endLine + 1])) {
-    endLine++;
-  }
-
-  const tableLines = lines.slice(startLine, endLine + 1);
-  if (tableLines.length < 2) {
-    return null; // A valid table must have at least header + separator
-  }
-
-  // Verify that line 1 is separator
-  if (!isMarkdownTableSeparator(tableLines[1])) {
-    return null;
-  }
-
-  // Calculate start and end offsets in content
-  let startOffset = 0;
-  for (let i = 0; i < startLine; i++) {
-    startOffset += lines[i].length + 1;
-  }
-
-  let tableLength = 0;
-  for (let i = startLine; i <= endLine; i++) {
-    tableLength += lines[i].length;
-    if (i < endLine) tableLength += 1; // '\n'
-  }
-  const endOffset = startOffset + tableLength;
-
-  const tableMarkdown = tableLines.join('\n');
-  const parsed = parseMarkdownTable(tableMarkdown);
-
-  return {
-    startOffset,
-    endOffset,
-    startLine,
-    endLine,
-    tableMarkdown,
-    parsed,
-  };
+  return null;
 }
 
 /**
@@ -125,24 +125,29 @@ export function parseMarkdownTable(tableMarkdown: string): ParsedTableData {
     };
   }
 
-  const rawHeaders = lines[0]
-    .split('|')
-    .slice(1, -1)
-    .map((c) => c.trim());
+  const parseRowCells = (rowStr: string): string[] => {
+    let cells = rowStr.split('|').map((c) => c.trim());
+    if (rowStr.trim().startsWith('|') && cells[0] === '') {
+      cells.shift();
+    }
+    if (rowStr.trim().endsWith('|') && cells[cells.length - 1] === '') {
+      cells.pop();
+    }
+    return cells;
+  };
+
+  const rawHeaders = parseRowCells(lines[0]);
 
   let alignments: TableAlignment[] = [];
   if (lines.length > 1 && isMarkdownTableSeparator(lines[1])) {
-    alignments = lines[1]
-      .split('|')
-      .slice(1, -1)
-      .map((c) => {
-        const cell = c.trim();
-        const leftColon = cell.startsWith(':');
-        const rightColon = cell.endsWith(':');
-        if (leftColon && rightColon) return 'center';
-        if (rightColon) return 'right';
-        return 'left';
-      });
+    alignments = parseRowCells(lines[1]).map((cell) => {
+      const trimmed = cell.trim();
+      const leftColon = trimmed.startsWith(':');
+      const rightColon = trimmed.endsWith(':');
+      if (leftColon && rightColon) return 'center';
+      if (rightColon) return 'right';
+      return 'left';
+    });
   }
 
   // Ensure alignments match headers length
@@ -152,10 +157,7 @@ export function parseMarkdownTable(tableMarkdown: string): ParsedTableData {
 
   const rows: string[][] = [];
   for (let i = 2; i < lines.length; i++) {
-    const cells = lines[i]
-      .split('|')
-      .slice(1, -1)
-      .map((c) => c.trim());
+    const cells = parseRowCells(lines[i]);
 
     // Normalize row cells count to headers length
     while (cells.length < rawHeaders.length) {

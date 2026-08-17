@@ -72,7 +72,7 @@ export const deDE: typeof enUS = {
   edit: 'Bearbeiten',
   splitView: 'Geteilte Ansicht',
   visualTableEditor: 'Visueller Tabellen-Editor',
-  convertToVisualTable: 'Visuelle Tabelle',
+  convertToVisualTable: 'Visuelle Bearbeitung',
   darkTheme: 'Dunkles Design',
   lightTheme: 'Helles Design',
   untitledNote: 'Unbenannte Notiz',

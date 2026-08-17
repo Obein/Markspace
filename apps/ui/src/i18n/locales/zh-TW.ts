@@ -72,7 +72,7 @@ export const zhTW: typeof enUS = {
   edit: '編輯',
   splitView: '分欄檢視',
   visualTableEditor: '視覺化表格編輯',
-  convertToVisualTable: '視覺化表格',
+  convertToVisualTable: '視覺化編輯',
   darkTheme: '深色模式',
   lightTheme: '淺色模式',
   untitledNote: '無標題筆記',

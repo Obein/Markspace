@@ -928,6 +928,12 @@ export const AppContent: React.FC = () => {
               onOpenHistory={() => setIsHistoryOpen(true)}
               onDownloadCurrentFile={handleDownloadActiveFile}
               onDeleteCurrentFile={handleDeleteFile}
+              onUndo={() => {
+                document.execCommand('undo');
+              }}
+              onRedo={() => {
+                document.execCommand('redo');
+              }}
             />
           </section>
         </div>

@@ -72,7 +72,7 @@ export const viVN: typeof enUS = {
   edit: 'Chỉnh sửa',
   splitView: 'Chia đôi màn hình',
   visualTableEditor: 'Trình chỉnh sửa bảng trực quan',
-  convertToVisualTable: 'Bảng trực quan',
+  convertToVisualTable: 'Chỉnh sửa trực quan',
   darkTheme: 'Giao diện tối',
   lightTheme: 'Giao Diện Sáng',
   untitledNote: 'Ghi Chú Không Tên',

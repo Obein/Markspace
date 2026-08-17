@@ -72,7 +72,7 @@ export const koKR: typeof enUS = {
   edit: '편집',
   splitView: '분할 뷰',
   visualTableEditor: '비주얼 테이블 편집기',
-  convertToVisualTable: '비주얼 테이블',
+  convertToVisualTable: '비주얼 편집',
   darkTheme: '다크 테마',
   lightTheme: '라이트 모드',
   untitledNote: '제목 없는 노트',

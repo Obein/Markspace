@@ -70,7 +70,7 @@ export const enUS = {
   edit: 'Edit',
   splitView: 'Split View',
   visualTableEditor: 'Visual Table Editor',
-  convertToVisualTable: 'Visual Table',
+  convertToVisualTable: 'Visual Edit',
   darkTheme: 'Dark Theme',
   lightTheme: 'Light Theme',
   untitledNote: 'Untitled Note',
