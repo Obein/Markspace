@@ -32,8 +32,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const { previewService } = useApp();
 
   const [previewHtml, setPreviewHtml] = useState<string>('');
-  const [wordCount, setWordCount] = useState<number>(0);
-  const [charCount, setCharCount] = useState<number>(0);
   const [isFullWidth, setIsFullWidth] = useState<boolean>(false);
   const [activeLineIndex, setActiveLineIndex] = useState<number>(0);
 
@@ -86,16 +84,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const documentTables = useMemo(() => {
     if (category !== 'markdown') return [];
     return findAllTablesInDocument(content);
-  }, [content, category]);
-
-  // Compute total words and characters count
-  useEffect(() => {
-    if (category === 'markdown') {
-      const trimmed = content.trim();
-      const words = trimmed ? trimmed.split(/\s+/).length : 0;
-      setWordCount(words);
-      setCharCount(content.length);
-    }
   }, [content, category]);
 
   // Real-time Markdown live parsing & rendering with KaTeX and Mermaid diagrams
@@ -333,8 +321,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           title={title}
           onTitleChange={onTitleChange}
           category={category}
-          wordCount={wordCount}
-          charCount={charCount}
           isFullWidth={isFullWidth}
           onToggleFullWidth={() => setIsFullWidth(!isFullWidth)}
           showFullWidthToggle={category === 'markdown'}

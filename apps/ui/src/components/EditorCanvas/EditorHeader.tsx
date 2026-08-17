@@ -1,13 +1,10 @@
 import React from 'react';
-import { Maximize2, Minimize2, FileText, Image as ImageIcon, Film, Music, File } from 'lucide-react';
-import { useI18n } from '../../i18n/i18nContext';
+import { Maximize2, Minimize2, Image as ImageIcon, Film, Music, File } from 'lucide-react';
 
 interface EditorHeaderProps {
   title: string;
   onTitleChange: (title: string) => void;
   category: string;
-  wordCount: number;
-  charCount: number;
   isFullWidth: boolean;
   onToggleFullWidth: () => void;
   showFullWidthToggle: boolean;
@@ -17,14 +14,10 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
   title,
   onTitleChange,
   category,
-  wordCount,
-  charCount,
   isFullWidth,
   onToggleFullWidth,
   showFullWidthToggle,
 }) => {
-  const { t } = useI18n();
-
   const getFileCategoryBadge = (cat: string) => {
     switch (cat) {
       case 'image':
@@ -56,12 +49,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
           </span>
         );
       default:
-        return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center gap-1">
-            <FileText className="w-3 h-3" />
-            <span>NOTE</span>
-          </span>
-        );
+        return null;
     }
   };
 
@@ -80,15 +68,6 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
 
       {showFullWidthToggle && (
         <div className="flex items-center gap-2 shrink-0">
-          <div className="hidden sm:flex items-center gap-3 text-xs text-zinc-400 font-mono">
-            <span>
-              {wordCount} {t('words')}
-            </span>
-            <span>
-              {charCount} {t('chars')}
-            </span>
-          </div>
-
           <button
             onClick={onToggleFullWidth}
             className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"

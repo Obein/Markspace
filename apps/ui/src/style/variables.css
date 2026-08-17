@@ -3,7 +3,11 @@
   [data-lang="en-US"],
   [data-lang="es-ES"],
   [data-lang="de-DE"],
-  [data-lang="vi-VN"] {
+  [data-lang="vi-VN"],
+  [data-lang="zh-CN"],
+  [data-lang="zh-TW"],
+  [data-lang="ja-JP"],
+  [data-lang="ko-KR"] {
     --bg-base: #F4F4F5;
     --text-main: #09090B;
     --text-muted: #71717A;
@@ -56,7 +60,12 @@
     --font-preview-body: 'Noto Sans KR', 'Noto Sans', sans-serif;
   }
 
-  .dark {
+  .dark,
+  :root.dark,
+  html.dark,
+  body.dark,
+  .dark [data-lang],
+  [data-lang].dark {
     --bg-base: #09090B;
     --text-main: #F4F4F5;
     --text-muted: #A1A1AA;
@@ -66,3 +75,4 @@
     --glass-border: rgba(255, 255, 255, 0.12);
   }
 }
+
