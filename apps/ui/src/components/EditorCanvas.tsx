@@ -14,9 +14,12 @@ import {
   Table as TableIcon,
   Link as LinkIcon,
   Calculator,
+  Sigma,
+  GitBranch,
   Maximize2,
   Minimize2,
 } from 'lucide-react';
+import mermaid from 'mermaid';
 import { useApp } from '../context/AppContext';
 import { VaultFileItem } from '../interfaces/INoteModels';
 
@@ -41,7 +44,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   onDownloadFile,
   onSelectionStatsChange,
 }) => {
-  const { sheetEngine, highlightService } = useApp();
+  const { sheetEngine, previewService } = useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -62,10 +65,10 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       ? sheetEngine.evaluateMarkdownFormulas(content)
       : '';
 
-  // Render Markdown preview HTML (Headings in Serif, body in Sans-serif, code in Mono)
+  // Render Markdown preview HTML via dedicated MarkdownPreviewService
   const previewHtml =
     category === 'markdown' && isPreview
-      ? highlightService.highlightMarkdownCodeBlocks(evaluatedMarkdown)
+      ? previewService.renderPreview(evaluatedMarkdown)
       : '';
 
   // Lines count for edit mode line-number gutter
@@ -79,6 +82,29 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       textarea.style.height = `${Math.max(textarea.scrollHeight, lines.length * 24)}px`;
     }
   }, [content, isPreview]);
+
+  // Dynamically render Mermaid diagrams whenever markdown preview updates
+  useEffect(() => {
+    if (category === 'markdown' && isPreview && previewHtml) {
+      try {
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'dark',
+          securityLevel: 'loose',
+          fontFamily: 'inherit',
+        });
+        requestAnimationFrame(() => {
+          mermaid.run({
+            querySelector: '.mermaid',
+          }).catch((err) => {
+            console.warn('Mermaid render warning', err);
+          });
+        });
+      } catch (err) {
+        console.warn('Mermaid initialize warning', err);
+      }
+    }
+  }, [previewHtml, isPreview, category]);
 
   // Update selected word & character stats
   const handleSelectionChange = () => {
@@ -273,6 +299,24 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             >
               <Calculator className="w-3.5 h-3.5 text-blue-400" />
               <span>Formula</span>
+            </button>
+
+            <button
+              onClick={() => insertFormatting('$$\n', '\n$$')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-blue-400 hover:text-blue-300 transition flex items-center gap-1 text-[11px] font-editor-mono font-mono"
+              title="Insert LaTeX Formula ($$...$$)"
+            >
+              <Sigma className="w-3.5 h-3.5 text-blue-400" />
+              <span>LaTeX</span>
+            </button>
+
+            <button
+              onClick={() => insertFormatting('```mermaid\ngraph TD\n  A[Start] --> B(Process)\n  B --> C{Decision}\n  C -->|Yes| D[End]\n  C -->|No| B\n', '```')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-blue-400 hover:text-blue-300 transition flex items-center gap-1 text-[11px] font-editor-mono font-mono"
+              title="Insert Mermaid Diagram (```mermaid)"
+            >
+              <GitBranch className="w-3.5 h-3.5 text-blue-400" />
+              <span>Mermaid</span>
             </button>
           </div>
         )}

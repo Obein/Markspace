@@ -3,16 +3,19 @@ import { EnvelopeCryptoService } from '../crypto/EnvelopeCryptoService';
 import { IApiClient, UserRole } from '../interfaces/IApiClient';
 import { ICryptoService } from '../interfaces/ICryptoService';
 import { IHighlightService } from '../interfaces/IHighlightService';
+import { IPreviewService } from '../interfaces/IPreviewService';
 import { ISheetEngine } from '../interfaces/ISheetEngine';
 import { SheetEvaluator } from '../markdown/SheetEvaluator';
 import { ApiClient } from '../services/ApiClient';
-import { LezerHighlightService } from '../services/LezerHighlightService';
+import { HighlightService } from '../services/HighlightService';
+import { MarkdownPreviewService } from '../services/MarkdownPreviewService';
 
 interface AppContextType {
   cryptoService: ICryptoService;
   apiClient: IApiClient;
   sheetEngine: ISheetEngine;
   highlightService: IHighlightService;
+  previewService: IPreviewService;
   cmk: CryptoKey | null;
   setCmk: (key: CryptoKey | null) => void;
   username: string | null;
@@ -30,7 +33,8 @@ interface AppContextType {
 const cryptoService = new EnvelopeCryptoService();
 const apiClient = new ApiClient();
 const sheetEngine = new SheetEvaluator();
-const highlightService = new LezerHighlightService();
+const highlightService = new HighlightService();
+const previewService = new MarkdownPreviewService(highlightService);
 
 const AppContext = createContext<AppContextType | null>(null);
 
@@ -87,6 +91,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     apiClient,
     sheetEngine,
     highlightService,
+    previewService,
     cmk,
     setCmk,
     username,

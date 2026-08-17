@@ -346,3 +346,25 @@ pre, code, textarea, .lezer-code-block {
 .markdown-preview tr:hover {
   background: rgba(255, 255, 255, 0.03);
 }
+
+/* KaTeX Formula Display */
+.katex-display-block {
+  font-size: 1.1em;
+  color: #f4f4f5;
+}
+
+.katex {
+  font-size: 1.05em;
+  text-rendering: auto;
+}
+
+/* Mermaid Diagram Display */
+.mermaid-container {
+  background: rgba(24, 24, 27, 0.6);
+  backdrop-filter: blur(12px);
+}
+
+.mermaid-container svg {
+  max-width: 100%;
+  height: auto;
+}

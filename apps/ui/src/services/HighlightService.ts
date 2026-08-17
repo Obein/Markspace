@@ -6,10 +6,9 @@ import { parser as pythonParser } from '@lezer/python';
 import { parser as htmlParser } from '@lezer/html';
 import { parser as cssParser } from '@lezer/css';
 import { Parser } from '@lezer/common';
-import { marked, Renderer, Tokens } from 'marked';
 import { IHighlightService } from '../interfaces/IHighlightService';
 
-export class LezerHighlightService implements IHighlightService {
+export class HighlightService implements IHighlightService {
   private parsers: Record<string, Parser> = {
     markdown: markdownParser,
     md: markdownParser,
@@ -26,42 +25,6 @@ export class LezerHighlightService implements IHighlightService {
     xml: htmlParser,
     css: cssParser,
   };
-
-  private customRenderer: Renderer;
-
-  constructor() {
-    this.customRenderer = new Renderer();
-
-    // Code blocks with Lezer engine
-    this.customRenderer.code = (token: Tokens.Code) => {
-      const language = token.lang ? token.lang.trim() : 'text';
-      const highlighted = this.highlightCode(token.text || '', language);
-      return `<div class="lezer-code-block font-editor-mono font-mono text-xs my-4 rounded-xl border border-white/10 bg-zinc-950/80 overflow-hidden shadow-lg"><div class="px-4 py-1.5 bg-white/5 border-b border-white/10 flex items-center justify-between text-[11px] text-zinc-400 font-mono"><span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 uppercase font-semibold text-[10px]">${escapeHtml(language)}</span><span class="text-[10px] text-zinc-500 font-mono">Lezer Engine</span></div><pre class="p-4 overflow-x-auto text-zinc-100 leading-relaxed font-editor-mono font-mono"><code>${highlighted}</code></pre></div>`;
-    };
-
-    // Table with container
-    this.customRenderer.table = (token: Tokens.Table) => {
-      let thead = '<thead class="bg-white/10 text-blue-300 border-b border-white/10"><tr>';
-      token.header.forEach((cell) => {
-        const cellText = this.customRenderer.parser.parseInline(cell.tokens || []);
-        thead += `<th class="px-4 py-2.5 text-left font-semibold">${cellText}</th>`;
-      });
-      thead += '</tr></thead>';
-
-      let tbody = '<tbody>';
-      token.rows.forEach((row) => {
-        tbody += '<tr class="border-b border-white/5 hover:bg-white/5 transition">';
-        row.forEach((cell) => {
-          const cellText = this.customRenderer.parser.parseInline(cell.tokens || []);
-          tbody += `<td class="px-4 py-2 text-zinc-200">${cellText}</td>`;
-        });
-        tbody += '</tr>';
-      });
-      tbody += '</tbody>';
-
-      return `<div class="overflow-x-auto my-4"><table class="w-full text-xs font-preview-body font-sans border-collapse border border-white/10 rounded-xl overflow-hidden shadow-lg">${thead}${tbody}</table></div>`;
-    };
-  }
 
   public highlightCode(code: string, language: string = 'javascript'): string {
     const langKey = (language || 'javascript').toLowerCase().trim();
@@ -87,23 +50,8 @@ export class LezerHighlightService implements IHighlightService {
 
       return html;
     } catch (err) {
-      console.warn('Lezer syntax highlight failed, falling back to escaped text', err);
+      console.warn('Syntax highlight failed, falling back to escaped text', err);
       return escapeHtml(code);
-    }
-  }
-
-  public highlightMarkdownCodeBlocks(markdown: string): string {
-    if (!markdown) return '';
-    try {
-      return marked(markdown, {
-        renderer: this.customRenderer,
-        gfm: true,
-        breaks: true,
-        async: false,
-      }) as string;
-    } catch (err) {
-      console.error('Marked parsing error', err);
-      return escapeHtml(markdown);
     }
   }
 
@@ -132,7 +80,7 @@ export class LezerHighlightService implements IHighlightService {
       const highlightedLines = fullHtml.split('\n');
       return highlightedLines.map((line) => line || '\u200B');
     } catch (err) {
-      console.warn('Lezer Markdown editor line highlight failed, falling back to raw lines', err);
+      console.warn('Editor line highlight failed, falling back to raw lines', err);
       return lines.map((l) => escapeHtml(l) || '\u200B');
     }
   }
