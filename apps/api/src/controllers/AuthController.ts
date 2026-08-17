@@ -29,8 +29,8 @@ export class AuthController {
     return ctx.request.headers.get('User-Agent') || 'Unknown Client';
   }
 
-  async getNonce(_ctx: RequestContext): Promise<Response> {
-    const nonceInfo = this.nonceService.generateNonce();
+  async getNonce(ctx: RequestContext): Promise<Response> {
+    const nonceInfo = this.nonceService.generateNonce(ctx.user?.userId);
     const response: ApiResponse = {
       success: true,
       data: nonceInfo,

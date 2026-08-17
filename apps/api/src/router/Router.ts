@@ -185,13 +185,32 @@ export class Router {
 
         const container = new ServiceContainer(env);
 
+        // Authenticate if required or if Authorization header is present (to populate user context for nonce binding)
+        const authHeader = request.headers.get('Authorization');
+        if (route.requiresAuth || (authHeader && authHeader.startsWith('Bearer '))) {
+          try {
+            const authMiddleware = new AuthMiddleware(container.tokenService);
+            const authedCtx = await authMiddleware.authenticate(ctx);
+            Object.assign(ctx, authedCtx);
+          } catch (authErr) {
+            if (route.requiresAuth) {
+              throw authErr;
+            }
+          }
+
+          if (route.requiresAdmin) {
+            AdminMiddleware.authorize(ctx);
+          }
+        }
+
         // AOP Aspect 1: Anti-Replay Nonce Verification (Before Advice)
         // Handshake endpoint /api/v1/auth/nonce does not require a prior nonce
         if (path !== '/api/v1/auth/nonce' && path.startsWith('/api/v1/')) {
           const requestNonce = request.headers.get('X-Nonce');
           if (requestNonce) {
-            const isValid = container.nonceService.consumeNonce(requestNonce);
-            if (!isValid) {
+            const validation = container.nonceService.consumeNonce(requestNonce, ctx.user?.userId);
+            if (!validation.valid) {
+              const isReuse = validation.reason === 'REUSE_LOCKOUT';
               await container.auditLogRepository.recordLog({
                 userId: ctx.user?.userId || 'anonymous',
                 username: ctx.user?.username || 'unknown',
@@ -200,11 +219,15 @@ export class Router {
                 ipAddress: request.headers.get('CF-Connecting-IP') || '127.0.0.1',
                 userAgent: request.headers.get('User-Agent') || 'Unknown Client',
                 status: 'FAILED',
-                details: `Security violation: Nonce '${requestNonce}' is invalid or expired. Session terminated.`,
+                details: isReuse
+                  ? `Security circuit breaker triggered: Nonce '${requestNonce}' reuse attempt detected. Immediate session lockout.`
+                  : `Security violation: Nonce '${requestNonce}' failed verification (${validation.reason}). Session terminated.`,
               });
 
               throw new Error(
-                'SECURITY_NONCE_VIOLATION: Anti-replay nonce verification failed. Session terminated.'
+                isReuse
+                  ? 'SECURITY_NONCE_VIOLATION: Nonce reuse detected. Security circuit breaker triggered. Session terminated.'
+                  : `SECURITY_NONCE_VIOLATION: Anti-replay nonce verification failed. Session terminated.`
               );
             }
           }
@@ -220,20 +243,10 @@ export class Router {
           }
         }
 
-        if (route.requiresAuth) {
-          const authMiddleware = new AuthMiddleware(container.tokenService);
-          const authedCtx = await authMiddleware.authenticate(ctx);
-          Object.assign(ctx, authedCtx);
-
-          if (route.requiresAdmin) {
-            AdminMiddleware.authorize(ctx);
-          }
-        }
-
         const response = await route.handler(container, ctx);
 
         // AOP Aspect 2: Dynamic Next-Nonce Header Injection (After Advice)
-        const nextNonce = container.nonceService.generateNonce().nonce;
+        const nextNonce = container.nonceService.generateNonce(ctx.user?.userId).nonce;
         response.headers.set('X-Next-Nonce', nextNonce);
 
         return SecurityHeadersMiddleware.applyHeaders(response);

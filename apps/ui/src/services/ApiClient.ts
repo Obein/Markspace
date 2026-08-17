@@ -70,6 +70,8 @@ export class ApiClient implements IApiClient {
     }
     if (this.currentNonce) {
       headers['X-Nonce'] = this.currentNonce;
+      // Single-use guarantee: Clear local nonce immediately upon attachment to prevent duplicate in-flight reuse
+      this.currentNonce = null;
     }
 
     try {
