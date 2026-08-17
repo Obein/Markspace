@@ -34,9 +34,9 @@ export default {
         'glass-light': '0 20px 40px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.06)',
       },
       fontFamily: {
-        sans: ['var(--font-preview-body)', 'Noto Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['var(--font-editor-mono)', 'Noto Sans Mono', 'Fira Code', 'JetBrains Mono', 'monospace'],
-        serif: ['var(--font-preview-heading)', 'Noto Serif', 'Georgia', 'serif'],
+        sans: ['var(--font-preview-body)', 'Noto Sans', 'sans-serif'],
+        mono: ['var(--font-editor-mono)', 'Monaspace Neon', 'Monaspace', 'Noto Sans Mono', 'monospace'],
+        serif: ['var(--font-preview-heading)', 'Noto Serif', 'serif'],
       },
     },
   },

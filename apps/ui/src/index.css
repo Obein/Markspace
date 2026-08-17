@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Local Noto Sans Mono CJK Web Fonts */
+/* Local Static Noto Sans Mono CJK Web Fonts */
 @font-face {
   font-family: 'Noto Sans Mono CJK SC';
   src: url('../assets/NotoSansMonoCJKsc-Regular.woff2') format('woff2');
@@ -49,40 +49,48 @@
     --glass-capsule-bg: rgba(255, 255, 255, 0.88);
     --glass-border: rgba(0, 0, 0, 0.08);
 
-    /* Non-serif Monospace stack with ligatures support */
-    --font-editor-mono: 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Noto Sans Mono', 'Segoe UI Mono', Consolas, 'Noto Sans', ui-monospace, sans-serif;
-    --font-preview-heading: 'Noto Serif', Georgia, Cambria, 'Times New Roman', Times, serif;
-    --font-preview-body: 'Noto Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    /* Monaspace Monospace + Noto Sans Mono Fallback */
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono', monospace;
+    /* Noto Serif Headings */
+    --font-preview-heading: 'Noto Serif', serif;
+    /* Noto Sans Body & UI */
+    --font-preview-body: 'Noto Sans', sans-serif;
   }
 
   [data-lang="zh-CN"] {
-    /* Noto Sans Mono CJK SC + Ligatures (Fira Code/JetBrains Mono for ASCII symbols like =>, !==, ->) */
-    --font-editor-mono: 'Noto Sans Mono CJK SC', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Noto Sans Mono', 'Segoe UI Mono', Consolas, 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Heiti SC', 'WenQuanYi Micro Hei', ui-monospace, sans-serif;
-    /* Headings: Serif 衬线体 */
-    --font-preview-heading: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'SimSun', STSong, Georgia, serif;
-    /* Body: Sans-serif 非衬线体 */
-    --font-preview-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'SimHei', sans-serif;
+    /* Monaspace for ASCII/Code + Noto Sans Mono CJK SC for Chinese */
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK SC', 'Noto Sans Mono', 'Noto Sans SC', monospace;
+    /* Noto Serif SC 衬线体 */
+    --font-preview-heading: 'Noto Serif SC', 'Noto Serif', serif;
+    /* Noto Sans SC 非衬线体 */
+    --font-preview-body: 'Noto Sans SC', 'Noto Sans', sans-serif;
   }
 
   [data-lang="zh-TW"] {
-    /* Noto Sans Mono CJK TC + Ligatures */
-    --font-editor-mono: 'Noto Sans Mono CJK TC', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Noto Sans Mono', 'Segoe UI Mono', Consolas, 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', ui-monospace, sans-serif;
-    --font-preview-heading: 'Noto Serif TC', 'Source Han Serif TC', 'Songti TC', 'PMingLiU', 'MingLiU', Georgia, serif;
-    --font-preview-body: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    /* Monaspace for ASCII/Code + Noto Sans Mono CJK TC for Traditional Chinese */
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK TC', 'Noto Sans Mono', 'Noto Sans TC', monospace;
+    /* Noto Serif TC 襯線體 */
+    --font-preview-heading: 'Noto Serif TC', 'Noto Serif', serif;
+    /* Noto Sans TC 非襯線體 */
+    --font-preview-body: 'Noto Sans TC', 'Noto Sans', sans-serif;
   }
 
   [data-lang="ja-JP"] {
-    /* Noto Sans Mono CJK JP + Ligatures */
-    --font-editor-mono: 'Noto Sans Mono CJK JP', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Noto Sans Mono', 'Segoe UI Mono', Consolas, 'Noto Sans JP', 'Hiragino Sans', 'Meiryo', 'Yu Gothic', ui-monospace, sans-serif;
-    --font-preview-heading: 'Noto Serif JP', 'Source Han Serif JP', 'Yu Mincho', 'Hiragino Mincho ProN', 'MS Mincho', Georgia, serif;
-    --font-preview-body: 'Noto Sans JP', 'Hiragino Sans', 'Meiryo', sans-serif;
+    /* Monaspace for ASCII/Code + Noto Sans Mono CJK JP for Japanese */
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK JP', 'Noto Sans Mono', 'Noto Sans JP', monospace;
+    /* Noto Serif JP 明朝体 */
+    --font-preview-heading: 'Noto Serif JP', 'Noto Serif', serif;
+    /* Noto Sans JP ゴシック体 */
+    --font-preview-body: 'Noto Sans JP', 'Noto Sans', sans-serif;
   }
 
   [data-lang="ko-KR"] {
-    /* Noto Sans Mono CJK KR + Ligatures */
-    --font-editor-mono: 'Noto Sans Mono CJK KR', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Noto Sans Mono', 'Segoe UI Mono', Consolas, 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', ui-monospace, sans-serif;
-    --font-preview-heading: 'Noto Serif KR', 'Source Han Serif KR', 'Nanum Myeongjo', 'Batang', Georgia, serif;
-    --font-preview-body: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+    /* Monaspace for ASCII/Code + Noto Sans Mono CJK KR for Korean */
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK KR', 'Noto Sans Mono', 'Noto Sans KR', monospace;
+    /* Noto Serif KR 명조体 */
+    --font-preview-heading: 'Noto Serif KR', 'Noto Serif', serif;
+    /* Noto Sans KR 고딕体 */
+    --font-preview-body: 'Noto Sans KR', 'Noto Sans', sans-serif;
   }
 
   .dark {

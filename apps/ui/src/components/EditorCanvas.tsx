@@ -51,6 +51,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 }) => {
   const { sheetEngine, previewService } = useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const mirrorRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const editScrollRef = useRef<HTMLDivElement>(null);
   const previewScrollRef = useRef<HTMLDivElement>(null);
@@ -59,6 +60,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
   // Layout width mode: default is Limited-width (false -> max-w-[45em])
   const [isFullWidth, setIsFullWidth] = useState(false);
+  const [lineHeights, setLineHeights] = useState<number[]>([]);
 
   const category = activeFile?.category || 'markdown';
 
@@ -89,6 +91,46 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   // Lines count for edit mode line-number gutter
   const lines = content.split('\n');
 
+  // Measure rendered pixel height of every line in textarea (including wrapped lines)
+  const measureLineHeights = () => {
+    const textarea = textareaRef.current;
+    const mirror = mirrorRef.current;
+    if (!textarea || !mirror) return;
+
+    const computedStyle = window.getComputedStyle(textarea);
+    mirror.style.width = `${textarea.clientWidth}px`;
+    mirror.style.paddingLeft = computedStyle.paddingLeft;
+    mirror.style.paddingRight = computedStyle.paddingRight;
+    mirror.style.fontSize = computedStyle.fontSize;
+    mirror.style.fontFamily = computedStyle.fontFamily;
+    mirror.style.lineHeight = computedStyle.lineHeight;
+    mirror.style.letterSpacing = computedStyle.letterSpacing;
+    mirror.style.boxSizing = computedStyle.boxSizing;
+
+    const children = mirror.children;
+    const heights: number[] = [];
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i] as HTMLElement;
+      heights.push(child.getBoundingClientRect().height || 24);
+    }
+    setLineHeights(heights);
+  };
+
+  useEffect(() => {
+    measureLineHeights();
+  }, [content, isSplitView, isFullWidth, isPreview]);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea || typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(() => {
+      measureLineHeights();
+    });
+    observer.observe(textarea);
+    return () => observer.disconnect();
+  }, []);
+
   // Auto-expand textarea height based on line count so textarea never shows inner scrollbar
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -96,7 +138,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       textarea.style.height = 'auto';
       textarea.style.height = `${Math.max(textarea.scrollHeight, lines.length * 24)}px`;
     }
-  }, [content, isPreview, isSplitView]);
+  }, [content, isPreview, isSplitView, lineHeights]);
 
   // Synchronous scrolling handlers for Split View
   const handleEditScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -255,6 +297,30 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
   return (
     <main className="flex-1 flex flex-col h-full glass-panel rounded-glass-lg border border-white/10 relative overflow-hidden shadow-2xl">
+      {/* Hidden line measurement mirror for exact wrapped line-height tracking */}
+      <div
+        ref={mirrorRef}
+        aria-hidden="true"
+        className="absolute opacity-0 pointer-events-none font-editor-mono font-mono text-sm leading-6"
+        style={{
+          visibility: 'hidden',
+          position: 'absolute',
+          top: -99999,
+          left: -99999,
+          zIndex: -99,
+        }}
+      >
+        {lines.map((line, i) => (
+          <div
+            key={i}
+            className="whitespace-pre-wrap break-words text-sm font-editor-mono font-mono leading-6"
+            style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
+          >
+            {line || '\u00A0'}
+          </div>
+        ))}
+      </div>
+
       {/* Top Floating Utility Bar (Fixed Header: Stays on top of content) */}
       <div className="absolute top-0 left-0 right-0 z-20 px-6 py-3 glass-bar rounded-t-glass-lg flex flex-col gap-2">
         <div className="flex items-center justify-between gap-4">
@@ -435,15 +501,19 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             <div
               ref={editScrollRef}
               onScroll={handleEditScroll}
-              className="w-1/2 h-full overflow-y-auto border-r border-white/10 font-editor-mono font-mono text-sm leading-relaxed relative"
+              className="w-1/2 h-full overflow-y-auto border-r border-white/10 font-editor-mono font-mono text-sm leading-6 relative"
             >
               {/* Dynamic Top Toolbar Spacing */}
               <div className={topToolbarSpacingClass} />
 
               <div className="flex w-full min-h-[calc(100%-13rem)]">
-                <div className="w-10 sm:w-12 py-6 pr-2 sm:pr-3 text-right select-none text-zinc-600 font-editor-mono font-mono text-xs leading-relaxed shrink-0 border-r border-white/5 space-y-0 opacity-60">
+                <div className="w-10 sm:w-12 py-6 pr-2 sm:pr-3 text-right select-none text-zinc-500 font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-white/5 space-y-0 opacity-60">
                   {lines.map((_, i) => (
-                    <div key={i} className="h-[1.5rem] leading-[1.5rem]">
+                    <div
+                      key={i}
+                      style={{ height: lineHeights[i] ? `${lineHeights[i]}px` : '24px' }}
+                      className="flex items-start justify-end leading-6"
+                    >
                       {i + 1}
                     </div>
                   ))}
@@ -456,7 +526,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   onKeyUp={handleSelectionChange}
                   onClick={handleSelectionChange}
                   placeholder="Write your thoughts..."
-                  className="flex-1 py-6 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-relaxed relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
+                  className="flex-1 py-6 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-6 relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
                 />
               </div>
 
@@ -491,16 +561,20 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         {category === 'markdown' && !isSplitView && !isPreview && (
           <div
             ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto relative w-full h-full font-editor-mono font-mono text-sm leading-relaxed"
+            className="flex-1 overflow-y-auto relative w-full h-full font-editor-mono font-mono text-sm leading-6"
           >
             {/* Dynamic Top Toolbar Spacing */}
             <div className={topToolbarSpacingClass} />
 
             <div className="flex w-full min-h-[calc(100%-13rem)]">
               {/* Left Line Number Gutter Column */}
-              <div className="w-12 py-6 pr-3 text-right select-none text-zinc-600 font-editor-mono font-mono text-xs leading-relaxed shrink-0 border-r border-white/5 space-y-0 opacity-60">
+              <div className="w-12 py-6 pr-3 text-right select-none text-zinc-500 font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-white/5 space-y-0 opacity-60">
                 {lines.map((_, i) => (
-                  <div key={i} className="h-[1.5rem] leading-[1.5rem]">
+                  <div
+                    key={i}
+                    style={{ height: lineHeights[i] ? `${lineHeights[i]}px` : '24px' }}
+                    className="flex items-start justify-end leading-6"
+                  >
                     {i + 1}
                   </div>
                 ))}
@@ -515,7 +589,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 onKeyUp={handleSelectionChange}
                 onClick={handleSelectionChange}
                 placeholder="Write your thoughts..."
-                className="flex-1 p-6 pl-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-relaxed relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
+                className="flex-1 py-6 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-6 relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
               />
             </div>
 
