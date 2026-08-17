@@ -68,6 +68,7 @@ export const enUS = {
   saved: 'Saved',
   preview: 'Preview',
   edit: 'Edit',
+  splitView: 'Split View',
   darkTheme: 'Dark Theme',
   lightTheme: 'Light Theme',
   untitledNote: 'Untitled Note',

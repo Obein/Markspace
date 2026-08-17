@@ -70,6 +70,7 @@ export const zhTW: typeof enUS = {
   saved: '已儲存',
   preview: '預覽',
   edit: '編輯',
+  splitView: '分欄視圖',
   darkTheme: '深色模式',
   lightTheme: '淺色模式',
   untitledNote: '無標題筆記',

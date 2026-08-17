@@ -70,6 +70,7 @@ export const jaJP: typeof enUS = {
   saved: '保存済み',
   preview: 'プレビュー',
   edit: '編集',
+  splitView: '分割ビュー',
   darkTheme: 'ダークテーマ',
   lightTheme: 'ライトテーマ',
   untitledNote: '無題のノート',

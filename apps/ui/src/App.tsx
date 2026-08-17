@@ -103,6 +103,7 @@ export const AppContent: React.FC = () => {
   const [activeContent, setActiveContent] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isPreview, setIsPreview] = useState(false);
+  const [isSplitView, setIsSplitView] = useState(false);
   const [isDark, setIsDark] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -864,7 +865,7 @@ export const AppContent: React.FC = () => {
 
       {/* Main Workspace (Visible when Unlocked) */}
       {isAuthenticated && isVaultUnlocked && (
-        <>
+        <div className="flex-1 flex h-full p-2 sm:p-3 gap-2 sm:gap-3 relative overflow-hidden">
           <SidebarDrawer
             files={activeVaultFiles}
             activeFileId={activeFileId}
@@ -897,6 +898,7 @@ export const AppContent: React.FC = () => {
               content={activeContent}
               onContentChange={setActiveContent}
               isPreview={isPreview}
+              isSplitView={isSplitView}
               onDownloadFile={handleDownloadActiveFile}
               onSelectionStatsChange={(selWords, selChars) => {
                 setSelectedWordCount(selWords);
@@ -917,6 +919,8 @@ export const AppContent: React.FC = () => {
               selectedCharCount={selectedCharCount}
               isPreview={isPreview}
               onTogglePreview={() => setIsPreview(!isPreview)}
+              isSplitView={isSplitView}
+              onToggleSplitView={() => setIsSplitView(!isSplitView)}
               isDark={isDark}
               onToggleTheme={() => setIsDark(!isDark)}
               isSaving={isSaving}
@@ -925,7 +929,7 @@ export const AppContent: React.FC = () => {
               onDeleteCurrentFile={handleDeleteFile}
             />
           </section>
-        </>
+        </div>
       )}
     </div>
   );

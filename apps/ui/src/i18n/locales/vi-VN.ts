@@ -68,9 +68,10 @@ export const viVN: typeof enUS = {
   selChars: 'Số Ký Tự Chọn',
   saving: 'Đang lưu...',
   saved: 'Đã lưu',
-  preview: 'Xem Trước',
-  edit: 'Chỉnh Sửa',
-  darkTheme: 'Giao Diện Tối',
+  preview: 'Xem trước',
+  edit: 'Chỉnh sửa',
+  splitView: 'Chế độ xem chia đôi',
+  darkTheme: 'Giao diện tối',
   lightTheme: 'Giao Diện Sáng',
   untitledNote: 'Ghi Chú Không Tên',
 

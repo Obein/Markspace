@@ -70,6 +70,7 @@ export const esES: typeof enUS = {
   saved: 'Guardado',
   preview: 'Vista Previa',
   edit: 'Editar',
+  splitView: 'Vista Dividida',
   darkTheme: 'Tema Oscuro',
   lightTheme: 'Tema Claro',
   untitledNote: 'Nota Sin Título',

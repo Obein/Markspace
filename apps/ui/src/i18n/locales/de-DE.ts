@@ -70,6 +70,7 @@ export const deDE: typeof enUS = {
   saved: 'Gespeichert',
   preview: 'Vorschau',
   edit: 'Bearbeiten',
+  splitView: 'Geteilte Ansicht',
   darkTheme: 'Dunkles Design',
   lightTheme: 'Helles Design',
   untitledNote: 'Unbenannte Notiz',

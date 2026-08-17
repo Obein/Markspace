@@ -70,6 +70,7 @@ export const zhCN: typeof enUS = {
   saved: '已保存',
   preview: '预览',
   edit: '编辑',
+  splitView: '分列视图',
   darkTheme: '深色模式',
   lightTheme: '浅色模式',
   untitledNote: '无标题笔记',

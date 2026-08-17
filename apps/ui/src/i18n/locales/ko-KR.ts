@@ -70,6 +70,7 @@ export const koKR: typeof enUS = {
   saved: '저장됨',
   preview: '미리보기',
   edit: '편집',
+  splitView: '분할 보기',
   darkTheme: '다크 모드',
   lightTheme: '라이트 모드',
   untitledNote: '제목 없는 노트',

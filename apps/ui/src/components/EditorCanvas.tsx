@@ -20,6 +20,7 @@ import {
   Minimize2,
 } from 'lucide-react';
 import mermaid from 'mermaid';
+import { normalizeMermaidCode } from '../services/MarkdownPreviewService';
 import { useApp } from '../context/AppContext';
 import { VaultFileItem } from '../interfaces/INoteModels';
 
@@ -30,6 +31,7 @@ interface EditorCanvasProps {
   content: string;
   onContentChange: (content: string) => void;
   isPreview: boolean;
+  isSplitView?: boolean;
   onDownloadFile: () => void;
   onSelectionStatsChange?: (selectedWords: number, selectedChars: number) => void;
 }
@@ -41,12 +43,16 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   content,
   onContentChange,
   isPreview,
+  isSplitView = false,
   onDownloadFile,
   onSelectionStatsChange,
 }) => {
   const { sheetEngine, previewService } = useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const editScrollRef = useRef<HTMLDivElement>(null);
+  const previewScrollRef = useRef<HTMLDivElement>(null);
+  const isSyncingScrollRef = useRef(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   // Layout width mode: default is Limited-width (false -> max-w-[45em])
@@ -67,7 +73,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
   // Render Markdown preview HTML via dedicated MarkdownPreviewService
   const previewHtml =
-    category === 'markdown' && isPreview
+    category === 'markdown' && (isPreview || isSplitView)
       ? previewService.renderPreview(evaluatedMarkdown)
       : '';
 
@@ -81,30 +87,109 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       textarea.style.height = 'auto';
       textarea.style.height = `${Math.max(textarea.scrollHeight, lines.length * 24)}px`;
     }
-  }, [content, isPreview]);
+  }, [content, isPreview, isSplitView]);
+
+  // Synchronous scrolling handlers for Split View
+  const handleEditScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!isSplitView || isSyncingScrollRef.current) return;
+    const editEl = e.currentTarget;
+    const previewEl = previewScrollRef.current;
+    if (!editEl || !previewEl) return;
+
+    const editScrollable = editEl.scrollHeight - editEl.clientHeight;
+    if (editScrollable <= 0) return;
+
+    const scrollRatio = editEl.scrollTop / editScrollable;
+    const previewScrollable = previewEl.scrollHeight - previewEl.clientHeight;
+
+    isSyncingScrollRef.current = true;
+    previewEl.scrollTop = scrollRatio * previewScrollable;
+    requestAnimationFrame(() => {
+      isSyncingScrollRef.current = false;
+    });
+  };
+
+  const handlePreviewScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!isSplitView || isSyncingScrollRef.current) return;
+    const previewEl = e.currentTarget;
+    const editEl = editScrollRef.current;
+    if (!editEl || !previewEl) return;
+
+    const previewScrollable = previewEl.scrollHeight - previewEl.clientHeight;
+    if (previewScrollable <= 0) return;
+
+    const scrollRatio = previewEl.scrollTop / previewScrollable;
+    const editScrollable = editEl.scrollHeight - editEl.clientHeight;
+
+    isSyncingScrollRef.current = true;
+    editEl.scrollTop = scrollRatio * editScrollable;
+    requestAnimationFrame(() => {
+      isSyncingScrollRef.current = false;
+    });
+  };
 
   // Dynamically render Mermaid diagrams whenever markdown preview updates
   useEffect(() => {
-    if (category === 'markdown' && isPreview && previewHtml) {
-      try {
-        mermaid.initialize({
-          startOnLoad: false,
-          theme: 'dark',
-          securityLevel: 'loose',
-          fontFamily: 'inherit',
-        });
-        requestAnimationFrame(() => {
-          mermaid.run({
-            querySelector: '.mermaid',
-          }).catch((err) => {
-            console.warn('Mermaid render warning', err);
+    if (category === 'markdown' && (isPreview || isSplitView) && previewHtml) {
+      let isMounted = true;
+
+      const renderAllMermaid = async () => {
+        try {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            securityLevel: 'loose',
+            fontFamily: 'inherit',
+            themeVariables: {
+              darkMode: true,
+              background: 'transparent',
+              primaryColor: '#3b82f6',
+              primaryTextColor: '#f4f4f5',
+              lineColor: '#60a5fa',
+            },
           });
-        });
-      } catch (err) {
-        console.warn('Mermaid initialize warning', err);
-      }
+
+          // Allow DOM to settle
+          await new Promise((resolve) => setTimeout(resolve, 30));
+          if (!isMounted) return;
+
+          const elements = document.querySelectorAll<HTMLElement>('.mermaid-diagram-code');
+          for (let i = 0; i < elements.length; i++) {
+            const el = elements[i];
+            const rawCode = el.getAttribute('data-mermaid-code');
+            if (!rawCode) continue;
+
+            try {
+              const decodedCode = normalizeMermaidCode(decodeURIComponent(rawCode));
+              const uniqueId = `mermaid_svg_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 6)}`;
+              const { svg } = await mermaid.render(uniqueId, decodedCode);
+              if (!isMounted) return;
+
+              const parent = el.closest('.mermaid-container');
+              if (parent) {
+                parent.innerHTML = svg;
+              }
+            } catch (err) {
+              console.warn('Mermaid render error for diagram', i, err);
+              const parent = el.closest('.mermaid-container');
+              if (parent) {
+                const decodedCode = decodeURIComponent(rawCode);
+                parent.innerHTML = `<div class="p-3 text-xs font-mono text-zinc-300 bg-zinc-950/80 rounded-xl border border-white/10 w-full"><div class="text-amber-400 font-semibold mb-1 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Mermaid Diagram Code</div><pre class="overflow-x-auto text-zinc-200">${escapeHtml(decodedCode)}</pre></div>`;
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('Mermaid global initialization warning', err);
+        }
+      };
+
+      renderAllMermaid();
+
+      return () => {
+        isMounted = false;
+      };
     }
-  }, [previewHtml, isPreview, category]);
+  }, [previewHtml, isPreview, isSplitView, category]);
 
   // Update selected word & character stats
   const handleSelectionChange = () => {
@@ -145,16 +230,16 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       textarea.focus();
       textarea.setSelectionRange(
         start + prefix.length,
-        start + prefix.length + (selected.length || 4)
+        start + prefix.length + (selected ? selected.length : 4)
       );
     }, 0);
   };
 
   if (!activeFile) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center h-full glass-panel rounded-glass-lg border border-white/10 text-zinc-500 text-sm font-preview-body font-sans space-y-3 shadow-2xl">
-        <FileText className="w-12 h-12 opacity-20 text-zinc-400" />
-        <p className="text-zinc-400 font-medium">Select or create a note from the sidebar</p>
+      <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 font-editor-mono font-mono text-sm select-none">
+        <FileText className="w-12 h-12 mb-3 opacity-20 text-blue-400" />
+        <p>Select or create a note to begin</p>
       </div>
     );
   }
@@ -162,7 +247,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   return (
     <main className="flex-1 flex flex-col h-full glass-panel rounded-glass-lg border border-white/10 relative overflow-hidden shadow-2xl">
       {/* Top Floating Utility Bar (Fixed Header: Stays on top of content) */}
-      <div className="absolute top-0 left-0 right-0 z-20 px-6 py-3 glass-bar flex flex-col gap-2">
+      <div className="absolute top-0 left-0 right-0 z-20 px-6 py-3 glass-bar rounded-t-glass-lg flex flex-col gap-2">
         <div className="flex items-center justify-between gap-4">
           {/* Filename Input Hot Zone: The entire area is clickable to focus and select the filename */}
           <div
@@ -195,21 +280,27 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             <div className="flex-1 h-full min-w-[20px] self-stretch" />
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Layout Toggle: Limited Width vs Full Width */}
-            <button
-              onClick={() => setIsFullWidth(!isFullWidth)}
-              className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition border border-white/10"
-              title={isFullWidth ? 'Switch to Limited Width' : 'Switch to Full Width'}
-            >
-              {isFullWidth ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-            </button>
-          </div>
+          {/* Width Mode Toggle (Hidden in Split View, Pure Icon without text) */}
+          {!isSplitView && (
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setIsFullWidth(!isFullWidth)}
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition"
+                title={isFullWidth ? 'Standard Width' : 'Full Width'}
+              >
+                {isFullWidth ? (
+                  <Minimize2 className="w-3.5 h-3.5 text-blue-400" />
+                ) : (
+                  <Maximize2 className="w-3.5 h-3.5 text-blue-400" />
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Formatting Toolbar (Only visible in Markdown edit mode) */}
-        {category === 'markdown' && !isPreview && (
-          <div className="flex items-center gap-1 pt-1 overflow-x-auto border-t border-white/5 scrollbar-none font-editor-mono font-mono">
+        {/* Formatting Toolbar (Only visible in Markdown edit mode or split view) */}
+        {category === 'markdown' && (!isPreview || isSplitView) && (
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-1 border-t border-white/10 select-none">
             <button
               onClick={() => insertFormatting('**', '**')}
               className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition"
@@ -323,9 +414,63 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       </div>
 
       {/* Editor / Preview Canvas Container */}
-      <div className={`absolute inset-0 z-10 flex flex-col w-full mx-auto transition-all duration-300 ${isFullWidth ? 'max-w-full' : 'max-w-[45em]'}`}>
-        {/* Markdown Edit Mode: Pixel-Perfect Textarea with Synced Line Numbers & HW Monospace Fonts */}
-        {category === 'markdown' && !isPreview && (
+      <div
+        className={`absolute inset-0 z-10 flex flex-col w-full mx-auto transition-all duration-300 ${
+          isSplitView || isFullWidth ? 'max-w-full' : 'max-w-[45em]'
+        }`}
+      >
+        {/* Markdown Split View Mode: Dual-Pane Synchronous Scrolling */}
+        {category === 'markdown' && isSplitView && (
+          <div className="flex-1 flex w-full h-full overflow-hidden">
+            {/* Left Column: Markdown Editor */}
+            <div
+              ref={editScrollRef}
+              onScroll={handleEditScroll}
+              className="w-1/2 h-full overflow-y-auto border-r border-white/10 font-editor-mono font-mono text-sm leading-relaxed relative"
+            >
+              <div className="h-20" />
+              <div className="flex w-full min-h-[calc(100%-13rem)]">
+                <div className="w-10 sm:w-12 py-6 pr-2 sm:pr-3 text-right select-none text-zinc-600 font-editor-mono font-mono text-xs leading-relaxed shrink-0 border-r border-white/5 space-y-0 opacity-60">
+                  {lines.map((_, i) => (
+                    <div key={i} className="h-[1.5rem] leading-[1.5rem]">
+                      {i + 1}
+                    </div>
+                  ))}
+                </div>
+                <textarea
+                  ref={textareaRef}
+                  value={content}
+                  onChange={(e) => onContentChange(e.target.value)}
+                  onSelect={handleSelectionChange}
+                  onKeyUp={handleSelectionChange}
+                  onClick={handleSelectionChange}
+                  placeholder="Write your thoughts..."
+                  className="flex-1 p-6 pl-3 sm:pl-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-relaxed relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
+                />
+              </div>
+              <div className="h-24" />
+            </div>
+
+            {/* Right Column: Markdown Rich Preview */}
+            <div
+              ref={previewScrollRef}
+              onScroll={handlePreviewScroll}
+              className="w-1/2 h-full overflow-y-auto font-preview-body font-sans text-sm leading-relaxed text-zinc-200 relative"
+            >
+              <div className="p-6 sm:p-8 pt-14 markdown-preview">
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: previewHtml,
+                  }}
+                />
+              </div>
+              <div className="h-28" />
+            </div>
+          </div>
+        )}
+
+        {/* Markdown Single Pane Edit Mode */}
+        {category === 'markdown' && !isSplitView && !isPreview && (
           <div
             ref={scrollContainerRef}
             className="flex-1 overflow-y-auto relative w-full h-full font-editor-mono font-mono text-sm leading-relaxed"
@@ -361,8 +506,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           </div>
         )}
 
-        {/* Markdown Rich Preview Mode: Headings in Serif, Body in Sans-serif, Code in Mono */}
-        {category === 'markdown' && isPreview && (
+        {/* Markdown Single Pane Rich Preview Mode */}
+        {category === 'markdown' && !isSplitView && isPreview && (
           <div className="flex-1 overflow-y-auto w-full h-full font-preview-body font-sans text-sm leading-relaxed text-zinc-200">
             <div className="p-8 pt-14 markdown-preview">
               <div
@@ -436,3 +581,12 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     </main>
   );
 };
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
