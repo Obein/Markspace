@@ -66,6 +66,7 @@ export const enUS = {
   selChars: 'Sel Chars',
   saving: 'Saving...',
   saved: 'Saved',
+  unsaved: 'Unsaved',
   preview: 'Preview',
   edit: 'Edit',
   splitView: 'Split View',

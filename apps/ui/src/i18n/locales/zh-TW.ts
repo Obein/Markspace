@@ -68,6 +68,7 @@ export const zhTW: typeof enUS = {
   selChars: '選取字元數',
   saving: '儲存中...',
   saved: '已儲存',
+  unsaved: '未儲存',
   preview: '預覽',
   edit: '編輯',
   splitView: '分欄檢視',

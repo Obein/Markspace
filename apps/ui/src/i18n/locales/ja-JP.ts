@@ -68,6 +68,7 @@ export const jaJP: typeof enUS = {
   selChars: '選択文字数',
   saving: '保存中...',
   saved: '保存済み',
+  unsaved: '未保存',
   preview: 'プレビュー',
   edit: '編集',
   splitView: '分割ビュー',

@@ -68,6 +68,7 @@ export const deDE: typeof enUS = {
   selChars: 'Ausgew. Zeichen',
   saving: 'Speichern...',
   saved: 'Gespeichert',
+  unsaved: 'Ungespeichert',
   preview: 'Vorschau',
   edit: 'Bearbeiten',
   splitView: 'Geteilte Ansicht',

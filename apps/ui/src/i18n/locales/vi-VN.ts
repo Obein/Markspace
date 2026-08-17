@@ -68,6 +68,7 @@ export const viVN: typeof enUS = {
   selChars: 'Số Ký Tự Chọn',
   saving: 'Đang lưu...',
   saved: 'Đã lưu',
+  unsaved: 'Chưa lưu',
   preview: 'Xem trước',
   edit: 'Chỉnh sửa',
   splitView: 'Chia đôi màn hình',

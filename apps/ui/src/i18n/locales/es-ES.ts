@@ -68,6 +68,7 @@ export const esES: typeof enUS = {
   selChars: 'Caracteres Sel.',
   saving: 'Guardando...',
   saved: 'Guardado',
+  unsaved: 'Sin guardar',
   preview: 'Vista Previa',
   edit: 'Editar',
   splitView: 'Vista dividida',

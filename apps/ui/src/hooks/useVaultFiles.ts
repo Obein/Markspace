@@ -33,6 +33,7 @@ export function useVaultFiles({
   const [activeContent, setActiveContent] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isSaveFailed, setIsSaveFailed] = useState(false);
 
   // Undo / Redo History Stack
   const [historyPast, setHistoryPast] = useState<string[]>([]);
@@ -212,6 +213,7 @@ export function useVaultFiles({
         setActiveFileId(id);
         setActiveTitle(selected.filename);
         setActiveContent(selected.content);
+        setIsSaveFailed(false);
         setHistoryPast([]);
         setHistoryFuture([]);
         setSelectedWordCount(0);
@@ -509,8 +511,12 @@ export function useVaultFiles({
     if (!existing) return;
 
     if (existing.filename === activeTitle && existing.content === activeContent) {
+      setIsSaveFailed(false);
       return;
     }
+
+    // Mark as unsaved pending debounced auto-save completion
+    setIsSaveFailed(true);
 
     const timer = setTimeout(async () => {
       try {
@@ -569,8 +575,12 @@ export function useVaultFiles({
               : f
           )
         );
+
+        // Successfully saved
+        setIsSaveFailed(false);
       } catch (err) {
         console.error('Auto save to Object Storage error', err);
+        setIsSaveFailed(true);
         showToast(t('autoSaveFailed'), 'error');
       } finally {
         setIsSaving(false);
@@ -728,6 +738,7 @@ export function useVaultFiles({
     searchQuery,
     setSearchQuery,
     isSaving,
+    isSaveFailed,
     isLoadingVaultTree,
     isCreatingNote,
     isCreatingFolderLoading,

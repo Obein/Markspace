@@ -24,6 +24,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   isDark,
   onToggleTheme,
   isSaving,
+  isSaveFailed = false,
   onDownloadCurrentFile,
   onDeleteCurrentFile,
   onOpenHistory,
@@ -91,6 +92,11 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
               <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1 font-mono text-[11px] whitespace-nowrap">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-ping" />
                 {t('saving')}
+              </span>
+            ) : isSaveFailed ? (
+              <span className="text-amber-500 dark:text-amber-400 flex items-center gap-1.5 font-mono text-[11px] whitespace-nowrap font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse" />
+                {t('unsaved')}
               </span>
             ) : (
               <span className="text-zinc-400 dark:text-zinc-500 font-mono text-[11px] whitespace-nowrap">

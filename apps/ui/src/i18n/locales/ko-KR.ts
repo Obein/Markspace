@@ -68,6 +68,7 @@ export const koKR: typeof enUS = {
   selChars: '선택 글자 수',
   saving: '저장 중...',
   saved: '저장됨',
+  unsaved: '저장 안 됨',
   preview: '미리보기',
   edit: '편집',
   splitView: '분할 뷰',
