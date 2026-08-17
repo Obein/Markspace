@@ -32,6 +32,7 @@ interface EditorCanvasProps {
   onContentChange: (content: string) => void;
   isPreview: boolean;
   isSplitView?: boolean;
+  hasBottomCapsule?: boolean;
   onDownloadFile: () => void;
   onSelectionStatsChange?: (selectedWords: number, selectedChars: number) => void;
 }
@@ -44,6 +45,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   onContentChange,
   isPreview,
   isSplitView = false,
+  hasBottomCapsule = true,
   onDownloadFile,
   onSelectionStatsChange,
 }) => {
@@ -64,6 +66,13 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const lastDotIndex = title.lastIndexOf('.');
   const baseName = lastDotIndex > 0 ? title.substring(0, lastDotIndex) : title;
   const extension = lastDotIndex > 0 ? title.substring(lastDotIndex) : '';
+
+  // Whether formatting toolbar is displayed in top bar
+  const hasFormattingToolbar = category === 'markdown' && (!isPreview || isSplitView);
+  // Top Toolbar Spacing: taller when formatting toolbar is present, compact when only title bar is shown
+  const topToolbarSpacingClass = hasFormattingToolbar ? 'h-20' : 'h-14';
+  // Bottom Status Capsule Spacing: enabled only when bottom floating capsule is active
+  const bottomCapsuleSpacingClass = hasBottomCapsule ? 'h-28' : 'h-6';
 
   // Evaluate formula calculations for table cells
   const evaluatedMarkdown =
@@ -299,7 +308,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         </div>
 
         {/* Formatting Toolbar (Only visible in Markdown edit mode or split view) */}
-        {category === 'markdown' && (!isPreview || isSplitView) && (
+        {hasFormattingToolbar && (
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-1 border-t border-white/10 select-none">
             <button
               onClick={() => insertFormatting('**', '**')}
@@ -428,7 +437,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               onScroll={handleEditScroll}
               className="w-1/2 h-full overflow-y-auto border-r border-white/10 font-editor-mono font-mono text-sm leading-relaxed relative"
             >
-              <div className="h-20" />
+              {/* Dynamic Top Toolbar Spacing */}
+              <div className={topToolbarSpacingClass} />
+
               <div className="flex w-full min-h-[calc(100%-13rem)]">
                 <div className="w-10 sm:w-12 py-6 pr-2 sm:pr-3 text-right select-none text-zinc-600 font-editor-mono font-mono text-xs leading-relaxed shrink-0 border-r border-white/5 space-y-0 opacity-60">
                   {lines.map((_, i) => (
@@ -445,10 +456,12 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   onKeyUp={handleSelectionChange}
                   onClick={handleSelectionChange}
                   placeholder="Write your thoughts..."
-                  className="flex-1 p-6 pl-3 sm:pl-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-relaxed relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
+                  className="flex-1 py-6 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-relaxed relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
                 />
               </div>
-              <div className="h-24" />
+
+              {/* Dynamic Bottom Status Capsule Spacing */}
+              <div className={bottomCapsuleSpacingClass} />
             </div>
 
             {/* Right Column: Markdown Rich Preview */}
@@ -457,14 +470,19 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               onScroll={handlePreviewScroll}
               className="w-1/2 h-full overflow-y-auto font-preview-body font-sans text-sm leading-relaxed text-zinc-200 relative"
             >
-              <div className="p-6 sm:p-8 pt-14 markdown-preview">
+              {/* Dynamic Top Toolbar Spacing */}
+              <div className={topToolbarSpacingClass} />
+
+              <div className="px-6 sm:px-8 py-6 markdown-preview">
                 <div
                   dangerouslySetInnerHTML={{
                     __html: previewHtml,
                   }}
                 />
               </div>
-              <div className="h-28" />
+
+              {/* Dynamic Bottom Status Capsule Spacing */}
+              <div className={bottomCapsuleSpacingClass} />
             </div>
           </div>
         )}
@@ -475,8 +493,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             ref={scrollContainerRef}
             className="flex-1 overflow-y-auto relative w-full h-full font-editor-mono font-mono text-sm leading-relaxed"
           >
-            {/* Top Toolbar Spacing */}
-            <div className="h-20" />
+            {/* Dynamic Top Toolbar Spacing */}
+            <div className={topToolbarSpacingClass} />
 
             <div className="flex w-full min-h-[calc(100%-13rem)]">
               {/* Left Line Number Gutter Column */}
@@ -501,15 +519,18 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               />
             </div>
 
-            {/* Bottom Status Bar Spacing */}
-            <div className="h-24" />
+            {/* Dynamic Bottom Status Capsule Spacing */}
+            <div className={bottomCapsuleSpacingClass} />
           </div>
         )}
 
         {/* Markdown Single Pane Rich Preview Mode */}
         {category === 'markdown' && !isSplitView && isPreview && (
           <div className="flex-1 overflow-y-auto w-full h-full font-preview-body font-sans text-sm leading-relaxed text-zinc-200">
-            <div className="p-8 pt-14 markdown-preview">
+            {/* Dynamic Top Toolbar Spacing (Compact when no formatting toolbar) */}
+            <div className={topToolbarSpacingClass} />
+
+            <div className="p-8 pt-4 markdown-preview">
               <div
                 dangerouslySetInnerHTML={{
                   __html: previewHtml,
@@ -517,49 +538,52 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               />
             </div>
 
-            {/* Bottom Status Capsule Spacing */}
-            <div className="h-28" />
+            {/* Dynamic Bottom Status Capsule Spacing */}
+            <div className={bottomCapsuleSpacingClass} />
           </div>
         )}
 
         {category === 'image' && (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-            <div className="h-20" />
+            <div className={topToolbarSpacingClass} />
             <img
               src={content}
               alt={title}
               className="max-h-[60vh] max-w-full rounded-2xl object-contain shadow-2xl border border-white/10"
             />
             <p className="text-xs text-zinc-400 font-editor-mono font-mono">{activeFile.filename}</p>
+            <div className={bottomCapsuleSpacingClass} />
           </div>
         )}
 
         {category === 'audio' && (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-            <div className="h-20" />
+            <div className={topToolbarSpacingClass} />
             <div className="p-6 rounded-3xl bg-white/5 border border-white/10 flex flex-col items-center gap-4 shadow-2xl max-w-md w-full">
               <Music className="w-12 h-12 text-blue-400 animate-pulse" />
               <audio controls src={content} className="w-full" />
               <p className="text-xs text-zinc-400 font-editor-mono font-mono">{activeFile.filename}</p>
             </div>
+            <div className={bottomCapsuleSpacingClass} />
           </div>
         )}
 
         {category === 'video' && (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-            <div className="h-20" />
+            <div className={topToolbarSpacingClass} />
             <video
               controls
               src={content}
               className="max-h-[60vh] max-w-full rounded-2xl shadow-2xl border border-white/10"
             />
             <p className="text-xs text-zinc-400 font-editor-mono font-mono">{activeFile.filename}</p>
+            <div className={bottomCapsuleSpacingClass} />
           </div>
         )}
 
         {category === 'binary' && (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-            <div className="h-20" />
+            <div className={topToolbarSpacingClass} />
             <div className="p-8 rounded-3xl bg-white/5 border border-white/10 flex flex-col items-center gap-4 shadow-2xl max-w-md">
               <AlertCircle className="w-12 h-12 text-blue-400" />
               <div>
@@ -575,6 +599,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 Download Binary Payload
               </button>
             </div>
+            <div className={bottomCapsuleSpacingClass} />
           </div>
         )}
       </div>

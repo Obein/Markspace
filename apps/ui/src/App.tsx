@@ -899,6 +899,7 @@ export const AppContent: React.FC = () => {
               onContentChange={setActiveContent}
               isPreview={isPreview}
               isSplitView={isSplitView}
+              hasBottomCapsule={isAuthenticated && isVaultUnlocked}
               onDownloadFile={handleDownloadActiveFile}
               onSelectionStatsChange={(selWords, selChars) => {
                 setSelectedWordCount(selWords);
