@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import mermaid from 'mermaid';
+import { normalizeMermaidCode } from '../../services/MarkdownPreviewService';
 
 interface MarkdownPreviewPaneProps {
   previewRef: React.RefObject<HTMLDivElement | null>;
@@ -19,9 +21,69 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
   isSplitView = false,
   isFullWidth = false,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Directly render any Mermaid diagrams whenever previewHtml is mounted or updated in this pane
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let isMounted = true;
+
+    // Small microtask timeout to ensure dangerouslySetInnerHTML is committed to DOM
+    const timeoutId = setTimeout(() => {
+      if (!isMounted) return;
+
+      const mermaidNodes = container.querySelectorAll<HTMLElement>(
+        '.mermaid-diagram-code:not([data-processed="true"]), .mermaid:not([data-processed="true"])'
+      );
+
+      if (mermaidNodes.length === 0) return;
+
+      mermaidNodes.forEach((element, idx) => {
+        const id = `mermaid_${idx}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+        const encoded = element.getAttribute('data-mermaid-code');
+        const rawCode = encoded ? decodeURIComponent(encoded) : (element.textContent || '');
+        const cleanCode = normalizeMermaidCode(rawCode);
+
+        mermaid
+          .render(id, cleanCode)
+          .then(({ svg, bindFunctions }) => {
+            if (isMounted && element) {
+              element.innerHTML = svg;
+              element.setAttribute('data-processed', 'true');
+              element.className = 'w-full flex justify-center overflow-x-auto';
+              if (bindFunctions) {
+                bindFunctions(element);
+              }
+            }
+          })
+          .catch((err) => {
+            console.warn('Mermaid rendering error:', err);
+            if (isMounted && element) {
+              element.innerHTML = `<div class="p-3 bg-red-500/10 border border-red-500/30 text-red-300 text-xs rounded-xl font-mono text-center">Mermaid Syntax Error: ${err?.message || 'Invalid diagram format'}</div>`;
+              element.setAttribute('data-processed', 'true');
+            }
+          });
+      });
+    }, 20);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [previewHtml]);
+
   return (
     <div
-      ref={previewRef as any}
+      ref={(el) => {
+        (containerRef as any).current = el;
+        if (typeof previewRef === 'function') {
+          (previewRef as any)(el);
+        } else if (previewRef) {
+          (previewRef as any).current = el;
+        }
+      }}
       onScroll={onScroll}
       className={`${
         isSplitView

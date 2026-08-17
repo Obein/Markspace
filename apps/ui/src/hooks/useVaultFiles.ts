@@ -96,6 +96,28 @@ export function useVaultFiles({
             continue;
           }
 
+          if (node.size === 0) {
+            const nodeFilename = node.path.split('/').pop() || node.name;
+            decryptedList.push({
+              id: node.id,
+              name: nodeFilename,
+              filename: nodeFilename,
+              path: node.path,
+              category: node.category,
+              mimeType: node.mimeType,
+              size: 0,
+              content: '',
+              blobUrl: '',
+              encryptedTitle: nodeFilename,
+              encryptedPayload: '',
+              encryptedDek: node.encryptedDek,
+              vaultId: activeVaultId || 'vault_default',
+              createdAt: node.createdAt,
+              updatedAt: node.updatedAt,
+            });
+            continue;
+          }
+
           try {
             const { body, encryptedDek } = await apiClient.getVaultNodeContent(node.id);
             const dek = await cryptoService.unwrapDEK(encryptedDek || node.encryptedDek, cmk);
