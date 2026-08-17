@@ -72,7 +72,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   // Whether formatting toolbar is displayed in top bar
   const hasFormattingToolbar = category === 'markdown' && (!isPreview || isSplitView);
   // Top Toolbar Spacing: taller when formatting toolbar is present, compact when only title bar is shown
-  const topToolbarSpacingClass = hasFormattingToolbar ? 'h-20' : 'h-14';
+  const topToolbarSpacingClass = hasFormattingToolbar ? 'h-28' : 'h-14';
   // Bottom Status Capsule Spacing: enabled only when bottom floating capsule is active
   const bottomCapsuleSpacingClass = hasBottomCapsule ? 'h-28' : 'h-6';
 
