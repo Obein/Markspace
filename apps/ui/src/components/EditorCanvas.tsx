@@ -97,39 +97,53 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     const mirror = mirrorRef.current;
     if (!textarea || !mirror) return;
 
+    const rect = textarea.getBoundingClientRect();
+    if (rect.width <= 0) return;
+
     const computedStyle = window.getComputedStyle(textarea);
-    mirror.style.width = `${textarea.clientWidth}px`;
+    mirror.style.width = `${rect.width}px`;
     mirror.style.paddingLeft = computedStyle.paddingLeft;
     mirror.style.paddingRight = computedStyle.paddingRight;
+    mirror.style.boxSizing = 'border-box';
     mirror.style.fontSize = computedStyle.fontSize;
     mirror.style.fontFamily = computedStyle.fontFamily;
+    mirror.style.fontWeight = computedStyle.fontWeight;
     mirror.style.lineHeight = computedStyle.lineHeight;
     mirror.style.letterSpacing = computedStyle.letterSpacing;
-    mirror.style.boxSizing = computedStyle.boxSizing;
 
     const children = mirror.children;
     const heights: number[] = [];
     for (let i = 0; i < children.length; i++) {
       const child = children[i] as HTMLElement;
-      heights.push(child.getBoundingClientRect().height || 24);
+      heights.push(child.offsetHeight || 24);
     }
     setLineHeights(heights);
   };
 
   useEffect(() => {
-    measureLineHeights();
-  }, [content, isSplitView, isFullWidth, isPreview]);
-
-  useEffect(() => {
     const textarea = textareaRef.current;
-    if (!textarea || typeof ResizeObserver === 'undefined') return;
+    if (!textarea) return;
 
-    const observer = new ResizeObserver(() => {
+    measureLineHeights();
+
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(() => {
+        measureLineHeights();
+      });
+      observer.observe(textarea);
+    }
+
+    // Delay measurement slightly to ensure flex-pane transition is complete
+    const timer = setTimeout(() => {
       measureLineHeights();
-    });
-    observer.observe(textarea);
-    return () => observer.disconnect();
-  }, []);
+    }, 60);
+
+    return () => {
+      if (observer) observer.disconnect();
+      clearTimeout(timer);
+    };
+  }, [content, isSplitView, isFullWidth, isPreview, activeFile?.id]);
 
   // Auto-expand textarea height based on line count so textarea never shows inner scrollbar
   useEffect(() => {
