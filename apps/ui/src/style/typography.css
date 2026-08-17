@@ -1,8 +1,20 @@
-/* Full OpenType Font Ligatures & Rendering Specifications */
+/* Full Monaspace & OpenType Font Ligatures Specifications */
 .font-editor-mono {
-  font-family: var(--font-editor-mono);
-  font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures contextual;
-  font-feature-settings: "calt" 1, "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "kern" 1;
+  font-family: var(--font-editor-mono, 'Monaspace Neon', monospace);
+  font-variant-ligatures: discretionary-ligatures common-ligatures contextual;
+  font-feature-settings: 
+    "calt" 1,
+    "liga" 1,
+    "dlig" 1,
+    "ss01" 1,
+    "ss02" 1,
+    "ss03" 1,
+    "ss04" 1,
+    "ss05" 1,
+    "ss06" 1,
+    "ss07" 1,
+    "ss08" 1,
+    "ss09" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -10,8 +22,20 @@
 
 .font-preview-heading {
   font-family: var(--font-preview-heading);
-  font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures contextual;
-  font-feature-settings: "calt" 1, "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "kern" 1;
+  font-variant-ligatures: discretionary-ligatures common-ligatures contextual;
+  font-feature-settings: 
+    "calt" 1,
+    "liga" 1,
+    "dlig" 1,
+    "ss01" 1,
+    "ss02" 1,
+    "ss03" 1,
+    "ss04" 1,
+    "ss05" 1,
+    "ss06" 1,
+    "ss07" 1,
+    "ss08" 1,
+    "ss09" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -19,17 +43,41 @@
 
 .font-preview-body {
   font-family: var(--font-preview-body);
-  font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures contextual;
-  font-feature-settings: "calt" 1, "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "kern" 1;
+  font-variant-ligatures: discretionary-ligatures common-ligatures contextual;
+  font-feature-settings: 
+    "calt" 1,
+    "liga" 1,
+    "dlig" 1,
+    "ss01" 1,
+    "ss02" 1,
+    "ss03" 1,
+    "ss04" 1,
+    "ss05" 1,
+    "ss06" 1,
+    "ss07" 1,
+    "ss08" 1,
+    "ss09" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Enable all ligatures on code blocks, pre, code, and textarea across editor and preview */
+/* Enable all Monaspace ligatures on code blocks, pre, code, and textarea across editor and preview */
 pre, code, textarea, .lezer-code-block, .syntax-backdrop, .markdown-preview pre, .markdown-preview code {
-  font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures contextual;
-  font-feature-settings: "calt" 1, "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "kern" 1;
+  font-variant-ligatures: discretionary-ligatures common-ligatures contextual;
+  font-feature-settings: 
+    "calt" 1,
+    "liga" 1,
+    "dlig" 1,
+    "ss01" 1,
+    "ss02" 1,
+    "ss03" 1,
+    "ss04" 1,
+    "ss05" 1,
+    "ss06" 1,
+    "ss07" 1,
+    "ss08" 1,
+    "ss09" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -48,8 +96,20 @@ textarea.editor-textarea {
   line-height: 24px;
   letter-spacing: normal;
   tab-size: 2;
-  font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures contextual;
-  font-feature-settings: "calt" 1, "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "kern" 1;
+  font-variant-ligatures: discretionary-ligatures common-ligatures contextual;
+  font-feature-settings: 
+    "calt" 1,
+    "liga" 1,
+    "dlig" 1,
+    "ss01" 1,
+    "ss02" 1,
+    "ss03" 1,
+    "ss04" 1,
+    "ss05" 1,
+    "ss06" 1,
+    "ss07" 1,
+    "ss08" 1,
+    "ss09" 1;
   text-rendering: optimizeLegibility;
 }
 
@@ -67,7 +127,19 @@ textarea.editor-textarea::selection {
 .syntax-backdrop {
   tab-size: 2;
   letter-spacing: normal;
-  font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures contextual;
-  font-feature-settings: "calt" 1, "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "kern" 1;
+  font-variant-ligatures: discretionary-ligatures common-ligatures contextual;
+  font-feature-settings: 
+    "calt" 1,
+    "liga" 1,
+    "dlig" 1,
+    "ss01" 1,
+    "ss02" 1,
+    "ss03" 1,
+    "ss04" 1,
+    "ss05" 1,
+    "ss06" 1,
+    "ss07" 1,
+    "ss08" 1,
+    "ss09" 1;
   text-rendering: optimizeLegibility;
 }

@@ -3,6 +3,23 @@
   font-family: var(--font-preview-body);
   color: #e4e4e7;
   line-height: 1.75;
+  font-variant-ligatures: discretionary-ligatures common-ligatures contextual;
+  font-feature-settings: 
+    "calt" 1,
+    "liga" 1,
+    "dlig" 1,
+    "ss01" 1,
+    "ss02" 1,
+    "ss03" 1,
+    "ss04" 1,
+    "ss05" 1,
+    "ss06" 1,
+    "ss07" 1,
+    "ss08" 1,
+    "ss09" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .markdown-preview h1 {
@@ -59,119 +76,100 @@
   color: #d4d4d8;
 }
 
-.markdown-preview strong,
-.markdown-preview b {
-  font-weight: 700;
-  color: #60a5fa;
-}
-
-.markdown-preview em,
-.markdown-preview i {
-  font-style: italic;
-  color: #e4e4e7;
-}
-
 .markdown-preview a {
   color: #60a5fa;
   text-decoration: underline;
   text-underline-offset: 3px;
-  transition: color 0.15s;
+  transition: color 0.15s ease;
 }
 
 .markdown-preview a:hover {
   color: #93c5fd;
 }
 
-.markdown-preview blockquote {
-  border-left: 4px solid #3b82f6;
-  padding: 0.75rem 1rem;
-  margin: 1rem 0;
-  background: rgba(255, 255, 255, 0.03);
-  border-top-right-radius: 0.75rem;
-  border-bottom-right-radius: 0.75rem;
-  color: #d4d4d8;
+.markdown-preview strong {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.markdown-preview em {
   font-style: italic;
+  color: #e4e4e7;
+}
+
+.markdown-preview blockquote {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding-left: 1rem;
+  border-left: 3px solid #3b82f6;
+  color: #a1a1aa;
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.75rem 1rem;
+  border-radius: 0 0.5rem 0.5rem 0;
 }
 
 .markdown-preview ul {
   list-style-type: disc;
   padding-left: 1.5rem;
-  margin: 0.75rem 0;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .markdown-preview ol {
   list-style-type: decimal;
   padding-left: 1.5rem;
-  margin: 0.75rem 0;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .markdown-preview li {
-  margin: 0.25rem 0;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  color: #d4d4d8;
 }
 
 .markdown-preview hr {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
   border: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin: 1.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.markdown-preview code:not(pre code) {
-  font-family: var(--font-editor-mono);
-  background: rgba(255, 255, 255, 0.08);
-  color: #93c5fd;
-  padding: 0.15rem 0.4rem;
-  border-radius: 0.375rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.markdown-preview code {
+  font-family: var(--font-editor-mono, 'Monaspace Neon', monospace);
   font-size: 0.85em;
-}
-
-.markdown-preview table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
-  overflow: hidden;
-  font-size: 0.85rem;
-}
-
-.markdown-preview th {
   background: rgba(255, 255, 255, 0.08);
-  color: #93c5fd;
-  text-align: left;
-  padding: 0.6rem 1rem;
-  font-weight: 600;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  color: #bfdbfe;
 }
 
-.markdown-preview td {
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  color: #e4e4e7;
+.markdown-preview pre {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: #09090b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow-x: auto;
 }
 
-.markdown-preview tr:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-/* KaTeX Formula Display */
-.katex-display-block {
-  font-size: 1.1em;
+.markdown-preview pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
   color: #f4f4f5;
+  font-size: 0.875rem;
+  line-height: 1.6;
 }
 
-.katex {
-  font-size: 1.05em;
-  text-rendering: auto;
-}
-
-/* Mermaid Diagram Display */
-.mermaid-container {
-  background: rgba(24, 24, 27, 0.6);
-  backdrop-filter: blur(12px);
-}
-
-.mermaid-container svg {
+.markdown-preview img {
   max-width: 100%;
   height: auto;
+  border-radius: 0.75rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
