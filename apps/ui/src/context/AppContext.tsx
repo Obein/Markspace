@@ -46,7 +46,7 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [unlockedVaultKeys, setUnlockedVaultKeys] = useState<Record<string, CryptoKey>>({});
-  const [activeVaultId, setActiveVaultId] = useState<string>('vault_default');
+  const [activeVaultId, setActiveVaultId] = useState<string>('');
   const [token, setTokenState] = useState<string | null>(localStorage.getItem('markspace_jwt_token'));
   const [username, setUsernameState] = useState<string | null>(localStorage.getItem('markspace_username'));
   const [role, setRoleState] = useState<UserRole | null>(
@@ -58,6 +58,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     apiClient.setOnForceLogout((reason: string) => {
       setUnlockedVaultKeys({});
+      setActiveVaultId('');
       setTokenState(null);
       setUsernameState(null);
       setRoleState(null);
@@ -124,6 +125,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const logoutAccount = () => {
     apiClient.logout();
     setUnlockedVaultKeys({});
+    setActiveVaultId('');
     setToken(null);
     setUsername(null);
     setRole(null);

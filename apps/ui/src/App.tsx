@@ -129,7 +129,6 @@ export const AppContent: React.FC = () => {
     handleDeleteFile,
   } = useVaultFiles({
     activeVaultId,
-    vaults,
     showToast,
   });
 

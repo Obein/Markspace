@@ -22,8 +22,9 @@ export function useVaults({
   const { cryptoService, apiClient, setVaultKey, activeVaultId, setActiveVaultId } = useApp();
 
   const [vaults, setVaults] = useState<VaultInfo[]>(() => {
+    if (!username) return [];
     try {
-      const stored = localStorage.getItem(`markspace_vaults_${username || 'default'}`);
+      const stored = localStorage.getItem(`markspace_vaults_${username}`);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
@@ -45,23 +46,24 @@ export function useVaults({
 
   // Sync vaults from localStorage when user logs in
   useEffect(() => {
-    if (username) {
-      try {
-        const stored = localStorage.getItem(`markspace_vaults_${username}`);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setVaults(parsed);
-            if (!activeVaultId || !parsed.some((v: VaultInfo) => v.id === activeVaultId)) {
-              setActiveVaultId(parsed[0].id);
-            }
-            return;
-          }
-        }
-      } catch (_) {}
+    if (!username) {
       setVaults([]);
       setActiveVaultId('');
+      return;
     }
+    try {
+      const stored = localStorage.getItem(`markspace_vaults_${username}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setVaults(parsed);
+          setActiveVaultId(parsed[0].id);
+          return;
+        }
+      }
+    } catch (_) {}
+    setVaults([]);
+    setActiveVaultId('');
   }, [username, setActiveVaultId]);
 
   const activeVault = vaults.find((v) => v.id === activeVaultId) || vaults[0];

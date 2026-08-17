@@ -1,45 +1,28 @@
 import { ServiceContainer } from '../container/ServiceContainer';
-import { AdminMiddleware } from '../middleware/AdminMiddleware';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
+import { AdminMiddleware } from '../middleware/AdminMiddleware';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { SecurityHeadersMiddleware } from '../middleware/SecurityHeadersMiddleware';
-import { DPoPVerifier } from '../services/DPoPVerifier';
 import { Env } from '../types/env';
 import { RequestContext } from '../types/http';
-
-interface Route {
-  method: string;
-  pattern: RegExp;
-  paramNames: string[];
-  requiresAuth: boolean;
-  requiresAdmin?: boolean;
-  handler: (container: ServiceContainer, ctx: RequestContext) => Promise<Response>;
-}
+import { DPoPVerifier } from '../services/DPoPVerifier';
 
 export class Router {
-  private readonly routes: Route[] = [];
+  private routes: Array<{
+    method: string;
+    pattern: RegExp;
+    paramNames: string[];
+    requiresAuth: boolean;
+    requiresAdmin: boolean;
+    handler: (container: ServiceContainer, ctx: RequestContext) => Promise<Response>;
+  }> = [];
 
   constructor() {
-    this.registerRoutes();
+    this.setupRoutes();
   }
 
-  private registerRoutes(): void {
-    // 0. System & Health Check Endpoints
-    this.addRoute('GET', '/api/v1/health', false, false, async () => {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: { status: 'healthy', name: 'Markspace API' },
-          timestamp: new Date().toISOString(),
-        }),
-        {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
-    });
-
-    // 1. Auth & Nonce Endpoints (Public)
+  private setupRoutes(): void {
+    // 1. Auth & Session Endpoints
     this.addRoute('GET', '/api/v1/auth/nonce', false, false, (container, ctx) =>
       container.authController.getNonce(ctx)
     );
@@ -52,7 +35,7 @@ export class Router {
     this.addRoute('POST', '/api/v1/auth/login', false, false, (container, ctx) =>
       container.authController.login(ctx)
     );
-    this.addRoute('POST', '/api/v1/auth/login-totp-passwordless', false, false, (container, ctx) =>
+    this.addRoute('POST', '/api/v1/auth/login/passwordless-totp', false, false, (container, ctx) =>
       container.authController.loginPasswordlessTotp(ctx)
     );
     this.addRoute('POST', '/api/v1/auth/logout', true, false, (container, ctx) =>
@@ -71,7 +54,7 @@ export class Router {
       container.authController.getAuditLogs(ctx)
     );
 
-    // 2. Note Endpoints (Protected)
+    // 2. Legacy Notes Endpoints (Protected)
     this.addRoute('GET', '/api/v1/notes', true, false, (container, ctx) =>
       container.noteController.listNotes(ctx)
     );
@@ -205,7 +188,32 @@ export class Router {
 
         const container = new ServiceContainer(env);
 
-        // Security headers & zero-trust checks
+        // AOP Aspect 1: Anti-Replay Nonce Verification (Before Advice)
+        // Handshake endpoint /api/v1/auth/nonce does not require a prior nonce
+        if (path !== '/api/v1/auth/nonce' && path.startsWith('/api/v1/')) {
+          const requestNonce = request.headers.get('X-Nonce');
+          if (requestNonce) {
+            const isValid = container.nonceService.consumeNonce(requestNonce);
+            if (!isValid) {
+              await container.auditLogRepository.recordLog({
+                userId: ctx.user?.userId || 'anonymous',
+                username: ctx.user?.username || 'unknown',
+                action: 'SECURITY_NONCE_VIOLATION',
+                authMethod: 'AOP Nonce Interceptor',
+                ipAddress: request.headers.get('CF-Connecting-IP') || '127.0.0.1',
+                userAgent: request.headers.get('User-Agent') || 'Unknown Client',
+                status: 'FAILED',
+                details: `Security violation: Nonce '${requestNonce}' is invalid or expired. Session terminated.`,
+              });
+
+              throw new Error(
+                'SECURITY_NONCE_VIOLATION: Anti-replay nonce verification failed. Session terminated.'
+              );
+            }
+          }
+        }
+
+        // Security headers & zero-trust DPoP checks
         const dpopProof = request.headers.get('DPoP');
         if (dpopProof) {
           try {
@@ -226,6 +234,11 @@ export class Router {
         }
 
         const response = await route.handler(container, ctx);
+
+        // AOP Aspect 2: Dynamic Next-Nonce Header Injection (After Advice)
+        const nextNonce = container.nonceService.generateNonce().nonce;
+        response.headers.set('X-Next-Nonce', nextNonce);
+
         return SecurityHeadersMiddleware.applyHeaders(response);
       }
 
@@ -244,6 +257,9 @@ export class Router {
       );
     } catch (error) {
       const response = ErrorHandler.handle(error);
+      const container = new ServiceContainer(env);
+      const nextNonce = container.nonceService.generateNonce().nonce;
+      response.headers.set('X-Next-Nonce', nextNonce);
       return SecurityHeadersMiddleware.applyHeaders(response);
     }
   }
@@ -256,7 +272,7 @@ export class Router {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization, DPoP, X-Nonce',
-          'Access-Control-Expose-Headers': 'X-Next-Nonce, DPoP, Set-Cookie',
+          'Access-Control-Expose-Headers': 'X-Next-Nonce, DPoP, Set-Cookie, X-Encrypted-DEK, X-Commit-Hash, Content-Disposition',
           'Access-Control-Allow-Credentials': 'true',
         },
       })

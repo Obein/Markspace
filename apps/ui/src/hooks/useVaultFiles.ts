@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../i18n/i18nContext';
-import { VaultFileItem, VaultInfo } from '../interfaces/INoteModels';
+import { VaultFileItem } from '../interfaces/INoteModels';
 import {
   generateRandom4Chars,
   sanitizeFilename,
@@ -11,13 +11,11 @@ import {
 
 interface UseVaultFilesOptions {
   activeVaultId: string;
-  vaults: VaultInfo[];
   showToast: (msg: string, type?: 'error' | 'success' | 'info') => void;
 }
 
 export function useVaultFiles({
   activeVaultId,
-  vaults,
   showToast,
 }: UseVaultFilesOptions) {
   const {
@@ -52,14 +50,11 @@ export function useVaultFiles({
   const [selectedCharCount, setSelectedCharCount] = useState(0);
 
   const activeVaultFiles = useMemo(() => {
+    if (!activeVaultId) return [];
     return files.filter(
-      (f) =>
-        !f.vaultId ||
-        f.vaultId === activeVaultId ||
-        f.vaultId === 'vault_default' ||
-        vaults.length === 1
+      (f) => f.vaultId === activeVaultId || !f.vaultId
     );
-  }, [files, activeVaultId, vaults.length]);
+  }, [files, activeVaultId]);
 
   const activeFile = useMemo(() => {
     return files.find((f) => f.id === activeFileId) || null;
@@ -175,7 +170,7 @@ export function useVaultFiles({
               encryptedTitle: nodeFilename,
               encryptedPayload: '',
               encryptedDek: node.encryptedDek,
-              vaultId: activeVaultId || 'vault_default',
+              vaultId: activeVaultId,
               createdAt: node.createdAt,
               updatedAt: node.updatedAt,
             });
@@ -199,6 +194,16 @@ export function useVaultFiles({
 
     fetchAndDecryptVaultTree();
   }, [isAuthenticated, isVaultUnlocked, cmk, apiClient, cryptoService, activeVaultId, showToast, t]);
+
+  // Reset active files in memory when unauthenticated or vault is locked
+  useEffect(() => {
+    if (!isAuthenticated || !isVaultUnlocked || !cmk) {
+      setFiles([]);
+      setActiveFileId(null);
+      setActiveTitle('');
+      setActiveContent('');
+    }
+  }, [isAuthenticated, isVaultUnlocked, cmk]);
 
   const handleSelectFile = useCallback(
     (id: string) => {

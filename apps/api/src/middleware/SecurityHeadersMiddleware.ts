@@ -6,7 +6,10 @@ export class SecurityHeadersMiddleware {
     headers.set('X-Frame-Options', 'DENY');
     headers.set('X-Content-Type-Options', 'nosniff');
     headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-    headers.set('Access-Control-Expose-Headers', 'X-Next-Nonce, DPoP, Set-Cookie');
+    headers.set(
+      'Access-Control-Expose-Headers',
+      'X-Next-Nonce, DPoP, Set-Cookie, X-Encrypted-DEK, X-Commit-Hash, Content-Disposition'
+    );
   }
 
   public static applyHeaders(response: Response): Response {

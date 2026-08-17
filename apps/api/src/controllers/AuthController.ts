@@ -29,40 +29,6 @@ export class AuthController {
     return ctx.request.headers.get('User-Agent') || 'Unknown Client';
   }
 
-  /**
-   * Helper to validate anti-replay nonce from X-Nonce header or body.
-   * If invalid, writes SECURITY_NONCE_VIOLATION audit log and throws error.
-   */
-  private async verifyAndConsumeNonce(
-    ctx: RequestContext,
-    providedNonce?: string,
-    username?: string
-  ): Promise<string> {
-    const nonce = providedNonce || ctx.request.headers.get('X-Nonce') || '';
-    const ip = this.getClientIp(ctx);
-    const userAgent = this.getUserAgent(ctx);
-
-    if (!nonce || !this.nonceService.consumeNonce(nonce)) {
-      await this.auditLogRepo.recordLog({
-        userId: ctx.user?.userId || 'anonymous',
-        username: username || ctx.user?.username || 'unknown',
-        action: 'SECURITY_NONCE_VIOLATION',
-        authMethod: 'Anti-Replay Nonce Chain',
-        ipAddress: ip,
-        userAgent,
-        status: 'FAILED',
-        details: 'Security violation: Nonce missing, expired, or already consumed (Replay Attack Prevention). Session forcefully terminated.',
-      });
-
-      throw new Error(
-        'SECURITY_NONCE_VIOLATION: Anti-replay nonce verification failed. Session terminated for security reasons.'
-      );
-    }
-
-    const nextNonceInfo = this.nonceService.generateNonce();
-    return nextNonceInfo.nonce;
-  }
-
   async getNonce(_ctx: RequestContext): Promise<Response> {
     const nonceInfo = this.nonceService.generateNonce();
     const response: ApiResponse = {
@@ -99,12 +65,11 @@ export class AuthController {
   }
 
   async register(ctx: RequestContext): Promise<Response> {
-    const body = (await ctx.request.json()) as RegisterDTO & { nonce?: string };
+    const body = (await ctx.request.json()) as RegisterDTO;
     const ip = this.getClientIp(ctx);
     const userAgent = this.getUserAgent(ctx);
 
     try {
-      const nextNonce = await this.verifyAndConsumeNonce(ctx, body.nonce, body.username);
       const result = await this.authService.register(body, ctx.env.JWT_SECRET);
 
       await this.auditLogRepo.recordLog({
@@ -120,16 +85,12 @@ export class AuthController {
 
       const response: ApiResponse = {
         success: true,
-        data: {
-          ...result,
-          nextNonce,
-        },
+        data: result,
         timestamp: new Date().toISOString(),
       };
 
       const headers = new Headers({
         'Content-Type': 'application/json',
-        'X-Next-Nonce': nextNonce,
         'Set-Cookie': `__Host-auth_token=${result.token}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=86400`,
       });
 
@@ -138,58 +99,47 @@ export class AuthController {
         headers,
       });
     } catch (err: any) {
-      if (!err.message?.includes('SECURITY_NONCE_VIOLATION')) {
-        await this.auditLogRepo.recordLog({
-          userId: 'anonymous',
-          username: body.username || 'unknown',
-          action: 'AUTH_REGISTER',
-          authMethod: 'DPoP + Nonce Handshake',
-          ipAddress: ip,
-          userAgent,
-          status: 'FAILED',
-          details: err instanceof Error ? err.message : String(err),
-        });
-      }
+      await this.auditLogRepo.recordLog({
+        userId: 'anonymous',
+        username: body.username || 'unknown',
+        action: 'AUTH_REGISTER',
+        authMethod: 'DPoP + Nonce Handshake',
+        ipAddress: ip,
+        userAgent,
+        status: 'FAILED',
+        details: err instanceof Error ? err.message : String(err),
+      });
       throw err;
     }
   }
 
   async login(ctx: RequestContext): Promise<Response> {
-    const body = (await ctx.request.json()) as LoginDTO & { nonce?: string };
+    const body = (await ctx.request.json()) as LoginDTO;
     const ip = this.getClientIp(ctx);
     const userAgent = this.getUserAgent(ctx);
 
     try {
-      const nextNonce = await this.verifyAndConsumeNonce(ctx, body.nonce, body.username);
-      const result = await this.authService.login(
-        body,
-        ctx.env.JWT_SECRET,
-        ctx.env.MASTER_ENCRYPTION_KEY
-      );
+      const result = await this.authService.login(body, ctx.env.JWT_SECRET, ctx.env.MASTER_ENCRYPTION_KEY);
 
       await this.auditLogRepo.recordLog({
         userId: result.user.id,
         username: result.user.username,
         action: 'AUTH_LOGIN',
-        authMethod: body.totpCode ? 'Password + TOTP MFA' : 'Password Auth',
+        authMethod: body.totpCode ? 'Password + TOTP 2FA' : 'Password Hash Handshake',
         ipAddress: ip,
         userAgent,
         status: 'SUCCESS',
-        details: 'Authenticated successfully with non-extractable client key proof',
+        details: 'User successfully authenticated',
       });
 
       const response: ApiResponse = {
         success: true,
-        data: {
-          ...result,
-          nextNonce,
-        },
+        data: result,
         timestamp: new Date().toISOString(),
       };
 
       const headers = new Headers({
         'Content-Type': 'application/json',
-        'X-Next-Nonce': nextNonce,
         'Set-Cookie': `__Host-auth_token=${result.token}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=86400`,
       });
 
@@ -198,29 +148,26 @@ export class AuthController {
         headers,
       });
     } catch (err: any) {
-      if (!err.message?.includes('SECURITY_NONCE_VIOLATION')) {
-        await this.auditLogRepo.recordLog({
-          userId: 'anonymous',
-          username: body.username || 'unknown',
-          action: 'AUTH_LOGIN',
-          authMethod: 'Password Auth',
-          ipAddress: ip,
-          userAgent,
-          status: 'FAILED',
-          details: err instanceof Error ? err.message : String(err),
-        });
-      }
+      await this.auditLogRepo.recordLog({
+        userId: 'anonymous',
+        username: body.username || 'unknown',
+        action: 'AUTH_LOGIN',
+        authMethod: 'Password Hash Handshake',
+        ipAddress: ip,
+        userAgent,
+        status: 'FAILED',
+        details: err instanceof Error ? err.message : String(err),
+      });
       throw err;
     }
   }
 
   async loginPasswordlessTotp(ctx: RequestContext): Promise<Response> {
-    const body = (await ctx.request.json()) as LoginTotpPasswordlessDTO & { nonce?: string };
+    const body = (await ctx.request.json()) as LoginTotpPasswordlessDTO;
     const ip = this.getClientIp(ctx);
     const userAgent = this.getUserAgent(ctx);
 
     try {
-      const nextNonce = await this.verifyAndConsumeNonce(ctx, body.nonce, body.username);
       const result = await this.authService.loginPasswordlessTotp(
         body,
         ctx.env.JWT_SECRET,
@@ -231,25 +178,21 @@ export class AuthController {
         userId: result.user.id,
         username: result.user.username,
         action: 'AUTH_PASSWORDLESS_TOTP',
-        authMethod: 'Passwordless TOTP MFA',
+        authMethod: 'RFC 6238 TOTP (Passwordless)',
         ipAddress: ip,
         userAgent,
         status: 'SUCCESS',
-        details: 'Passwordless login verified successfully via 6-digit TOTP code',
+        details: 'User successfully authenticated via passwordless TOTP',
       });
 
       const response: ApiResponse = {
         success: true,
-        data: {
-          ...result,
-          nextNonce,
-        },
+        data: result,
         timestamp: new Date().toISOString(),
       };
 
       const headers = new Headers({
         'Content-Type': 'application/json',
-        'X-Next-Nonce': nextNonce,
         'Set-Cookie': `__Host-auth_token=${result.token}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=86400`,
       });
 
@@ -258,157 +201,36 @@ export class AuthController {
         headers,
       });
     } catch (err: any) {
-      if (!err.message?.includes('SECURITY_NONCE_VIOLATION')) {
-        await this.auditLogRepo.recordLog({
-          userId: 'anonymous',
-          username: body.username || 'unknown',
-          action: 'AUTH_PASSWORDLESS_TOTP',
-          authMethod: 'Passwordless TOTP MFA',
-          ipAddress: ip,
-          userAgent,
-          status: 'FAILED',
-          details: err instanceof Error ? err.message : String(err),
-        });
-      }
+      await this.auditLogRepo.recordLog({
+        userId: 'anonymous',
+        username: body.username || 'unknown',
+        action: 'AUTH_PASSWORDLESS_TOTP',
+        authMethod: 'RFC 6238 TOTP (Passwordless)',
+        ipAddress: ip,
+        userAgent,
+        status: 'FAILED',
+        details: err instanceof Error ? err.message : String(err),
+      });
       throw err;
     }
   }
 
-  async setupTotp(ctx: RequestContext): Promise<Response> {
-    const user = ctx.user;
-    if (!user) {
-      throw new Error('UNAUTHORIZED: Authentication required to setup TOTP');
-    }
-
-    const data = this.authService.setupTotp(user.userId, user.username);
-    const nextNonceInfo = this.nonceService.generateNonce();
-
-    await this.auditLogRepo.recordLog({
-      userId: user.userId,
-      username: user.username,
-      action: 'TOTP_SETUP',
-      authMethod: 'TOTP Secret Generation',
-      ipAddress: this.getClientIp(ctx),
-      userAgent: this.getUserAgent(ctx),
-      status: 'SUCCESS',
-      details: 'Generated new TOTP setup session with 25-second rotation window',
-    });
-
-    const response: ApiResponse = {
-      success: true,
-      data: {
-        ...data,
-        nextNonce: nextNonceInfo.nonce,
-      },
-      timestamp: new Date().toISOString(),
-    };
-
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Next-Nonce': nextNonceInfo.nonce,
-      },
-    });
-  }
-
-  async enableTotp(ctx: RequestContext): Promise<Response> {
-    const user = ctx.user;
-    if (!user) {
-      throw new Error('UNAUTHORIZED: Authentication required to enable TOTP');
-    }
-
-    const body = (await ctx.request.json()) as EnableTotpDTO & { nonce?: string };
-    const nextNonce = await this.verifyAndConsumeNonce(ctx, body.nonce, user.username);
-
-    await this.authService.enableTotp(user.userId, body, ctx.env.MASTER_ENCRYPTION_KEY);
-
-    await this.auditLogRepo.recordLog({
-      userId: user.userId,
-      username: user.username,
-      action: 'TOTP_ENABLE',
-      authMethod: 'TOTP Verification & KEK Envelope Encryption',
-      ipAddress: this.getClientIp(ctx),
-      userAgent: this.getUserAgent(ctx),
-      status: 'SUCCESS',
-      details: 'TOTP MFA enabled and secret encrypted with MASTER_ENCRYPTION_KEY',
-    });
-
-    const response: ApiResponse = {
-      success: true,
-      data: {
-        message: 'TOTP multi-factor authentication enabled successfully',
-        nextNonce,
-      },
-      timestamp: new Date().toISOString(),
-    };
-
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Next-Nonce': nextNonce,
-      },
-    });
-  }
-
-  async disableTotp(ctx: RequestContext): Promise<Response> {
-    const user = ctx.user;
-    if (!user) {
-      throw new Error('UNAUTHORIZED: Authentication required to disable TOTP');
-    }
-
-    const body = (await ctx.request.json()) as DisableTotpDTO & { nonce?: string };
-    const nextNonce = await this.verifyAndConsumeNonce(ctx, body.nonce, user.username);
-
-    await this.authService.disableTotp(user.userId, body, ctx.env.MASTER_ENCRYPTION_KEY);
-
-    await this.auditLogRepo.recordLog({
-      userId: user.userId,
-      username: user.username,
-      action: 'TOTP_DISABLE',
-      authMethod: 'TOTP Disable Verification',
-      ipAddress: this.getClientIp(ctx),
-      userAgent: this.getUserAgent(ctx),
-      status: 'SUCCESS',
-      details: 'TOTP multi-factor authentication disabled',
-    });
-
-    const response: ApiResponse = {
-      success: true,
-      data: {
-        message: 'TOTP multi-factor authentication disabled',
-        nextNonce,
-      },
-      timestamp: new Date().toISOString(),
-    };
-
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Next-Nonce': nextNonce,
-      },
-    });
-  }
-
   async logout(ctx: RequestContext): Promise<Response> {
-    const user = ctx.user;
+    const userId = ctx.user!.userId;
+    const username = ctx.user!.username;
     const ip = this.getClientIp(ctx);
     const userAgent = this.getUserAgent(ctx);
 
-    if (user) {
-      await this.auditLogRepo.recordLog({
-        userId: user.userId,
-        username: user.username,
-        action: 'AUTH_LOGOUT',
-        authMethod: 'Session Termination',
-        ipAddress: ip,
-        userAgent,
-        status: 'SUCCESS',
-        details: 'User logged out and session cookie cleared',
-      });
-    }
+    await this.auditLogRepo.recordLog({
+      userId,
+      username,
+      action: 'AUTH_LOGOUT',
+      authMethod: 'Session Termination',
+      ipAddress: ip,
+      userAgent,
+      status: 'SUCCESS',
+      details: 'User logged out and session revoked',
+    });
 
     const response: ApiResponse = {
       success: true,
@@ -418,7 +240,7 @@ export class AuthController {
 
     const headers = new Headers({
       'Content-Type': 'application/json',
-      'Set-Cookie': `__Host-auth_token=; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0`,
+      'Set-Cookie': '__Host-auth_token=; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0',
     });
 
     return new Response(JSON.stringify(response), {
@@ -427,13 +249,128 @@ export class AuthController {
     });
   }
 
-  async getAuditLogs(ctx: RequestContext): Promise<Response> {
-    const user = ctx.user;
-    if (!user) {
-      throw new Error('UNAUTHORIZED: Authentication required to view audit logs');
+  async setupTotp(ctx: RequestContext): Promise<Response> {
+    const userId = ctx.user!.userId;
+    const username = ctx.user!.username;
+
+    const setupData = this.authService.setupTotp(userId, username);
+
+    const response: ApiResponse = {
+      success: true,
+      data: setupData,
+      timestamp: new Date().toISOString(),
+    };
+
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  async enableTotp(ctx: RequestContext): Promise<Response> {
+    const userId = ctx.user!.userId;
+    const username = ctx.user!.username;
+    const body = (await ctx.request.json()) as EnableTotpDTO;
+    const ip = this.getClientIp(ctx);
+    const userAgent = this.getUserAgent(ctx);
+
+    if (!body.code || !body.secret) {
+      throw new Error('BAD_REQUEST: Missing required verification code or secret');
     }
 
-    const logs = await this.auditLogRepo.getLogsByUser(user.userId);
+    try {
+      await this.authService.enableTotp(userId, body, ctx.env.MASTER_ENCRYPTION_KEY);
+
+      await this.auditLogRepo.recordLog({
+        userId,
+        username,
+        action: 'TOTP_ENABLE',
+        authMethod: 'RFC 6238 TOTP',
+        ipAddress: ip,
+        userAgent,
+        status: 'SUCCESS',
+        details: 'Two-Factor Authentication (TOTP) successfully bound and enabled with envelope encryption',
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: { message: 'TOTP 2FA successfully enabled.' },
+        timestamp: new Date().toISOString(),
+      };
+
+      return new Response(JSON.stringify(response), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (err: any) {
+      await this.auditLogRepo.recordLog({
+        userId,
+        username,
+        action: 'TOTP_ENABLE',
+        authMethod: 'RFC 6238 TOTP',
+        ipAddress: ip,
+        userAgent,
+        status: 'FAILED',
+        details: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
+  }
+
+  async disableTotp(ctx: RequestContext): Promise<Response> {
+    const userId = ctx.user!.userId;
+    const username = ctx.user!.username;
+    const body = (await ctx.request.json()) as DisableTotpDTO;
+    const ip = this.getClientIp(ctx);
+    const userAgent = this.getUserAgent(ctx);
+
+    if (!body.code) {
+      throw new Error('BAD_REQUEST: Missing required TOTP verification code');
+    }
+
+    try {
+      await this.authService.disableTotp(userId, body, ctx.env.MASTER_ENCRYPTION_KEY);
+
+      await this.auditLogRepo.recordLog({
+        userId,
+        username,
+        action: 'TOTP_DISABLE',
+        authMethod: 'RFC 6238 TOTP',
+        ipAddress: ip,
+        userAgent,
+        status: 'SUCCESS',
+        details: 'Two-Factor Authentication (TOTP) successfully disabled and secret removed',
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: { message: 'TOTP 2FA successfully disabled.' },
+        timestamp: new Date().toISOString(),
+      };
+
+      return new Response(JSON.stringify(response), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (err: any) {
+      await this.auditLogRepo.recordLog({
+        userId,
+        username,
+        action: 'TOTP_DISABLE',
+        authMethod: 'RFC 6238 TOTP',
+        ipAddress: ip,
+        userAgent,
+        status: 'FAILED',
+        details: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
+  }
+
+  async getAuditLogs(ctx: RequestContext): Promise<Response> {
+    const userId = ctx.user!.userId;
+    const logs = await this.auditLogRepo.getLogsByUser(userId, 50);
+
     const response: ApiResponse = {
       success: true,
       data: logs,

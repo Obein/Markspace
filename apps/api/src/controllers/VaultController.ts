@@ -1,5 +1,4 @@
 import { D1AuditLogRepository } from '../infrastructure/D1AuditLogRepository';
-import { NonceService } from '../services/NonceService';
 import { VaultSecurityService } from '../services/VaultSecurityService';
 import { VaultService } from '../services/VaultService';
 import { ApiResponse, RequestContext } from '../types/http';
@@ -8,7 +7,6 @@ export class VaultController {
   constructor(
     private readonly vaultService: VaultService,
     private readonly vaultSecurityService: VaultSecurityService,
-    private readonly nonceService: NonceService,
     private readonly auditLogRepo: D1AuditLogRepository
   ) {}
 
@@ -24,40 +22,13 @@ export class VaultController {
     return ctx.request.headers.get('User-Agent') || 'Unknown Client';
   }
 
-  /**
-   * Helper to validate anti-replay nonce from X-Nonce header or body.
-   */
-  private async verifyAndConsumeNonce(ctx: RequestContext, providedNonce?: string): Promise<string> {
-    const nonce = providedNonce || ctx.request.headers.get('X-Nonce') || '';
-    if (!nonce || !this.nonceService.consumeNonce(nonce)) {
-      await this.auditLogRepo.recordLog({
-        userId: ctx.user?.userId || 'anonymous',
-        username: ctx.user?.username || 'unknown',
-        action: 'SECURITY_NONCE_VIOLATION',
-        authMethod: 'Anti-Replay Nonce Chain',
-        ipAddress: this.getClientIp(ctx),
-        userAgent: this.getUserAgent(ctx),
-        status: 'FAILED',
-        details: 'Security violation: Nonce missing or invalid in vault operation. Session terminated.',
-      });
-
-      throw new Error(
-        'SECURITY_NONCE_VIOLATION: Anti-replay nonce verification failed. Session terminated for security reasons.'
-      );
-    }
-
-    const nextNonceInfo = this.nonceService.generateNonce();
-    return nextNonceInfo.nonce;
-  }
-
   public async getTicketKey(ctx: RequestContext): Promise<Response> {
     const userId = ctx.user!.userId;
-    const body = (await ctx.request.json()) as { vaultId?: string; nonce?: string };
+    const body = (await ctx.request.json()) as { vaultId?: string };
     if (!body.vaultId) {
       throw new Error('BAD_REQUEST: Missing required vaultId');
     }
 
-    const nextNonce = await this.verifyAndConsumeNonce(ctx, body.nonce);
     const serverTicketKey = await this.vaultSecurityService.getOrCreateTicketKey(
       userId,
       body.vaultId,
@@ -68,7 +39,6 @@ export class VaultController {
       success: true,
       data: {
         serverTicketKey,
-        nextNonce,
       },
       timestamp: new Date().toISOString(),
     };
@@ -77,19 +47,17 @@ export class VaultController {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'X-Next-Nonce': nextNonce,
       },
     });
   }
 
   public async requestUnlockTicket(ctx: RequestContext): Promise<Response> {
     const userId = ctx.user!.userId;
-    const body = (await ctx.request.json()) as { vaultId?: string; nonce?: string };
+    const body = (await ctx.request.json()) as { vaultId?: string };
     if (!body.vaultId) {
       throw new Error('BAD_REQUEST: Missing required vaultId');
     }
 
-    const nextNonce = await this.verifyAndConsumeNonce(ctx, body.nonce);
     const result = await this.vaultSecurityService.requestUnlockTicket(
       userId,
       body.vaultId,
@@ -98,10 +66,7 @@ export class VaultController {
 
     const response: ApiResponse = {
       success: true,
-      data: {
-        ...result,
-        nextNonce,
-      },
+      data: result,
       timestamp: new Date().toISOString(),
     };
 
@@ -109,19 +74,17 @@ export class VaultController {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'X-Next-Nonce': nextNonce,
       },
     });
   }
 
   public async reportPinFailure(ctx: RequestContext): Promise<Response> {
     const userId = ctx.user!.userId;
-    const body = (await ctx.request.json()) as { vaultId?: string; nonce?: string };
+    const body = (await ctx.request.json()) as { vaultId?: string };
     if (!body.vaultId) {
       throw new Error('BAD_REQUEST: Missing required vaultId');
     }
 
-    const nextNonce = await this.verifyAndConsumeNonce(ctx, body.nonce);
     const result = await this.vaultSecurityService.reportPinFailure(userId, body.vaultId);
 
     await this.auditLogRepo.recordLog({
@@ -137,10 +100,7 @@ export class VaultController {
 
     const response: ApiResponse = {
       success: true,
-      data: {
-        ...result,
-        nextNonce,
-      },
+      data: result,
       timestamp: new Date().toISOString(),
     };
 
@@ -148,26 +108,23 @@ export class VaultController {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'X-Next-Nonce': nextNonce,
       },
     });
   }
 
   public async reportPinSuccess(ctx: RequestContext): Promise<Response> {
     const userId = ctx.user!.userId;
-    const body = (await ctx.request.json()) as { vaultId?: string; nonce?: string };
+    const body = (await ctx.request.json()) as { vaultId?: string };
     if (!body.vaultId) {
       throw new Error('BAD_REQUEST: Missing required vaultId');
     }
 
-    const nextNonce = await this.verifyAndConsumeNonce(ctx, body.nonce);
     await this.vaultSecurityService.reportPinSuccess(userId, body.vaultId);
 
     const response: ApiResponse = {
       success: true,
       data: {
         message: 'PIN successfully verified. Lockout status reset.',
-        nextNonce,
       },
       timestamp: new Date().toISOString(),
     };
@@ -176,7 +133,6 @@ export class VaultController {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'X-Next-Nonce': nextNonce,
       },
     });
   }

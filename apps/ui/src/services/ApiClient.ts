@@ -31,19 +31,27 @@ export class ApiClient implements IApiClient {
     this.onForceLogoutCallback = callback;
   }
 
+  /**
+   * AOP Aspect: Perform initial Nonce handshake if not already cached.
+   */
   private async getNonce(): Promise<string> {
     try {
       const res = await fetch(`${this.baseUrl}/auth/nonce`, { method: 'GET', credentials: 'include' });
       const nextNonceHeader = res.headers.get('X-Next-Nonce');
-      const json = await res.json();
-      const nonce = nextNonceHeader || json.data?.nonce || '';
-      this.currentNonce = nonce;
+      const json = await res.json().catch(() => null);
+      const nonce = nextNonceHeader || json?.data?.nonce || '';
+      if (nonce) {
+        this.currentNonce = nonce;
+      }
       return nonce;
     } catch {
       return '';
     }
   }
 
+  /**
+   * AOP Request Interceptor: Injects X-Nonce, Authorization, Content-Type, DPoP headers.
+   */
   private async getHeaders(method: string, path: string): Promise<HeadersInit> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -52,7 +60,7 @@ export class ApiClient implements IApiClient {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    // Ensure we have an active anti-replay nonce in the chain
+    // AOP: Ensure we have an active anti-replay nonce before sending request
     if (!this.currentNonce && path !== '/auth/nonce') {
       await this.getNonce();
     }
@@ -70,6 +78,9 @@ export class ApiClient implements IApiClient {
     return headers;
   }
 
+  /**
+   * Core AOP HTTP Request Pipeline with Automatic Header Nonce Handshake & Dispatch.
+   */
   private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const method = (options.method || 'GET').toUpperCase();
     const defaultHeaders = await this.getHeaders(method, path);
@@ -83,7 +94,7 @@ export class ApiClient implements IApiClient {
       },
     });
 
-    // Update continuous Next Nonce from server response headers
+    // AOP Response Interceptor: Capture Next Nonce strictly from HTTP Response Headers
     const nextNonceHeader = res.headers.get('X-Next-Nonce');
     if (nextNonceHeader) {
       this.currentNonce = nextNonceHeader;
@@ -95,21 +106,22 @@ export class ApiClient implements IApiClient {
       const errorCode = json?.error?.code;
       const errorMsg = json?.error?.message || `API Error: ${res.status}`;
 
-      // If anti-replay nonce violation occurs, immediately trigger security force logout!
+      // AOP Nonce Violation Safety Net
       if (errorCode === 'SECURITY_NONCE_VIOLATION' || errorMsg.includes('SECURITY_NONCE_VIOLATION')) {
         console.error('CRITICAL SECURITY VIOLATION: Nonce verification failed. Forcefully terminating user session.');
         this.setToken('');
         this.currentNonce = null;
         if (this.onForceLogoutCallback) {
-          this.onForceLogoutCallback(errorMsg);
+          this.onForceLogoutCallback(
+            'Security Alert: Anti-replay nonce chain was violated or expired. Your session was terminated for data protection.'
+          );
         }
       }
 
-      throw new Error(errorMsg);
-    }
-
-    if (json.data?.nextNonce) {
-      this.currentNonce = json.data.nextNonce;
+      const error: any = new Error(errorMsg);
+      error.status = res.status;
+      error.code = errorCode;
+      throw error;
     }
 
     return json.data as T;
@@ -125,7 +137,7 @@ export class ApiClient implements IApiClient {
   async register(username: string, authToken: string): Promise<AuthResponse> {
     const data = await this.request<AuthResponse>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ username, authToken, nonce: this.currentNonce }),
+      body: JSON.stringify({ username, authToken }),
     });
     this.setToken(data.token);
     return data;
@@ -134,16 +146,16 @@ export class ApiClient implements IApiClient {
   async login(username: string, authToken: string, totpCode?: string): Promise<AuthResponse> {
     const data = await this.request<AuthResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, authToken, totpCode, nonce: this.currentNonce }),
+      body: JSON.stringify({ username, authToken, totpCode }),
     });
     this.setToken(data.token);
     return data;
   }
 
   async loginPasswordlessTotp(username: string, totpCode: string): Promise<AuthResponse> {
-    const data = await this.request<AuthResponse>('/auth/login-totp-passwordless', {
+    const data = await this.request<AuthResponse>('/auth/login/passwordless-totp', {
       method: 'POST',
-      body: JSON.stringify({ username, totpCode, nonce: this.currentNonce }),
+      body: JSON.stringify({ username, totpCode }),
     });
     this.setToken(data.token);
     return data;
@@ -169,14 +181,14 @@ export class ApiClient implements IApiClient {
   async enableTotp(code: string, secret: string): Promise<{ message: string }> {
     return this.request<{ message: string }>('/auth/totp/enable', {
       method: 'POST',
-      body: JSON.stringify({ code, secret, nonce: this.currentNonce }),
+      body: JSON.stringify({ code, secret }),
     });
   }
 
   async disableTotp(code: string): Promise<{ message: string }> {
     return this.request<{ message: string }>('/auth/totp/disable', {
       method: 'POST',
-      body: JSON.stringify({ code, nonce: this.currentNonce }),
+      body: JSON.stringify({ code }),
     });
   }
 
@@ -187,7 +199,7 @@ export class ApiClient implements IApiClient {
   async getVaultTicketKey(vaultId: string): Promise<{ serverTicketKey: string }> {
     return this.request<{ serverTicketKey: string }>('/vault/ticket-key', {
       method: 'POST',
-      body: JSON.stringify({ vaultId, nonce: this.currentNonce }),
+      body: JSON.stringify({ vaultId }),
     });
   }
 
@@ -198,7 +210,7 @@ export class ApiClient implements IApiClient {
       '/vault/unlock-ticket',
       {
         method: 'POST',
-        body: JSON.stringify({ vaultId, nonce: this.currentNonce }),
+        body: JSON.stringify({ vaultId }),
       }
     );
   }
@@ -210,7 +222,7 @@ export class ApiClient implements IApiClient {
       '/vault/report-fail',
       {
         method: 'POST',
-        body: JSON.stringify({ vaultId, nonce: this.currentNonce }),
+        body: JSON.stringify({ vaultId }),
       }
     );
   }
@@ -218,7 +230,7 @@ export class ApiClient implements IApiClient {
   async reportVaultPinSuccess(vaultId: string): Promise<{ message: string }> {
     return this.request<{ message: string }>('/vault/report-success', {
       method: 'POST',
-      body: JSON.stringify({ vaultId, nonce: this.currentNonce }),
+      body: JSON.stringify({ vaultId }),
     });
   }
 
@@ -236,31 +248,9 @@ export class ApiClient implements IApiClient {
     category?: FileCategory;
     contentBlob?: ArrayBuffer | Uint8Array | string;
   }): Promise<VaultNodeResponse> {
-    let payload = '';
-    if (dto.contentBlob) {
-      if (typeof dto.contentBlob === 'string') {
-        payload = dto.contentBlob;
-      } else {
-        const bytes = new Uint8Array(dto.contentBlob);
-        let binary = '';
-        for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        payload = btoa(binary);
-      }
-    }
-
     return this.request<VaultNodeResponse>('/vault/nodes', {
       method: 'POST',
-      body: JSON.stringify({
-        path: dto.path,
-        name: dto.name,
-        isDirectory: dto.isDirectory,
-        encryptedDek: dto.encryptedDek,
-        mimeType: dto.mimeType,
-        category: dto.category,
-        payload,
-      }),
+      body: JSON.stringify(dto),
     });
   }
 
@@ -282,28 +272,23 @@ export class ApiClient implements IApiClient {
     }
 
     const encryptedDek = res.headers.get('X-Encrypted-DEK') || '';
-    const disposition = res.headers.get('Content-Disposition') || '';
-    let fileName = '';
-    const match = disposition.match(/filename="?([^"]+)"?/);
-    if (match) fileName = match[1];
+    const contentDisposition = res.headers.get('Content-Disposition') || '';
+    let fileName = 'file';
+    const match = contentDisposition.match(/filename="?([^";]+)"?/);
+    if (match && match[1]) {
+      fileName = decodeURIComponent(match[1]);
+    }
 
-    const body = await res.arrayBuffer();
-    return { body, encryptedDek, fileName };
+    const arrayBuffer = await res.arrayBuffer();
+    return { body: arrayBuffer, encryptedDek, fileName };
   }
 
   async updateVaultNodeContent(
     id: string,
     contentBlob: ArrayBuffer | Uint8Array | string,
-    mimeType: string = 'text/markdown'
+    mimeType = 'application/octet-stream'
   ): Promise<VaultNodeResponse> {
     const defaultHeaders = await this.getHeaders('PUT', `/vault/nodes/${id}/content`);
-    let bodyData: BodyInit;
-    if (typeof contentBlob === 'string') {
-      bodyData = new TextEncoder().encode(contentBlob);
-    } else {
-      bodyData = contentBlob as unknown as BodyInit;
-    }
-
     const res = await fetch(`${this.baseUrl}/vault/nodes/${id}/content`, {
       method: 'PUT',
       credentials: 'include',
@@ -311,7 +296,7 @@ export class ApiClient implements IApiClient {
         ...defaultHeaders,
         'Content-Type': mimeType,
       },
-      body: bodyData,
+      body: contentBlob as any,
     });
 
     const nextNonceHeader = res.headers.get('X-Next-Nonce');
@@ -319,16 +304,17 @@ export class ApiClient implements IApiClient {
       this.currentNonce = nextNonceHeader;
     }
 
-    const json = await res.json();
-    if (!res.ok || !json.success) {
-      throw new Error(json.error?.message || `Update node failed: ${res.status}`);
+    const json = await res.json().catch(() => null);
+    if (!res.ok || !json?.success) {
+      throw new Error(json?.error?.message || `Failed to update node: ${res.status}`);
     }
-
     return json.data as VaultNodeResponse;
   }
 
   async deleteVaultNode(id: string): Promise<void> {
-    await this.request<{ message: string }>(`/vault/nodes/${id}`, { method: 'DELETE' });
+    await this.request<{ message: string }>(`/vault/nodes/${id}`, {
+      method: 'DELETE',
+    });
   }
 
   async moveVaultNode(nodeId: string, newPath: string): Promise<VaultNodeResponse> {
@@ -339,7 +325,9 @@ export class ApiClient implements IApiClient {
   }
 
   async getNodeHistory(id: string): Promise<NodeVersionResponse[]> {
-    return this.request<NodeVersionResponse[]>(`/vault/nodes/${id}/versions`, { method: 'GET' });
+    return this.request<NodeVersionResponse[]>(`/vault/nodes/${id}/versions`, {
+      method: 'GET',
+    });
   }
 
   async getVersionContent(
@@ -364,15 +352,15 @@ export class ApiClient implements IApiClient {
 
     const encryptedDek = res.headers.get('X-Encrypted-DEK') || '';
     const commitHash = res.headers.get('X-Commit-Hash') || '';
-    const body = await res.arrayBuffer();
+    const arrayBuffer = await res.arrayBuffer();
 
-    return { body, encryptedDek, commitHash };
+    return { body: arrayBuffer, encryptedDek, commitHash };
   }
 
   async revertNodeVersion(id: string, timestamp: number): Promise<VaultNodeResponse> {
-    return this.request<VaultNodeResponse>(`/vault/nodes/${id}/versions/revert`, {
+    return this.request<VaultNodeResponse>('/vault/nodes/revert', {
       method: 'POST',
-      body: JSON.stringify({ timestamp }),
+      body: JSON.stringify({ nodeId: id, timestamp }),
     });
   }
 
@@ -383,10 +371,14 @@ export class ApiClient implements IApiClient {
   async getNoteById(
     id: string
   ): Promise<{ id: string; encryptedTitle: string; encryptedPayload: string; encryptedDek: string; createdAt: number; updatedAt: number }> {
-    return this.request<{ id: string; encryptedTitle: string; encryptedPayload: string; encryptedDek: string; createdAt: number; updatedAt: number }>(
-      `/notes/${id}`,
-      { method: 'GET' }
-    );
+    return this.request<{
+      id: string;
+      encryptedTitle: string;
+      encryptedPayload: string;
+      encryptedDek: string;
+      createdAt: number;
+      updatedAt: number;
+    }>(`/notes/${id}`, { method: 'GET' });
   }
 
   async createNote(encryptedTitle: string, encryptedPayload: string, encryptedDek: string): Promise<NoteItem> {
@@ -396,7 +388,12 @@ export class ApiClient implements IApiClient {
     });
   }
 
-  async updateNote(id: string, encryptedTitle?: string, encryptedPayload?: string, encryptedDek?: string): Promise<NoteItem> {
+  async updateNote(
+    id: string,
+    encryptedTitle?: string,
+    encryptedPayload?: string,
+    encryptedDek?: string
+  ): Promise<NoteItem> {
     return this.request<NoteItem>(`/notes/${id}`, {
       method: 'PUT',
       body: JSON.stringify({ encryptedTitle, encryptedPayload, encryptedDek }),

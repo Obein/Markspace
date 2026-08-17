@@ -59,7 +59,6 @@ export class ServiceContainer {
     this.vaultController = new VaultController(
       vaultService,
       this.vaultSecurityService,
-      this.nonceService,
       this.auditLogRepository
     );
     this.adminController = new AdminController(userRepository);
