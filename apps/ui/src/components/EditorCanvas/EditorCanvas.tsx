@@ -292,7 +292,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       <div
         ref={mirrorRef}
         aria-hidden="true"
-        className="absolute opacity-0 pointer-events-none font-editor-mono font-mono text-sm leading-6"
+        className="absolute opacity-0 pointer-events-none font-editor-mono font-mono text-[15px] leading-6"
         style={{
           visibility: 'hidden',
           position: 'absolute',
@@ -421,7 +421,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   onClick={handleSelectionChange}
                   onFocus={handleSelectionChange}
                   placeholder="Write your thoughts..."
-                  className="flex-1 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-6 relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
+                  className="flex-1 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-[15px] leading-6 caret-blue-400 editor-textarea relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
                 />
               </div>
 
@@ -436,6 +436,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               topToolbarSpacingClass={topToolbarSpacingClass}
               bottomCapsuleSpacingClass={bottomCapsuleSpacingClass}
               isSplitView={true}
+              isFullWidth={isFullWidth}
             />
           </div>
         )}
@@ -480,7 +481,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 onClick={handleSelectionChange}
                 onFocus={handleSelectionChange}
                 placeholder="Write your thoughts..."
-                className="flex-1 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-sm leading-6 relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
+                className="flex-1 px-4 bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-[15px] leading-6 caret-blue-400 editor-textarea relative z-10 whitespace-pre-wrap break-words selection:bg-blue-500/30 selection:text-white overflow-hidden scrollbar-none"
               />
             </div>
 

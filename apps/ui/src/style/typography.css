@@ -25,3 +25,10 @@ pre, code, textarea, .lezer-code-block {
 .cursor-gutter {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M14 2L3 8L8 10L10 15L14 2Z' fill='%23ffffff' stroke='%2318181b' stroke-width='1.2' stroke-linejoin='round'/%3E%3C/svg%3E") 14 2, pointer;
 }
+
+/* Editor Textarea Caret Enhancements */
+textarea.editor-textarea {
+  caret-color: #38bdf8;
+  font-size: 15px;
+  line-height: 24px;
+}
