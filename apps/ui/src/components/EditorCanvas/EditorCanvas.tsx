@@ -106,11 +106,12 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   fontFamily: 'inherit',
                 });
                 const mermaidNodes = document.querySelectorAll<HTMLElement>(
-                  '.markdown-preview .mermaid:not([data-processed="true"])'
+                  '.markdown-preview .mermaid-diagram-code:not([data-processed="true"]), .markdown-preview .mermaid:not([data-processed="true"])'
                 );
                 mermaidNodes.forEach((element, idx) => {
                   const id = `mermaid-svg-${Date.now()}-${idx}`;
-                  const rawCode = element.textContent || '';
+                  const encoded = element.getAttribute('data-mermaid-code');
+                  const rawCode = encoded ? decodeURIComponent(encoded) : (element.textContent || '');
                   const cleanCode = normalizeMermaidCode(rawCode);
 
                   mermaid
@@ -119,6 +120,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                       if (isMounted) {
                         element.innerHTML = svg;
                         element.setAttribute('data-processed', 'true');
+                        element.className = 'w-full flex justify-center';
                       }
                     })
                     .catch((err) => {
