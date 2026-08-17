@@ -389,7 +389,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
               <button
                 onClick={() => {
                   const targetId = contextMenu.nodeId;
-                  const targetName = contextMenu.nodeName;
+                  const targetName = contextMenu.fileItem?.filename || contextMenu.nodeName;
                   setContextMenu(null);
                   setConfirmDeleteNodeId(null);
                   setEditingNodeId(targetId);
