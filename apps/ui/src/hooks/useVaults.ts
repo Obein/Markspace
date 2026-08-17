@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useApp } from '../context/AppContext';
+import { MnemonicService } from '../crypto/MnemonicService';
 import { TranslationKey } from '../i18n/i18nContext';
 import { VaultInfo } from '../interfaces/INoteModels';
 
@@ -17,24 +19,24 @@ export function useVaults({
   onDeleteVaultNodes,
   onVaultDeleted,
 }: UseVaultsOptions) {
-  const [activeVaultId, setActiveVaultId] = useState<string>('vault_default');
+  const { cryptoService, apiClient, setVaultKey, activeVaultId, setActiveVaultId } = useApp();
 
   const [vaults, setVaults] = useState<VaultInfo[]>(() => {
     try {
       const stored = localStorage.getItem(`markspace_vaults_${username || 'default'}`);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           return parsed;
         }
       }
     } catch (_) {}
-    return [{ id: 'vault_default', name: t('mainVault'), createdAt: Date.now() }];
+    return [];
   });
 
   // Keep vaults persisted in localStorage
   useEffect(() => {
-    if (username && vaults.length > 0) {
+    if (username) {
       try {
         localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(vaults));
       } catch (_) {}
@@ -50,30 +52,88 @@ export function useVaults({
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setVaults(parsed);
-            setActiveVaultId(parsed[0].id);
+            if (!activeVaultId || !parsed.some((v: VaultInfo) => v.id === activeVaultId)) {
+              setActiveVaultId(parsed[0].id);
+            }
             return;
           }
         }
       } catch (_) {}
-      setVaults([{ id: 'vault_default', name: t('mainVault'), createdAt: Date.now() }]);
-      setActiveVaultId('vault_default');
+      setVaults([]);
+      setActiveVaultId('');
     }
-  }, [username, t]);
+  }, [username, setActiveVaultId]);
 
   const activeVault = vaults.find((v) => v.id === activeVaultId) || vaults[0];
 
   const handleCreateVault = useCallback(
-    (name: string) => {
+    async (name: string, pin: string, customRecoveryKey?: string): Promise<{ vault: VaultInfo; recoveryKey: string }> => {
+      // 1. Pure standard UUID for Vault ID
+      const vaultId = crypto.randomUUID();
+
+      // 2. Request Server Ticket Key for multi-factor online envelope
+      const { serverTicketKey } = await apiClient.getVaultTicketKey(vaultId);
+
+      const salt = cryptoService.generateSalt();
+      const vmk = await cryptoService.generateVMK();
+      const recoveryKey = customRecoveryKey || MnemonicService.generateRecoveryKey(8);
+
+      // 3. Multi-Factor Key Derivation (PIN/Recovery + Server Ticket Key)
+      const pinKey = await cryptoService.deriveKeyFromPin(pin, salt, serverTicketKey);
+      const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(recoveryKey, salt, serverTicketKey);
+
+      const wrappedVmkByPin = await cryptoService.wrapVMK(vmk, pinKey);
+      const wrappedVmkByRecovery = await cryptoService.wrapVMK(vmk, recoveryKeyKey);
+
       const newVault: VaultInfo = {
-        id: `vault_${crypto.randomUUID()}`,
-        name,
+        id: vaultId,
+        name: name.trim() || t('untitledNote'),
+        salt,
+        wrappedVmkByPin,
+        wrappedVmkByRecovery,
         createdAt: Date.now(),
       };
+
       setVaults((prev) => [...prev, newVault]);
       setActiveVaultId(newVault.id);
+      setVaultKey(newVault.id, vmk);
       showToast(t('createVault'), 'success');
+
+      return { vault: newVault, recoveryKey };
     },
-    [showToast, t]
+    [apiClient, cryptoService, setVaultKey, setActiveVaultId, showToast, t]
+  );
+
+  const handleResetVaultPin = useCallback(
+    async (vaultId: string, mnemonic: string, newPin: string): Promise<boolean> => {
+      const targetVault = vaults.find((v) => v.id === vaultId);
+      if (!targetVault || !targetVault.salt || !targetVault.wrappedVmkByRecovery) {
+        throw new Error('Vault metadata is missing recovery key wrapping');
+      }
+
+      // Request Server Ticket Key
+      const { serverTicketKey } = await apiClient.getVaultTicketKey(vaultId);
+
+      const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(
+        mnemonic,
+        targetVault.salt,
+        serverTicketKey
+      );
+      const vmk = await cryptoService.unwrapVMK(targetVault.wrappedVmkByRecovery, recoveryKeyKey);
+
+      const newPinKey = await cryptoService.deriveKeyFromPin(newPin, targetVault.salt, serverTicketKey);
+      const newWrappedVmkByPin = await cryptoService.wrapVMK(vmk, newPinKey);
+
+      await apiClient.reportVaultPinSuccess(vaultId);
+
+      setVaults((prev) =>
+        prev.map((v) => (v.id === vaultId ? { ...v, wrappedVmkByPin: newWrappedVmkByPin } : v))
+      );
+      setVaultKey(vaultId, vmk);
+      showToast('PIN reset successfully', 'success');
+      return true;
+    },
+    [vaults, apiClient, cryptoService, setVaultKey, showToast]
   );
 
   const handleRenameVault = useCallback(
@@ -111,7 +171,7 @@ export function useVaults({
       }
       showToast(t('deleteVault'), 'success');
     },
-    [vaults, activeVaultId, onDeleteVaultNodes, onVaultDeleted, showToast, t]
+    [vaults, activeVaultId, onDeleteVaultNodes, onVaultDeleted, setActiveVaultId, showToast, t]
   );
 
   return {
@@ -121,6 +181,7 @@ export function useVaults({
     setActiveVaultId,
     activeVault,
     handleCreateVault,
+    handleResetVaultPin,
     handleRenameVault,
     handleDeleteVault,
   };

@@ -8,4 +8,5 @@ export interface IUserRepository {
   countTotalUsers(): Promise<number>;
   findAllUsers(): Promise<User[]>;
   updateRole(id: string, role: UserRole): Promise<boolean>;
+  updateTotpSecret(id: string, encryptedSecret: string | null, isEnabled: boolean): Promise<boolean>;
 }

@@ -1,29 +1,33 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "markspace-worker",
-  "main": "src/index.ts",
-  "compatibility_date": "2024-10-22",
-  "compatibility_flags": ["nodejs_compat"],
-  "assets": {
-    "directory": "../ui/dist",
-    "binding": "ASSETS"
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "markspace-db",
-      "database_id": "e6c5b44b-fef4-4962-b927-afaea0413ea5",
-      "migrations_dir": "migrations"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "BUCKET",
-      "bucket_name": "markspace-media-bucket"
-    }
-  ],
-  "vars": {
-    "ENVIRONMENT": "development",
-    "JWT_SECRET": "default-markspace-jwt-secret-replace-in-prod"
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "markspace",
+	"main": "src/index.ts",
+	"compatibility_date": "2024-10-22",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"assets": {
+		"directory": "../ui/dist",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "markspace-db",
+			// The database_id is generated when you create a D1 database in the Cloudflare dashboard.
+			// You can find it in the "Settings" tab of your database.
+			"database_id": "0580cc6e-6965-4f14-88d6-c74f25c61c85",
+			"migrations_dir": "migrations"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "BUCKET",
+			"bucket_name": "markspace-media-bucket"
+		}
+	],
+	"vars": {
+		"ENVIRONMENT": "development",
+		"JWT_SECRET": "default-markspace-jwt-secret-replace-in-prod"
+	}
 }

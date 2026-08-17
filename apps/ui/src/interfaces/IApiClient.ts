@@ -15,7 +15,18 @@ export interface AuditLogResponse {
   id: string;
   userId: string;
   username: string;
-  action: 'AUTH_LOGIN' | 'AUTH_REGISTER' | 'AUTH_LOGOUT' | 'PASSWORD_CHANGE' | 'MFA_VERIFY' | 'DPOP_HANDSHAKE';
+  action:
+    | 'AUTH_LOGIN'
+    | 'AUTH_REGISTER'
+    | 'AUTH_LOGOUT'
+    | 'AUTH_PASSWORDLESS_TOTP'
+    | 'PASSWORD_CHANGE'
+    | 'MFA_VERIFY'
+    | 'TOTP_SETUP'
+    | 'TOTP_ENABLE'
+    | 'TOTP_DISABLE'
+    | 'SECURITY_NONCE_VIOLATION'
+    | 'DPOP_HANDSHAKE';
   authMethod: string;
   ipAddress: string;
   userAgent: string;
@@ -55,10 +66,22 @@ export interface VaultNodeResponse {
 
 export interface IApiClient {
   setToken(token: string): void;
+  setOnForceLogout(callback: (reason: string) => void): void;
+  prelogin(username: string): Promise<{ exists: boolean; isTotpEnabled: boolean; serverTime: number }>;
   register(username: string, authToken: string): Promise<AuthResponse>;
-  login(username: string, authToken: string): Promise<AuthResponse>;
+  login(username: string, authToken: string, totpCode?: string): Promise<AuthResponse>;
+  loginPasswordlessTotp(username: string, totpCode: string): Promise<AuthResponse>;
   logout(): Promise<void>;
+  setupTotp(): Promise<{ secret: string; otpauthUri: string; expiresAt: number }>;
+  enableTotp(code: string, secret: string): Promise<{ message: string }>;
+  disableTotp(code: string): Promise<{ message: string }>;
   getAuditLogs(): Promise<AuditLogResponse[]>;
+
+  // Vault Multi-Factor Online Ticket & Lockout API
+  getVaultTicketKey(vaultId: string): Promise<{ serverTicketKey: string }>;
+  requestVaultUnlockTicket(vaultId: string): Promise<{ serverTicketKey: string; failCount: number; serverTime: number }>;
+  reportVaultPinFailure(vaultId: string): Promise<{ failCount: number; lockedUntil: number; remainingSeconds: number }>;
+  reportVaultPinSuccess(vaultId: string): Promise<{ message: string }>;
 
   // Vault Tree & Object Storage API
   getVaultTree(): Promise<VaultNodeResponse[]>;

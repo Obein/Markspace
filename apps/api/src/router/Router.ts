@@ -43,14 +43,29 @@ export class Router {
     this.addRoute('GET', '/api/v1/auth/nonce', false, false, (container, ctx) =>
       container.authController.getNonce(ctx)
     );
+    this.addRoute('POST', '/api/v1/auth/prelogin', false, false, (container, ctx) =>
+      container.authController.prelogin(ctx)
+    );
     this.addRoute('POST', '/api/v1/auth/register', false, false, (container, ctx) =>
       container.authController.register(ctx)
     );
     this.addRoute('POST', '/api/v1/auth/login', false, false, (container, ctx) =>
       container.authController.login(ctx)
     );
+    this.addRoute('POST', '/api/v1/auth/login-totp-passwordless', false, false, (container, ctx) =>
+      container.authController.loginPasswordlessTotp(ctx)
+    );
     this.addRoute('POST', '/api/v1/auth/logout', true, false, (container, ctx) =>
       container.authController.logout(ctx)
+    );
+    this.addRoute('POST', '/api/v1/auth/totp/setup', true, false, (container, ctx) =>
+      container.authController.setupTotp(ctx)
+    );
+    this.addRoute('POST', '/api/v1/auth/totp/enable', true, false, (container, ctx) =>
+      container.authController.enableTotp(ctx)
+    );
+    this.addRoute('POST', '/api/v1/auth/totp/disable', true, false, (container, ctx) =>
+      container.authController.disableTotp(ctx)
     );
     this.addRoute('GET', '/api/v1/auth/audit-logs', true, false, (container, ctx) =>
       container.authController.getAuditLogs(ctx)
@@ -104,18 +119,32 @@ export class Router {
       container.vaultController.moveNode(ctx)
     );
 
-    // 4.1 Git Version Control & History Endpoints (Protected)
-    this.addRoute('GET', '/api/v1/vault/nodes/:id/history', true, false, (container, ctx) =>
+    // 4.1 Vault Multi-Factor Security & Lockout Endpoints (Protected)
+    this.addRoute('POST', '/api/v1/vault/ticket-key', true, false, (container, ctx) =>
+      container.vaultController.getTicketKey(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vault/unlock-ticket', true, false, (container, ctx) =>
+      container.vaultController.requestUnlockTicket(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vault/report-fail', true, false, (container, ctx) =>
+      container.vaultController.reportPinFailure(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vault/report-success', true, false, (container, ctx) =>
+      container.vaultController.reportPinSuccess(ctx)
+    );
+
+    // 5. Version History Endpoints (Protected)
+    this.addRoute('GET', '/api/v1/vault/nodes/:id/versions', true, false, (container, ctx) =>
       container.vaultController.getNodeHistory(ctx)
     );
-    this.addRoute('GET', '/api/v1/vault/nodes/:id/versions/:timestamp', true, false, (container, ctx) =>
+    this.addRoute('GET', '/api/v1/vault/nodes/:id/versions/:timestamp/content', true, false, (container, ctx) =>
       container.vaultController.getVersionContent(ctx)
     );
-    this.addRoute('POST', '/api/v1/vault/nodes/:id/revert', true, false, (container, ctx) =>
+    this.addRoute('POST', '/api/v1/vault/nodes/:id/versions/revert', true, false, (container, ctx) =>
       container.vaultController.revertNodeVersion(ctx)
     );
 
-    // 5. Admin Management Endpoints (Admin Only)
+    // 6. RBAC Admin Endpoints (Admin Only)
     this.addRoute('GET', '/api/v1/admin/users', true, true, (container, ctx) =>
       container.adminController.listUsers(ctx)
     );
@@ -126,13 +155,13 @@ export class Router {
 
   private addRoute(
     method: string,
-    path: string,
+    pathPattern: string,
     requiresAuth: boolean,
-    requiresAdmin: boolean,
+    requiresAdmin: boolean = false,
     handler: (container: ServiceContainer, ctx: RequestContext) => Promise<Response>
   ): void {
     const paramNames: string[] = [];
-    const patternString = path.replace(/:([a-zA-Z0-9_]+)/g, (_, paramName) => {
+    const patternString = pathPattern.replace(/:([a-zA-Z0-9_]+)/g, (_, paramName) => {
       paramNames.push(paramName);
       return '([^/]+)';
     });
@@ -227,6 +256,7 @@ export class Router {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization, DPoP, X-Nonce',
+          'Access-Control-Expose-Headers': 'X-Next-Nonce, DPoP, Set-Cookie',
           'Access-Control-Allow-Credentials': 'true',
         },
       })

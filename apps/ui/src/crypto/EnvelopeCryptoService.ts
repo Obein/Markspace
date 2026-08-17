@@ -1,4 +1,5 @@
 import { ICryptoService } from '../interfaces/ICryptoService';
+import { MnemonicService } from './MnemonicService';
 import { WorkerCryptoBridge } from './WorkerCryptoBridge';
 
 export class EnvelopeCryptoService implements ICryptoService {
@@ -20,18 +21,203 @@ export class EnvelopeCryptoService implements ICryptoService {
     return btoa(binary);
   }
 
+  public generateSalt(): string {
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    const saltHex = Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('');
+    array.fill(0); // Memory scrubbing
+    return saltHex;
+  }
+
+  public async generateVMK(): Promise<CryptoKey> {
+    return crypto.subtle.generateKey(
+      { name: 'AES-GCM', length: 256 },
+      true, // extractable for envelope wrapping by PIN and Recovery key
+      ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']
+    );
+  }
+
+  /**
+   * Multi-Factor Key Derivation combining user PIN with Server Ticket Key:
+   * 1. Local PBKDF2(PIN, salt, 100,000, SHA-256)
+   * 2. HMAC-SHA256(LocalKey, ServerTicketKey)
+   */
+  public async deriveKeyFromPin(pin: string, salt: string, serverTicketKey?: string): Promise<CryptoKey> {
+    const encoder = new TextEncoder();
+    const pinBuffer = encoder.encode(pin.trim());
+    const saltBuffer = encoder.encode(`markspace-pin-salt:${salt}`);
+
+    try {
+      const baseKey = await crypto.subtle.importKey('raw', pinBuffer, 'PBKDF2', false, ['deriveKey', 'deriveBits']);
+      
+      if (!serverTicketKey) {
+        // Fallback without server factor
+        return await crypto.subtle.deriveKey(
+          {
+            name: 'PBKDF2',
+            salt: saltBuffer,
+            iterations: 100000,
+            hash: 'SHA-256',
+          },
+          baseKey,
+          { name: 'AES-GCM', length: 256 },
+          false,
+          ['wrapKey', 'unwrapKey']
+        );
+      }
+
+      // Multi-factor server assisted binding
+      const localBits = await crypto.subtle.deriveBits(
+        {
+          name: 'PBKDF2',
+          salt: saltBuffer,
+          iterations: 100000,
+          hash: 'SHA-256',
+        },
+        baseKey,
+        256
+      );
+
+      const serverKeyData = encoder.encode(serverTicketKey);
+      const hmacKey = await crypto.subtle.importKey(
+        'raw',
+        serverKeyData,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
+
+      const combinedSignature = await crypto.subtle.sign('HMAC', hmacKey, localBits);
+
+      return await crypto.subtle.importKey(
+        'raw',
+        combinedSignature,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['wrapKey', 'unwrapKey']
+      );
+    } finally {
+      pinBuffer.fill(0);
+      saltBuffer.fill(0);
+    }
+  }
+
+  /**
+   * Multi-Factor Key Derivation combining 8-word Mnemonic with Server Ticket Key:
+   * 1. Local PBKDF2(Mnemonic, salt, 100,000, SHA-256)
+   * 2. HMAC-SHA256(LocalKey, ServerTicketKey)
+   */
+  public async deriveKeyFromRecoveryKey(
+    mnemonic: string,
+    salt: string,
+    serverTicketKey?: string
+  ): Promise<CryptoKey> {
+    const normalized = MnemonicService.normalizeMnemonic(mnemonic);
+    const encoder = new TextEncoder();
+    const mnemonicBuffer = encoder.encode(normalized);
+    const saltBuffer = encoder.encode(`markspace-recovery-salt:${salt}`);
+
+    try {
+      const baseKey = await crypto.subtle.importKey('raw', mnemonicBuffer, 'PBKDF2', false, ['deriveKey', 'deriveBits']);
+
+      if (!serverTicketKey) {
+        return await crypto.subtle.deriveKey(
+          {
+            name: 'PBKDF2',
+            salt: saltBuffer,
+            iterations: 100000,
+            hash: 'SHA-256',
+          },
+          baseKey,
+          { name: 'AES-GCM', length: 256 },
+          false,
+          ['wrapKey', 'unwrapKey']
+        );
+      }
+
+      const localBits = await crypto.subtle.deriveBits(
+        {
+          name: 'PBKDF2',
+          salt: saltBuffer,
+          iterations: 100000,
+          hash: 'SHA-256',
+        },
+        baseKey,
+        256
+      );
+
+      const serverKeyData = encoder.encode(serverTicketKey);
+      const hmacKey = await crypto.subtle.importKey(
+        'raw',
+        serverKeyData,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
+
+      const combinedSignature = await crypto.subtle.sign('HMAC', hmacKey, localBits);
+
+      return await crypto.subtle.importKey(
+        'raw',
+        combinedSignature,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['wrapKey', 'unwrapKey']
+      );
+    } finally {
+      mnemonicBuffer.fill(0);
+      saltBuffer.fill(0);
+    }
+  }
+
+  public async wrapVMK(vmk: CryptoKey, wrappingKey: CryptoKey): Promise<string> {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const wrappedBuffer = await crypto.subtle.wrapKey('raw', vmk, wrappingKey, {
+      name: 'AES-GCM',
+      iv,
+    });
+
+    const combined = new Uint8Array(iv.length + wrappedBuffer.byteLength);
+    combined.set(iv, 0);
+    combined.set(new Uint8Array(wrappedBuffer), iv.length);
+
+    const base64Str = this.bufferToBase64(combined.buffer);
+    combined.fill(0);
+    iv.fill(0);
+    return base64Str;
+  }
+
+  public async unwrapVMK(wrappedVmkBase64: string, unwrappingKey: CryptoKey): Promise<CryptoKey> {
+    const combined = new Uint8Array(this.base64ToBuffer(wrappedVmkBase64));
+    const iv = combined.slice(0, 12);
+    const wrappedData = combined.slice(12);
+
+    try {
+      return await crypto.subtle.unwrapKey(
+        'raw',
+        wrappedData,
+        unwrappingKey,
+        { name: 'AES-GCM', iv },
+        { name: 'AES-GCM', length: 256 },
+        false, // CRITICAL: Non-extractable VMK in browser memory!
+        ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']
+      );
+    } finally {
+      combined.fill(0);
+      iv.fill(0);
+    }
+  }
+
   async deriveCMK(masterPassword: string, saltInput?: string): Promise<{ cmk: CryptoKey; salt: string }> {
     const salt = saltInput || this.generateSalt();
 
     try {
-      // Offload to Web Worker cryptographic sandbox if supported
       const res = await WorkerCryptoBridge.executeTask<{ cmk: CryptoKey }>('DERIVE_CMK', {
         password: masterPassword,
         salt,
       });
       return { cmk: res.cmk, salt };
     } catch {
-      // Main-thread fallback with strict memory scrubbing
       const encoder = new TextEncoder();
       const saltBuffer = encoder.encode(salt);
       const pwdBuffer = encoder.encode(masterPassword);
@@ -48,30 +234,19 @@ export class EnvelopeCryptoService implements ICryptoService {
           },
           baseKey,
           { name: 'AES-GCM', length: 256 },
-          false, // CRITICAL: Non-extractable key
+          false,
           ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']
         );
 
         return { cmk, salt };
       } finally {
-        // Explicit memory scrubbing
         pwdBuffer.fill(0);
         saltBuffer.fill(0);
       }
     }
   }
 
-  private generateSalt(): string {
-    const array = new Uint8Array(16);
-    crypto.getRandomValues(array);
-    const saltHex = Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('');
-    array.fill(0); // Memory scrubbing
-    return saltHex;
-  }
-
   async generateDEK(): Promise<CryptoKey> {
-    // Generate key for wrapping. WebCrypto wrapKey requires the key being wrapped to be extractable (extractable: true).
-    // Once wrapped by wrapDEK and stored, unwrapDEK unwraps it strictly as non-extractable (extractable: false).
     return crypto.subtle.generateKey(
       { name: 'AES-GCM', length: 256 },
       true,
@@ -79,9 +254,9 @@ export class EnvelopeCryptoService implements ICryptoService {
     );
   }
 
-  async wrapDEK(dek: CryptoKey, cmk: CryptoKey): Promise<string> {
+  async wrapDEK(dek: CryptoKey, vmk: CryptoKey): Promise<string> {
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const wrappedBuffer = await crypto.subtle.wrapKey('raw', dek, cmk, {
+    const wrappedBuffer = await crypto.subtle.wrapKey('raw', dek, vmk, {
       name: 'AES-GCM',
       iv,
     });
@@ -91,12 +266,12 @@ export class EnvelopeCryptoService implements ICryptoService {
     combined.set(new Uint8Array(wrappedBuffer), iv.length);
 
     const base64Str = this.bufferToBase64(combined.buffer);
-    combined.fill(0); // Memory scrubbing
+    combined.fill(0);
     iv.fill(0);
     return base64Str;
   }
 
-  async unwrapDEK(encryptedDekBase64: string, cmk: CryptoKey): Promise<CryptoKey> {
+  async unwrapDEK(encryptedDekBase64: string, vmk: CryptoKey): Promise<CryptoKey> {
     const combined = new Uint8Array(this.base64ToBuffer(encryptedDekBase64));
     const iv = combined.slice(0, 12);
     const wrappedData = combined.slice(12);
@@ -105,14 +280,14 @@ export class EnvelopeCryptoService implements ICryptoService {
       return await crypto.subtle.unwrapKey(
         'raw',
         wrappedData,
-        cmk,
+        vmk,
         { name: 'AES-GCM', iv },
         { name: 'AES-GCM', length: 256 },
-        false, // CRITICAL: Non-extractable unwrapped DEK in browser memory!
+        false,
         ['encrypt', 'decrypt']
       );
     } finally {
-      combined.fill(0); // Memory scrubbing
+      combined.fill(0);
       iv.fill(0);
     }
   }
@@ -137,7 +312,7 @@ export class EnvelopeCryptoService implements ICryptoService {
       combined.fill(0);
       return base64Str;
     } finally {
-      plainBuffer.fill(0); // Memory scrubbing
+      plainBuffer.fill(0);
       iv.fill(0);
     }
   }
@@ -156,7 +331,7 @@ export class EnvelopeCryptoService implements ICryptoService {
 
       return new TextDecoder().decode(plainBuffer);
     } finally {
-      combined.fill(0); // Memory scrubbing
+      combined.fill(0);
       iv.fill(0);
     }
   }
@@ -171,7 +346,7 @@ export class EnvelopeCryptoService implements ICryptoService {
         .join('');
       return hex;
     } finally {
-      data.fill(0); // Memory scrubbing
+      data.fill(0);
     }
   }
 }

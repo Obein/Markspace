@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS users (
     auth_token_hash TEXT NOT NULL,
     salt TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'user',
+    encrypted_totp_secret TEXT,
+    is_totp_enabled INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
 );
@@ -63,3 +65,17 @@ CREATE TABLE IF NOT EXISTS media (
     created_at INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Vault Security Table: Server-Assisted Online Unlock Ticket & Anti-Brute-Force Lockout Registry
+CREATE TABLE IF NOT EXISTS vault_security (
+    vault_id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    server_salt TEXT NOT NULL,
+    fail_count INTEGER NOT NULL DEFAULT 0,
+    locked_until INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_vault_security_user_id ON vault_security(user_id);

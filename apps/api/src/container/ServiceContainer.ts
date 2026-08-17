@@ -16,6 +16,8 @@ import { AuthService } from '../services/AuthService';
 import { MediaService } from '../services/MediaService';
 import { NonceService } from '../services/NonceService';
 import { NoteService } from '../services/NoteService';
+import { TotpService } from '../services/TotpService';
+import { VaultSecurityService } from '../services/VaultSecurityService';
 import { VaultService } from '../services/VaultService';
 import { Env } from '../types/env';
 
@@ -27,6 +29,8 @@ export class ServiceContainer {
   public readonly adminController: AdminController;
   public readonly tokenService: JwtTokenService;
   public readonly nonceService: NonceService;
+  public readonly totpService: TotpService;
+  public readonly vaultSecurityService: VaultSecurityService;
   public readonly auditLogRepository: D1AuditLogRepository;
 
   constructor(env: Env) {
@@ -41,8 +45,10 @@ export class ServiceContainer {
     const passwordHasher = new WebCryptoHasher();
     this.tokenService = new JwtTokenService();
     this.nonceService = new NonceService();
+    this.totpService = new TotpService();
+    this.vaultSecurityService = new VaultSecurityService(env.DB);
 
-    const authService = new AuthService(userRepository, passwordHasher, this.tokenService);
+    const authService = new AuthService(userRepository, passwordHasher, this.tokenService, this.totpService);
     const noteService = new NoteService(noteRepository, mediaRepository, storageService);
     const mediaService = new MediaService(mediaRepository, storageService);
     const vaultService = new VaultService(vaultNodeRepository, objectStorageService);
@@ -50,7 +56,12 @@ export class ServiceContainer {
     this.authController = new AuthController(authService, this.nonceService, this.auditLogRepository);
     this.noteController = new NoteController(noteService);
     this.mediaController = new MediaController(mediaService);
-    this.vaultController = new VaultController(vaultService);
+    this.vaultController = new VaultController(
+      vaultService,
+      this.vaultSecurityService,
+      this.nonceService,
+      this.auditLogRepository
+    );
     this.adminController = new AdminController(userRepository);
   }
 }

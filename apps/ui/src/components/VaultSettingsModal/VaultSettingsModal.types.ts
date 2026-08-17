@@ -6,7 +6,11 @@ export interface VaultSettingsModalProps {
   vaults: VaultInfo[];
   activeVaultId: string;
   onSelectVault: (id: string) => void;
-  onCreateVault: (name: string) => void;
+  onCreateVault: (
+    name: string,
+    pin: string,
+    recoveryKey?: string
+  ) => Promise<{ vault: VaultInfo; recoveryKey: string }>;
   onRenameVault?: (vaultId: string, newName: string) => void;
   onDeleteVault?: (vaultId: string) => void;
   activeVaultNotes: NoteItem[];

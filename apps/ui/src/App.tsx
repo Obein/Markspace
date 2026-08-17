@@ -177,6 +177,7 @@ export const AppContent: React.FC = () => {
           activeVaultId={activeVaultId}
           onSelectVault={handleSelectVaultInModals}
           onOpenProfile={openProfile}
+          onCreateVault={handleCreateVault}
         />
       )}
 

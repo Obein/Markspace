@@ -3,6 +3,7 @@ import { X, ShieldCheck, LogOut, Globe, FileText, Loader2, ChevronRight, Chevron
 import { useApp } from '../../context/AppContext';
 import { LANGUAGE_OPTIONS, Language, useI18n } from '../../i18n/i18nContext';
 import { AuditLogResponse } from '../../interfaces/IApiClient';
+import { TotpSetupSection } from './TotpSetupSection';
 import { UserProfileModalProps } from './UserProfileModal.types';
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
@@ -53,10 +54,19 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     switch (action) {
       case 'AUTH_LOGIN':
         return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+      case 'AUTH_PASSWORDLESS_TOTP':
+        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
       case 'AUTH_REGISTER':
         return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
       case 'AUTH_LOGOUT':
         return 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30';
+      case 'SECURITY_NONCE_VIOLATION':
+        return 'bg-red-500/20 text-red-300 border-red-500/30';
+      case 'TOTP_ENABLE':
+      case 'TOTP_SETUP':
+        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      case 'TOTP_DISABLE':
+        return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
       default:
         return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
     }
@@ -64,7 +74,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg">
-      <div className="w-full max-w-lg p-8 glass-panel rounded-glass-lg border border-white/10 text-white shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-full max-w-lg p-8 glass-panel rounded-glass-lg border border-white/10 text-white shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -93,6 +103,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
             <p className="text-xs text-zinc-400 mt-0.5">{t('userProfile')}</p>
           </div>
+        </div>
+
+        {/* TOTP Multi-Factor Authentication Management */}
+        <div className="mb-4">
+          <TotpSetupSection />
         </div>
 
         {/* Language Selection Section */}

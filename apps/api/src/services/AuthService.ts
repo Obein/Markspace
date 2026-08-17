@@ -1,14 +1,35 @@
 import { IPasswordHasher } from '../interfaces/IPasswordHasher';
 import { ITokenService } from '../interfaces/ITokenService';
 import { IUserRepository } from '../interfaces/IUserRepository';
-import { LoginDTO, RegisterDTO, User, UserRole } from '../types/domain';
+import { TotpService } from './TotpService';
+import {
+  DisableTotpDTO,
+  EnableTotpDTO,
+  LoginDTO,
+  LoginTotpPasswordlessDTO,
+  PreloginResponseDTO,
+  RegisterDTO,
+  TotpSetupResponseDTO,
+  User,
+  UserRole,
+} from '../types/domain';
 
 export class AuthService {
   constructor(
     private readonly userRepository: IUserRepository,
     private readonly passwordHasher: IPasswordHasher,
-    private readonly tokenService: ITokenService
+    private readonly tokenService: ITokenService,
+    private readonly totpService: TotpService
   ) {}
+
+  async prelogin(username: string): Promise<PreloginResponseDTO> {
+    const user = await this.userRepository.findByUsername(username);
+    return {
+      exists: Boolean(user),
+      isTotpEnabled: Boolean(user?.isTotpEnabled),
+      serverTime: Date.now(),
+    };
+  }
 
   async register(
     dto: RegisterDTO,
@@ -27,9 +48,7 @@ export class AuthService {
       throw new Error('USER_EXISTS: Username is already registered');
     }
 
-    // Check if this is the first registered user
     const totalUsers = await this.userRepository.countTotalUsers();
-    // First user is automatically assigned 'admin' role, subsequent users are assigned 'user'
     const role: UserRole = totalUsers === 0 ? 'admin' : 'user';
 
     const userId = crypto.randomUUID();
@@ -43,6 +62,7 @@ export class AuthService {
       authTokenHash,
       salt,
       role,
+      isTotpEnabled: false,
       createdAt: now,
       updatedAt: now,
     };
@@ -66,7 +86,8 @@ export class AuthService {
 
   async login(
     dto: LoginDTO,
-    jwtSecret: string
+    jwtSecret: string,
+    kek?: string
   ): Promise<{ token: string; user: { id: string; username: string; role: UserRole } }> {
     if (!dto.username || !dto.authToken) {
       throw new Error('INVALID_CREDENTIALS: Username and Auth Token are required');
@@ -82,6 +103,19 @@ export class AuthService {
       throw new Error('INVALID_CREDENTIALS: Invalid username or password');
     }
 
+    // Check if TOTP is enabled
+    if (user.isTotpEnabled && user.encryptedTotpSecret) {
+      if (!dto.totpCode || dto.totpCode.trim().length === 0) {
+        throw new Error('TOTP_REQUIRED: 6-digit TOTP authentication code is required');
+      }
+
+      const secret = await this.totpService.decryptSecret(user.encryptedTotpSecret, kek);
+      const isTotpValid = await this.totpService.verifyCode(secret, dto.totpCode);
+      if (!isTotpValid) {
+        throw new Error('INVALID_TOTP: Invalid or expired TOTP code');
+      }
+    }
+
     const token = await this.tokenService.generateToken(
       { userId: user.id, username: user.username, role: user.role },
       jwtSecret
@@ -95,5 +129,79 @@ export class AuthService {
         role: user.role,
       },
     };
+  }
+
+  async loginPasswordlessTotp(
+    dto: LoginTotpPasswordlessDTO,
+    jwtSecret: string,
+    kek?: string
+  ): Promise<{ token: string; user: { id: string; username: string; role: UserRole } }> {
+    if (!dto.username || !dto.totpCode) {
+      throw new Error('INVALID_CREDENTIALS: Username and TOTP code are required');
+    }
+
+    const user = await this.userRepository.findByUsername(dto.username);
+    if (!user) {
+      throw new Error('INVALID_CREDENTIALS: Invalid username or TOTP code');
+    }
+
+    if (!user.isTotpEnabled || !user.encryptedTotpSecret) {
+      throw new Error('TOTP_NOT_ENABLED: TOTP multi-factor authentication is not enabled for this account');
+    }
+
+    const secret = await this.totpService.decryptSecret(user.encryptedTotpSecret, kek);
+    const isValid = await this.totpService.verifyCode(secret, dto.totpCode);
+    if (!isValid) {
+      throw new Error('INVALID_TOTP: Invalid or expired TOTP verification code');
+    }
+
+    const token = await this.tokenService.generateToken(
+      { userId: user.id, username: user.username, role: user.role },
+      jwtSecret
+    );
+
+    return {
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      },
+    };
+  }
+
+  setupTotp(_userId: string, username: string): TotpSetupResponseDTO {
+    const secret = this.totpService.generateSecret();
+    const otpauthUri = this.totpService.generateOtpauthUri(username, secret);
+    return {
+      secret,
+      otpauthUri,
+      expiresAt: Date.now() + 25 * 1000, // 25-second rotation lifetime
+    };
+  }
+
+  async enableTotp(userId: string, dto: EnableTotpDTO, kek?: string): Promise<boolean> {
+    const isValid = await this.totpService.verifyCode(dto.secret, dto.code);
+    if (!isValid) {
+      throw new Error('INVALID_TOTP: Verification code does not match the secret key');
+    }
+
+    const encryptedSecret = await this.totpService.encryptSecret(dto.secret, kek);
+    return this.userRepository.updateTotpSecret(userId, encryptedSecret, true);
+  }
+
+  async disableTotp(userId: string, dto: DisableTotpDTO, kek?: string): Promise<boolean> {
+    const user = await this.userRepository.findById(userId);
+    if (!user || !user.encryptedTotpSecret) {
+      return true;
+    }
+
+    const secret = await this.totpService.decryptSecret(user.encryptedTotpSecret, kek);
+    const isValid = await this.totpService.verifyCode(secret, dto.code);
+    if (!isValid) {
+      throw new Error('INVALID_TOTP: Invalid verification code. Cannot disable TOTP.');
+    }
+
+    return this.userRepository.updateTotpSecret(userId, null, false);
   }
 }

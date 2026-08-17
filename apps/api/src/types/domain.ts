@@ -6,6 +6,8 @@ export interface User {
   authTokenHash: string;
   salt: string;
   role: UserRole;
+  encryptedTotpSecret?: string;
+  isTotpEnabled?: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -14,7 +16,18 @@ export interface AuditLogEntity {
   id: string;
   userId: string;
   username: string;
-  action: 'AUTH_LOGIN' | 'AUTH_REGISTER' | 'AUTH_LOGOUT' | 'PASSWORD_CHANGE' | 'MFA_VERIFY' | 'DPOP_HANDSHAKE';
+  action:
+    | 'AUTH_LOGIN'
+    | 'AUTH_REGISTER'
+    | 'AUTH_LOGOUT'
+    | 'AUTH_PASSWORDLESS_TOTP'
+    | 'PASSWORD_CHANGE'
+    | 'MFA_VERIFY'
+    | 'TOTP_SETUP'
+    | 'TOTP_ENABLE'
+    | 'TOTP_DISABLE'
+    | 'SECURITY_NONCE_VIOLATION'
+    | 'DPOP_HANDSHAKE';
   authMethod: string;
   ipAddress: string;
   userAgent: string;
@@ -64,6 +77,12 @@ export interface Media {
   createdAt: number;
 }
 
+export interface PreloginResponseDTO {
+  exists: boolean;
+  isTotpEnabled: boolean;
+  serverTime: number;
+}
+
 export interface RegisterDTO {
   username: string;
   authToken: string;
@@ -73,7 +92,29 @@ export interface RegisterDTO {
 export interface LoginDTO {
   username: string;
   authToken: string;
+  totpCode?: string;
   nonce?: string;
+}
+
+export interface LoginTotpPasswordlessDTO {
+  username: string;
+  totpCode: string;
+  nonce?: string;
+}
+
+export interface TotpSetupResponseDTO {
+  secret: string;
+  otpauthUri: string;
+  expiresAt: number;
+}
+
+export interface EnableTotpDTO {
+  code: string;
+  secret: string;
+}
+
+export interface DisableTotpDTO {
+  code: string;
 }
 
 export interface CreateNoteDTO {

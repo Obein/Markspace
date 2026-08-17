@@ -6,7 +6,9 @@ export class D1UserRepository implements IUserRepository {
 
   async findByUsername(username: string): Promise<User | null> {
     const result = await this.db
-      .prepare('SELECT id, username, auth_token_hash, salt, role, created_at, updated_at FROM users WHERE username = ?')
+      .prepare(
+        'SELECT id, username, auth_token_hash, salt, role, encrypted_totp_secret, is_totp_enabled, created_at, updated_at FROM users WHERE username = ?'
+      )
       .bind(username)
       .first<{
         id: string;
@@ -14,6 +16,8 @@ export class D1UserRepository implements IUserRepository {
         auth_token_hash: string;
         salt: string;
         role: string;
+        encrypted_totp_secret: string | null;
+        is_totp_enabled: number;
         created_at: number;
         updated_at: number;
       }>();
@@ -26,6 +30,8 @@ export class D1UserRepository implements IUserRepository {
       authTokenHash: result.auth_token_hash,
       salt: result.salt,
       role: (result.role as UserRole) || 'user',
+      encryptedTotpSecret: result.encrypted_totp_secret || undefined,
+      isTotpEnabled: Boolean(result.is_totp_enabled),
       createdAt: result.created_at,
       updatedAt: result.updated_at,
     };
@@ -33,7 +39,9 @@ export class D1UserRepository implements IUserRepository {
 
   async findById(id: string): Promise<User | null> {
     const result = await this.db
-      .prepare('SELECT id, username, auth_token_hash, salt, role, created_at, updated_at FROM users WHERE id = ?')
+      .prepare(
+        'SELECT id, username, auth_token_hash, salt, role, encrypted_totp_secret, is_totp_enabled, created_at, updated_at FROM users WHERE id = ?'
+      )
       .bind(id)
       .first<{
         id: string;
@@ -41,6 +49,8 @@ export class D1UserRepository implements IUserRepository {
         auth_token_hash: string;
         salt: string;
         role: string;
+        encrypted_totp_secret: string | null;
+        is_totp_enabled: number;
         created_at: number;
         updated_at: number;
       }>();
@@ -53,6 +63,8 @@ export class D1UserRepository implements IUserRepository {
       authTokenHash: result.auth_token_hash,
       salt: result.salt,
       role: (result.role as UserRole) || 'user',
+      encryptedTotpSecret: result.encrypted_totp_secret || undefined,
+      isTotpEnabled: Boolean(result.is_totp_enabled),
       createdAt: result.created_at,
       updatedAt: result.updated_at,
     };
@@ -61,9 +73,19 @@ export class D1UserRepository implements IUserRepository {
   async create(user: User): Promise<User> {
     await this.db
       .prepare(
-        'INSERT INTO users (id, username, auth_token_hash, salt, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO users (id, username, auth_token_hash, salt, role, encrypted_totp_secret, is_totp_enabled, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
       )
-      .bind(user.id, user.username, user.authTokenHash, user.salt, user.role, user.createdAt, user.updatedAt)
+      .bind(
+        user.id,
+        user.username,
+        user.authTokenHash,
+        user.salt,
+        user.role,
+        user.encryptedTotpSecret || null,
+        user.isTotpEnabled ? 1 : 0,
+        user.createdAt,
+        user.updatedAt
+      )
       .run();
 
     return user;
@@ -88,13 +110,17 @@ export class D1UserRepository implements IUserRepository {
 
   async findAllUsers(): Promise<User[]> {
     const { results } = await this.db
-      .prepare('SELECT id, username, auth_token_hash, salt, role, created_at, updated_at FROM users ORDER BY created_at ASC')
+      .prepare(
+        'SELECT id, username, auth_token_hash, salt, role, encrypted_totp_secret, is_totp_enabled, created_at, updated_at FROM users ORDER BY created_at ASC'
+      )
       .all<{
         id: string;
         username: string;
         auth_token_hash: string;
         salt: string;
         role: string;
+        encrypted_totp_secret: string | null;
+        is_totp_enabled: number;
         created_at: number;
         updated_at: number;
       }>();
@@ -105,6 +131,8 @@ export class D1UserRepository implements IUserRepository {
       authTokenHash: row.auth_token_hash,
       salt: row.salt,
       role: (row.role as UserRole) || 'user',
+      encryptedTotpSecret: row.encrypted_totp_secret || undefined,
+      isTotpEnabled: Boolean(row.is_totp_enabled),
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     }));
@@ -114,6 +142,21 @@ export class D1UserRepository implements IUserRepository {
     const result = await this.db
       .prepare('UPDATE users SET role = ?, updated_at = ? WHERE id = ?')
       .bind(role, Date.now(), id)
+      .run();
+
+    return (result.meta.changes ?? 0) > 0;
+  }
+
+  async updateTotpSecret(
+    id: string,
+    encryptedSecret: string | null,
+    isEnabled: boolean
+  ): Promise<boolean> {
+    const result = await this.db
+      .prepare(
+        'UPDATE users SET encrypted_totp_secret = ?, is_totp_enabled = ?, updated_at = ? WHERE id = ?'
+      )
+      .bind(encryptedSecret, isEnabled ? 1 : 0, Date.now(), id)
       .run();
 
     return (result.meta.changes ?? 0) > 0;

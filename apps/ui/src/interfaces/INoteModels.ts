@@ -3,6 +3,9 @@ export type FileCategory = 'markdown' | 'image' | 'audio' | 'video' | 'binary';
 export interface VaultInfo {
   id: string;
   name: string;
+  salt?: string;
+  wrappedVmkByPin?: string;
+  wrappedVmkByRecovery?: string;
   createdAt: number;
 }
 
