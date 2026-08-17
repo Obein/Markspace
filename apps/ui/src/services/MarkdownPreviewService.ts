@@ -221,7 +221,7 @@ function extractRawMermaidBlocks(markdown: string, createPlaceholder: (html: str
 function isMermaidCode(text: string, lang?: string): boolean {
   if (lang && lang.toLowerCase() === 'mermaid') return true;
   const trimmed = text.trim();
-  return /^(graph\s+[A-Z]{2}|flowchart\s+[A-Z]{2}|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|pie|journey|gitGraph|mindmap|quadrantChart|xychart|timeline|architecture|kanban|block-beta)/m.test(
+  return /^(graph\b|flowchart\b|sequenceDiagram\b|classDiagram\b|stateDiagram\b|erDiagram\b|gantt\b|pie\b|journey\b|gitGraph\b|mindmap\b|quadrantChart\b|xychart\b|timeline\b|architecture\b|kanban\b|block-beta\b|C4Context\b|C4Container\b|C4Component\b|C4Dynamic\b|C4Deployment\b)/i.test(
     trimmed
   );
 }
