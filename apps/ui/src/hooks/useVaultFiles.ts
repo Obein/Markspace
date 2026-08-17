@@ -125,7 +125,9 @@ export function useVaultFiles({
             let contentText = '';
             let blobUrl = '';
 
-            if (node.category === 'markdown') {
+            if (body.byteLength === 0) {
+              contentText = '';
+            } else if (node.category === 'markdown') {
               const encryptedStr = new TextDecoder().decode(body);
               contentText = await cryptoService.decryptText(encryptedStr, dek);
             } else {
@@ -153,8 +155,12 @@ export function useVaultFiles({
               createdAt: node.createdAt,
               updatedAt: node.updatedAt,
             });
-          } catch (err) {
-            console.error(`Failed to decrypt file content for node ${node.id}`, err);
+          } catch (err: any) {
+            if (err?.message?.includes('404')) {
+              console.warn(`Node ${node.id} content not found in storage, defaulting to empty note.`);
+            } else {
+              console.error(`Failed to decrypt file content for node ${node.id}`, err);
+            }
             const nodeFilename = node.path.split('/').pop() || node.name;
             decryptedList.push({
               id: node.id,

@@ -140,6 +140,13 @@ export class VaultService {
     }
 
     if (!obj) {
+      if (node.category === 'markdown' || node.mimeType?.startsWith('text/')) {
+        return {
+          node,
+          body: new ArrayBuffer(0),
+          contentType: node.mimeType || 'text/markdown',
+        };
+      }
       throw new Error('NOT_FOUND: File content payload missing in Object Storage');
     }
 
