@@ -69,7 +69,11 @@ export function useVaults({
   const activeVault = vaults.find((v) => v.id === activeVaultId) || vaults[0];
 
   const handleCreateVault = useCallback(
-    async (name: string, pin: string, customRecoveryKey?: string): Promise<{ vault: VaultInfo; recoveryKey: string }> => {
+    async (
+      name: string,
+      pin: string,
+      customRecoveryKey?: string
+    ): Promise<{ vault: VaultInfo; recoveryKey: string; vmk: CryptoKey }> => {
       // 1. Pure standard UUID for Vault ID
       const vaultId = crypto.randomUUID();
 
@@ -98,12 +102,12 @@ export function useVaults({
 
       setVaults((prev) => [...prev, newVault]);
       setActiveVaultId(newVault.id);
-      setVaultKey(newVault.id, vmk);
+      // Note: Do not setVaultKey here immediately so user can view & backup the recovery key card
       showToast(t('createVault'), 'success');
 
-      return { vault: newVault, recoveryKey };
+      return { vault: newVault, recoveryKey, vmk };
     },
-    [apiClient, cryptoService, setVaultKey, setActiveVaultId, showToast, t]
+    [apiClient, cryptoService, setActiveVaultId, showToast, t]
   );
 
   const handleResetVaultPin = useCallback(

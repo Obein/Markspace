@@ -10,6 +10,7 @@ import {
   Sparkles,
   Loader2,
 } from 'lucide-react';
+import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
 import { VaultInfo } from '../../interfaces/INoteModels';
 
@@ -20,7 +21,7 @@ interface CreateVaultDialogProps {
     name: string,
     pin: string,
     recoveryKey?: string
-  ) => Promise<{ vault: VaultInfo; recoveryKey: string }>;
+  ) => Promise<{ vault: VaultInfo; recoveryKey: string; vmk: CryptoKey }>;
 }
 
 export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
@@ -29,12 +30,14 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
   onCreateVault,
 }) => {
   const { t } = useI18n();
+  const { setVaultKey } = useApp();
 
   const [step, setStep] = useState<'form' | 'recovery'>('form');
   const [name, setName] = useState('');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [createdVault, setCreatedVault] = useState<VaultInfo | null>(null);
+  const [createdVaultVmk, setCreatedVaultVmk] = useState<CryptoKey | null>(null);
   const [recoveryKey, setRecoveryKey] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [confirmedSaved, setConfirmedSaved] = useState(false);
@@ -67,6 +70,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
       const res = await onCreateVault(name.trim(), pin);
       setCreatedVault(res.vault);
       setRecoveryKey(res.recoveryKey);
+      setCreatedVaultVmk(res.vmk);
       setStep('recovery');
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : 'Failed to create vault');
@@ -83,6 +87,9 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
   };
 
   const handleFinish = () => {
+    if (createdVault && createdVaultVmk) {
+      setVaultKey(createdVault.id, createdVaultVmk);
+    }
     onClose();
     // Reset state
     setStep('form');
@@ -90,6 +97,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
     setPin('');
     setConfirmPin('');
     setCreatedVault(null);
+    setCreatedVaultVmk(null);
     setRecoveryKey('');
     setConfirmedSaved(false);
   };

@@ -60,6 +60,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
   const [createdRecoveryInfo, setCreatedRecoveryInfo] = useState<{
     vault: VaultInfo;
     recoveryKey: string;
+    vmk: CryptoKey;
   } | null>(null);
   const [copiedRecovery, setCopiedRecovery] = useState(false);
   const [confirmedBackup, setConfirmedBackup] = useState(false);
@@ -254,6 +255,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
 
   const handleFinishVaultCreation = () => {
     if (createdRecoveryInfo) {
+      setVaultKey(createdRecoveryInfo.vault.id, createdRecoveryInfo.vmk);
       setMode('pin');
       setCreatedRecoveryInfo(null);
       setNewVaultName('');

@@ -9,5 +9,5 @@ export interface UnlockModalProps {
     name: string,
     pin: string,
     recoveryKey?: string
-  ) => Promise<{ vault: VaultInfo; recoveryKey: string }>;
+  ) => Promise<{ vault: VaultInfo; recoveryKey: string; vmk: CryptoKey }>;
 }

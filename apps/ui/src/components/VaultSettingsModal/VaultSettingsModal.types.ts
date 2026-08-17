@@ -10,7 +10,7 @@ export interface VaultSettingsModalProps {
     name: string,
     pin: string,
     recoveryKey?: string
-  ) => Promise<{ vault: VaultInfo; recoveryKey: string }>;
+  ) => Promise<{ vault: VaultInfo; recoveryKey: string; vmk: CryptoKey }>;
   onRenameVault?: (vaultId: string, newName: string) => void;
   onDeleteVault?: (vaultId: string) => void;
   activeVaultNotes: NoteItem[];
