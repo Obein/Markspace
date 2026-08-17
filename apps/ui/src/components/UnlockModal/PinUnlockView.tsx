@@ -172,7 +172,7 @@ export const PinUnlockView: React.FC<PinUnlockViewProps> = ({
             >
               {vaults.map((v) => (
                 <option key={v.id} value={v.id} className="bg-zinc-900 text-white">
-                  {v.name} (UUID: {v.id.slice(0, 8)}...)
+                  {v.name} ({v.id})
                 </option>
               ))}
             </select>
