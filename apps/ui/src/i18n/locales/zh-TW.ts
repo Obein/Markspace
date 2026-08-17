@@ -23,16 +23,95 @@ export const zhTW: typeof enUS = {
   confirm: '確認',
   confirmDelete: '確定要刪除嗎？',
 
-  // Authentication
-  welcomeTitle: '歡迎使用 Markspace',
+  // Authentication & Bento Showcase
+  welcomeTitle: '歡迎來到 Markspace',
   signIn: '登入帳號',
   register: '註冊帳號',
   username: '使用者名稱',
   password: '密碼',
-  masterPassword: '主解密密碼',
-  unlockVault: '解鎖庫',
-  unlocking: '解密中...',
+  masterPassword: '主密碼',
+  confirmPassword: '確認密碼',
+  next: '下一步',
+  chooseUsername: '輸入使用者名稱',
+  enterUsername: '請輸入您的使用者名稱',
+  enterPassword: '請輸入您的密碼',
+  usernameTaken: '使用者名稱已存在，請更換或直接登入。',
+  userNotFound: '使用者不存在，請檢查或註冊新帳號。',
+  alreadyHaveAccount: '已有帳號？登入',
+  dontHaveAccount: '還沒有帳號？立即註冊',
+  step1Title: '身份確認',
+  step2Title: '安全憑證',
+  unlockVault: '解鎖資料保險庫',
+  unlocking: '正在解密...',
   unlock: '解鎖',
+  heroHeadline: '隱私原生 · 邊緣極速',
+  heroSub: '基於數學信封加密與全球分散式邊緣儲存的下一代零信任 Markdown 空間。',
+  
+  // Bento Subtitles & Titles & Details
+  bentoE2eeTitle: '零知識端到端加密',
+  bentoE2eeSub: '零知識 AES-GCM 信封加密',
+  bentoE2eeDesc: '客戶端原生多層信封加密。每個文檔節點由專屬資料加密金鑰 (DEK) 加密，由您的主金鑰 (VMK) 包裹封裝，伺服器完全不可見明文與私鑰。',
+  bentoE2eeTag: 'AES-256-GCM',
+  
+  bentoEdgeTitle: '全球邊緣分散式儲存',
+  bentoEdgeSub: '300+ 邊緣節點',
+  bentoEdgeDesc: '依託 Cloudflare 全球 300+ 邊緣節點網絡。檔案元資料由 Cloudflare D1 分散式 SQL 引擎毫秒級查詢，加密檔案由 R2 物件儲存即時串流傳輸。',
+  bentoEdgeTag: '< 15ms 全球低延遲',
+  
+  bentoMfaTitle: '多因素身分驗證 (MFA)',
+  bentoMfaSub: '即時雙重認證 · 身分驗證器',
+  bentoMfaDesc: '原生支援 RFC 6238 TOTP 標準協議，30 秒動態權杖輪轉。完美相容 Google Authenticator、1Password 或 Apple 鑰匙圈，暢享極速安全登入。',
+  bentoMfaTag: 'RFC 6238 TOTP',
+  
+  bentoOprfTitle: 'OPRF 橢圓曲線盲化',
+  bentoOprfSub: '橢圓曲線零知識防護門禁',
+  bentoOprfDesc: '基於 NIST P-256 橢圓曲線的盲點評估。客戶端在傳輸前對 PIN 進行盲化，伺服器完全不接觸明文即可完成驗證，從根源杜絕字典爆破與中間人竊取。',
+  bentoOprfTag: 'Zero-Knowledge',
+  
+  bentoVersionControlTitle: '版本控制',
+  bentoVersionControlSub: 'Merkle DAG · 不可篡改提交鏈',
+  bentoHistoryTitle: '版本時光機與可信回溯',
+  bentoHistoryDesc: '基於加密雜湊的內容定址提交鏈。每次文檔修改均通過 SHA-256 計算唯一指紋，支援任意時間點的無損歷史回滾與防篡改驗證。',
+  bentoHistoryTag: 'SHA-256 雜湊提交',
+  
+  bentoKaTeXTitle: 'KaTeX + Mermaid',
+  bentoKaTeXSub: '科學排版與 AST 動態圖表',
+  bentoMarkdownTitle: '科學級即時渲染引擎',
+  bentoMarkdownDesc: '內建 KaTeX 硬體加速數學公式排版引擎，以及基於 Mermaid.js 的動態互動式流程圖渲染。採用 Lezer 語法分析器實現增量高亮與極速解析。',
+  bentoMarkdownTag: 'KaTeX & Mermaid',
+  
+  bentoTableTitle: '視覺化表格編輯',
+  bentoTableSub: '所見即所得表格與公式計算',
+  bentoTableDetailTitle: '互動式視覺化表格編輯器',
+  bentoTableDesc: '直接在 Markdown 筆記中嵌入完整的互動式試算表。支援儲存格即時編輯、行列增刪與對齊，並內建即時函數公式計算引擎（SUM, AVG, COUNT, IF 等）。',
+  bentoTableTag: '試算表 & fx 計算',
+  
+  bentoNonceTitle: '防重放 Nonce 熔斷',
+  bentoNonceSub: '6 位元組挑戰 · RFC 9449 DPoP',
+  bentoNonceDesc: '透過加密挑戰 Nonce 與裝置權杖即時綁定每次資料操作。任何重放嘗試均會立即觸發熔斷開關，自動作廢工作階段並鎖定資料。',
+  bentoNonceTag: 'RFC 9449 DPoP',
+  
+  bentoMemoryTitle: '零磁碟洩漏',
+  bentoMemorySub: '非可匯出金鑰 · 記憶體即時擦除',
+  bentoMemoryDesc: '所有加密金鑰均在 Web Crypto API 中使用 extractable: false 建立。在鎖定保險庫或登出帳號時，記憶體緩衝區將立即強制清零，杜絕冷啟動記憶體提取。',
+  bentoMemoryTag: 'RAM 記憶體隔離',
+  
+  bentoBufferTitle: '自適應防抖保存',
+  bentoBufferSub: '自適應即時加密同步',
+  bentoBufferDesc: '800ms 動態防抖加密保存與差異化 DEK 金鑰輪換，杜絕資料遺失。',
+  bentoBufferTag: '800ms 防抖',
+  
+  bentoTypographyTitle: '專業排版與暗黑',
+  bentoTypographySub: 'OLED 純黑暗黑排版',
+  bentoTypographyDesc: '整合 GitHub Monaspace Neon 等寬字型與 Noto 全語言多文種字族，專為 OLED 純黑極簡環境校準對比度與可讀性。',
+  bentoTypographyTag: 'OLED 純黑',
+
+  // Auth Form Extras
+  useTotpCode: '使用驗證碼登入',
+  usePassword: '使用密碼登入',
+  totpCodePlaceholder: '6 位身分驗證碼',
+  backToUsername: '返回輸入使用者名稱',
+  securityAlert: '安全警示',
 
   // Version Control & History
   history: '歷史記錄',

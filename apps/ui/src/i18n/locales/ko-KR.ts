@@ -23,16 +23,95 @@ export const koKR: typeof enUS = {
   confirm: '확인',
   confirmDelete: '정말 삭제하시겠습니까?',
 
-  // Authentication
+  // Authentication & Bento Showcase
   welcomeTitle: 'Markspace에 오신 것을 환영합니다',
   signIn: '로그인',
   register: '회원가입',
   username: '사용자 이름',
   password: '비밀번호',
   masterPassword: '마스터 비밀번호',
+  confirmPassword: '비밀번호 확인',
+  next: '다음',
+  chooseUsername: '사용자 이름 입력',
+  enterUsername: '사용자 이름을 입력하세요',
+  enterPassword: '비밀번호를 입력하세요',
+  usernameTaken: '이미 사용 중인 사용자 이름입니다.',
+  userNotFound: '사용자를 찾을 수 없습니다. 회원가입을 진행해주세요.',
+  alreadyHaveAccount: '이미 계정이 있으신가요? 로그인',
+  dontHaveAccount: '계정이 없으신가요? 회원가입',
+  step1Title: '계정 확인',
+  step2Title: '보안 인증',
   unlockVault: '데이터 금고 잠금 해제',
-  unlocking: '해제 중...',
+  unlocking: '복호화 중...',
   unlock: '잠금 해제',
+  heroHeadline: '프라이버시 우선 · 글로벌 엣지',
+  heroSub: '봉투 암호화와 글로벌 엣지 스토리지를 결합한 차세대 제로 트러스트 마크다운 워크스페이스.',
+  
+  // Bento Subtitles & Titles & Details
+  bentoE2eeTitle: '영지식 엔드투엔드 암호화',
+  bentoE2eeSub: '영지식 AES-GCM 봉투 암호화',
+  bentoE2eeDesc: '클라이언트 측 멀티티어 봉투 암호화. 각 문서는 고유한 DEK로 암호화되며 마스터 키(VMK)로 래핑되어 서버에 평문이나 키가 전혀 노출되지 않습니다.',
+  bentoE2eeTag: 'AES-256-GCM',
+  
+  bentoEdgeTitle: '글로벌 엣지 스토리지',
+  bentoEdgeSub: '300+ 엣지 PoP',
+  bentoEdgeDesc: '전 세계 300개 이상의 도시에 분산된 Cloudflare D1 분산 SQL 및 R2 객체 스토리지 기반 초저지연 실시간 스트리밍.',
+  bentoEdgeTag: '< 15ms 지연 시간',
+  
+  bentoMfaTitle: '다단계 인증 (MFA)',
+  bentoMfaSub: '즉시 2단계 인증 · OTP',
+  bentoMfaDesc: 'RFC 6238 표준 TOTP 인증 프로토콜 기본 지원. 30초 동적 토큰 회전. Google OTP, 1Password, Apple 키체인과 완벽 호환.',
+  bentoMfaTag: 'RFC 6238 TOTP',
+  
+  bentoOprfTitle: 'OPRF 블라인드 평가',
+  bentoOprfSub: '타원곡선 영지식 보안 게이트',
+  bentoOprfDesc: 'NIST P-256 타원곡선 기반 블라인드 포인트 평가. 클라이언트에서 PIN을 블라인드 처리하여 전송하므로 서버는 평문을 알지 않고도 인증을 완료합니다.',
+  bentoOprfTag: '영지식 보안',
+  
+  bentoVersionControlTitle: '버전 관리',
+  bentoVersionControlSub: 'Merkle DAG · 불변 커밋 체인',
+  bentoHistoryTitle: '불변 타임머신 기록',
+  bentoHistoryDesc: '암호화 해시 기반의 내용 주소 지정 커밋 체인. 모든 문서 변경 사항을 SHA-256으로 해싱하여 원하는 시점으로 언제든 완벽하게 복원.',
+  bentoHistoryTag: 'SHA-256 커밋',
+  
+  bentoKaTeXTitle: 'KaTeX + Mermaid',
+  bentoKaTeXSub: '학술 수식 조판 & AST 다이어그램',
+  bentoMarkdownTitle: '과학 연구급 실시간 렌더링',
+  bentoMarkdownDesc: 'KaTeX 수식 조판 엔진 및 Mermaid.js 기반 대화형 순서도 렌더링. Lezer 파서 기반 증분 구문 분석 및 고속 하이라이트 지원.',
+  bentoMarkdownTag: 'KaTeX & Mermaid',
+  
+  bentoTableTitle: '시각적 표 편집',
+  bentoTableSub: 'WYSIWYG 스프레드시트 & 함수 계산',
+  bentoTableDetailTitle: '대화형 시각적 표 편집기',
+  bentoTableDesc: '마크다운 문서 내에서 직관적인 스프레드시트 편집 가능. 셀 즉시 편집, 행/열 삽입 및 정렬, 실시간 수식 평가 엔진 (SUM, AVG, COUNT, IF 등) 탑재.',
+  bentoTableTag: '스프레드시트 & fx 계산',
+  
+  bentoNonceTitle: '재전송 방지 Nonce',
+  bentoNonceSub: '6바이트 챌린지 · RFC 9449 DPoP',
+  bentoNonceDesc: '암호화 챌린지 Nonce와 기기 바인딩으로 요청마다 고유 토큰 검증. 리플레이 시도 시 즉시 서킷 브레이커가 작동합니다.',
+  bentoNonceTag: 'RFC 9449 DPoP',
+  
+  bentoMemoryTitle: '디스크 흔적 제로',
+  bentoMemorySub: '추출 불가능한 암호화 키',
+  bentoMemoryDesc: '모든 암호화 키는 Web Crypto API에서 extractable: false로 생성됩니다. 금고 잠금 또는 로그아웃 시 메모리 버퍼를 즉시 완벽하게 소거합니다.',
+  bentoMemoryTag: 'RAM 메모리 격리',
+  
+  bentoBufferTitle: '적응형 자동 저장',
+  bentoBufferSub: '적응형 실시간 암호화 동기화',
+  bentoBufferDesc: '800ms 동적 디바운스 암호화 저장 및 차등 DEK 키 로테이션으로 데이터 손실 방지.',
+  bentoBufferTag: '800ms 디바운스',
+  
+  bentoTypographyTitle: '타이포그래피 및 다크 테마',
+  bentoTypographySub: 'OLED 퓨어 블랙 타이포그래피',
+  bentoTypographyDesc: 'Noto 다국어 서체와 GitHub Monaspace 고정폭 코드 폰트 통합. OLED 딥 블랙에 최적화된 고대비 타이포그래피.',
+  bentoTypographyTag: 'OLED Obsidian',
+
+  // Auth Form Extras
+  useTotpCode: 'OTP 인증 코드로 로그인',
+  usePassword: '비밀번호로 로그인',
+  totpCodePlaceholder: '6자리 OTP 인증 코드',
+  backToUsername: '아이디 입력으로 돌아가기',
+  securityAlert: '보안 알림',
 
   // Version Control & History
   history: '기록',

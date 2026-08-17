@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { MnemonicService } from '../crypto/MnemonicService';
 import { TranslationKey } from '../i18n/i18nContext';
@@ -12,6 +12,29 @@ interface UseVaultsOptions {
   onVaultDeleted?: (deletedVaultId: string, nextVaultId: string) => void;
 }
 
+function loadVaultsFromStorage(uname: string | null): VaultInfo[] {
+  if (!uname) return [];
+  try {
+    const userSpecific = localStorage.getItem(`markspace_vaults_${uname}`);
+    if (userSpecific) {
+      const parsed = JSON.parse(userSpecific);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+    // Fallback migration from legacy global key if exists
+    const legacy = localStorage.getItem('markspace_vaults');
+    if (legacy) {
+      const parsed = JSON.parse(legacy);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        localStorage.setItem(`markspace_vaults_${uname}`, JSON.stringify(parsed));
+        return parsed;
+      }
+    }
+  } catch (_) {}
+  return [];
+}
+
 export function useVaults({
   username,
   t,
@@ -21,50 +44,36 @@ export function useVaults({
 }: UseVaultsOptions) {
   const { cryptoService, apiClient, setVaultKey, activeVaultId, setActiveVaultId } = useApp();
 
-  const [vaults, setVaults] = useState<VaultInfo[]>(() => {
-    if (!username) return [];
-    try {
-      const stored = localStorage.getItem(`markspace_vaults_${username}`);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          return parsed;
-        }
-      }
-    } catch (_) {}
-    return [];
-  });
+  const [vaults, setVaults] = useState<VaultInfo[]>(() => loadVaultsFromStorage(username));
+  const activeUserRef = useRef<string | null>(username);
 
-  // Keep vaults persisted in localStorage
+  // Sync vaults from localStorage when username changes
   useEffect(() => {
-    if (username) {
-      try {
-        localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(vaults));
-      } catch (_) {}
-    }
-  }, [vaults, username]);
-
-  // Sync vaults from localStorage when user logs in
-  useEffect(() => {
+    activeUserRef.current = username;
     if (!username) {
       setVaults([]);
       setActiveVaultId('');
       return;
     }
-    try {
-      const stored = localStorage.getItem(`markspace_vaults_${username}`);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setVaults(parsed);
-          setActiveVaultId(parsed[0].id);
-          return;
-        }
+    const loaded = loadVaultsFromStorage(username);
+    setVaults(loaded);
+    if (loaded.length > 0) {
+      if (!activeVaultId || !loaded.some((v) => v.id === activeVaultId)) {
+        setActiveVaultId(loaded[0].id);
       }
-    } catch (_) {}
-    setVaults([]);
-    setActiveVaultId('');
-  }, [username, setActiveVaultId]);
+    } else {
+      setActiveVaultId('');
+    }
+  }, [username, activeVaultId, setActiveVaultId]);
+
+  // Keep vaults persisted in localStorage ONLY when active user matches loaded data
+  useEffect(() => {
+    if (username && activeUserRef.current === username && vaults.length > 0) {
+      try {
+        localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(vaults));
+      } catch (_) {}
+    }
+  }, [vaults, username]);
 
   const activeVault = vaults.find((v) => v.id === activeVaultId) || vaults[0];
 

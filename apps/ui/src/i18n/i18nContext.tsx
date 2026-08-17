@@ -19,7 +19,7 @@ export interface LanguageOption {
 }
 
 export const LANGUAGE_OPTIONS: LanguageOption[] = [
-  { code: 'en-US', label: 'English (US)', flag: '🇺🇸' },
+  { code: 'en-US', label: 'English', flag: '🇺🇸' },
   { code: 'zh-CN', label: '简体中文', flag: '🇨🇳' },
   { code: 'zh-TW', label: '正體中文', flag: '🇹🇼' },
   { code: 'es-ES', label: 'Español', flag: '🇪🇸' },

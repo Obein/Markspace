@@ -23,16 +23,95 @@ export const esES: typeof enUS = {
   confirm: 'Confirmar',
   confirmDelete: '¿Estás seguro de que deseas eliminar?',
 
-  // Authentication
+  // Authentication & Bento Showcase
   welcomeTitle: 'Bienvenido a Markspace',
   signIn: 'Iniciar Sesión',
   register: 'Registrarse',
-  username: 'Nombre de Usuario',
-  password: 'Contraseña',
-  masterPassword: 'Contraseña Maestra',
-  unlockVault: 'Desbloquear Bóveda de Datos',
-  unlocking: 'Desbloqueando...',
+  username: 'Usuario',
+  password: 'Password',
+  masterPassword: 'Clave Maestra',
+  confirmPassword: 'Confirmar Contraseña',
+  next: 'Siguiente',
+  chooseUsername: 'Elige un usuario',
+  enterUsername: 'Ingresa tu usuario',
+  enterPassword: 'Ingresa tu contraseña',
+  usernameTaken: 'El nombre de usuario ya está en uso. Por favor elige otro.',
+  userNotFound: 'Usuario no encontrado. Por favor regístrate.',
+  alreadyHaveAccount: '¿Ya tienes una cuenta? Iniciar Sesión',
+  dontHaveAccount: '¿No tienes una cuenta? Registrarse',
+  step1Title: 'Identidad de Cuenta',
+  step2Title: 'Verificación de Seguridad',
+  unlockVault: 'Desbloquear Bóveda',
+  unlocking: 'Descifrando...',
   unlock: 'Desbloquear',
+  heroHeadline: 'Privacidad Primero · Velocidad Edge',
+  heroSub: 'Espacio de trabajo Markdown Zero-Trust de última generación protegido con cifrado de sobre y almacenamiento global Edge.',
+  
+  // Bento Subtitles & Titles & Details
+  bentoE2eeTitle: 'Cifrado de Conocimiento Cero',
+  bentoE2eeSub: 'Cifrado de sobre AES-GCM de conocimiento cero',
+  bentoE2eeDesc: 'Cifrado de sobre multicapa en el cliente. Cada documento está protegido por una clave DEK única envuelta por su clave maestra (VMK). Los servidores nunca ven texto en claro ni claves.',
+  bentoE2eeTag: 'AES-256-GCM',
+  
+  bentoEdgeTitle: 'Almacenamiento Edge Global',
+  bentoEdgeSub: '300+ PoPs en el Edge',
+  bentoEdgeDesc: 'Impulsado por la red global de Cloudflare en más de 300 ciudades. Metadatos consultados mediante D1 SQL distribuido y objetos transmitidos vía almacenamiento R2.',
+  bentoEdgeTag: '< 15ms Latencia',
+  
+  bentoMfaTitle: 'Autenticación Multifactor (MFA)',
+  bentoMfaSub: '2FA Instantáneo · Authenticator',
+  bentoMfaDesc: 'Protocolo estándar RFC 6238 TOTP con rotación de tokens cada 30 segundos. Totalmente compatible con Google Authenticator, 1Password y Apple Keychain.',
+  bentoMfaTag: 'RFC 6238 TOTP',
+  
+  bentoOprfTitle: 'Evaluación Ciega OPRF',
+  bentoOprfSub: 'Puerta de enlace Zero-Knowledge con curva elíptica',
+  bentoOprfDesc: 'Evaluación de puntos ciegos en la curva NIST P-256. El cliente anonimiza el PIN antes de enviarlo, permitiendo al servidor validar sin conocer el texto en claro.',
+  bentoOprfTag: 'Zero-Knowledge',
+  
+  bentoVersionControlTitle: 'Control de Versiones',
+  bentoVersionControlSub: 'Merkle DAG · Commits Inmutables',
+  bentoHistoryTitle: 'Historial de Versiones Inmutable',
+  bentoHistoryDesc: 'Cadena de commits direccionable por contenido. Cada revisión se cifra con SHA-256, permitiendo reversiones instantáneas a cualquier punto histórico.',
+  bentoHistoryTag: 'SHA-256 Commits',
+  
+  bentoKaTeXTitle: 'KaTeX + Mermaid',
+  bentoKaTeXSub: 'Tipografía Científica y Diagramas AST',
+  bentoMarkdownTitle: 'Motor Científico en Vivo',
+  bentoMarkdownDesc: 'Motor de tipografía matemática KaTeX acelerado por hardware y renderizado interactivo de diagramas de flujo con Mermaid.js y analizador sintáctico Lezer.',
+  bentoMarkdownTag: 'KaTeX & Mermaid',
+  
+  bentoTableTitle: 'Edición Visual de Tablas',
+  bentoTableSub: 'Hojas de Cálculo WYSIWYG y Fórmulas',
+  bentoTableDetailTitle: 'Editor de Tablas Visual Interactivo',
+  bentoTableDesc: 'Edición completa de hojas de cálculo directamente en notas Markdown. Inserción de filas/columnas, alineación y motor de fórmulas en tiempo real (SUM, AVG, COUNT, IF).',
+  bentoTableTag: 'Hojas de cálculo & fx',
+  
+  bentoNonceTitle: 'Nonce Anti-Replay',
+  bentoNonceSub: 'Desafío de 6 Bytes · RFC 9449 DPoP',
+  bentoNonceDesc: 'Desafíos criptográficos Nonce vinculados al token del dispositivo en cada mutación. Cualquier intento de repetición bloquea la sesión automáticamente.',
+  bentoNonceTag: 'RFC 9449 DPoP',
+  
+  bentoMemoryTitle: 'Cero Rastro en Disco',
+  bentoMemorySub: 'Claves No Extraíbles',
+  bentoMemoryDesc: 'Todas las claves se crean con extractable: false en la API Web Crypto. Al bloquear la bóveda o cerrar sesión, los búferes de memoria se borran al instante.',
+  bentoMemoryTag: 'Aislamiento de RAM',
+  
+  bentoBufferTitle: 'Autoguardado Adaptativo',
+  bentoBufferSub: 'Sincronización Cifrada en Tiempo Real',
+  bentoBufferDesc: 'Guardado con retardo dinámico de 800ms y rotación diferencial de claves DEK para cero pérdida de datos.',
+  bentoBufferTag: '800ms Debounce',
+  
+  bentoTypographyTitle: 'Tipografía y Modo Oscuro',
+  bentoTypographySub: 'Tipografía OLED Pure Obsidian',
+  bentoTypographyDesc: 'Tipografía de código GitHub Monaspace Neon combinada con fuentes multilingües Noto, calibrada para un contraste OLED negro puro.',
+  bentoTypographyTag: 'OLED Obsidian',
+
+  // Auth Form Extras
+  useTotpCode: 'Usar Código TOTP',
+  usePassword: 'Usar Contraseña',
+  totpCodePlaceholder: 'Código TOTP de 6 dígitos',
+  backToUsername: 'Volver a usuario',
+  securityAlert: 'Alerta de Seguridad',
 
   // Version Control & History
   history: 'Historial',

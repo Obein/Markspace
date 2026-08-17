@@ -23,16 +23,95 @@ export const viVN: typeof enUS = {
   confirm: 'Xác Nhận',
   confirmDelete: 'Bạn có chắc chắn muốn xóa không?',
 
-  // Authentication
+  // Authentication & Bento Showcase
   welcomeTitle: 'Chào mừng đến với Markspace',
   signIn: 'Đăng Nhập',
   register: 'Đăng Ký',
-  username: 'Tên Dữ Liệu',
-  password: 'Mật Khẩu',
-  masterPassword: 'Mật Khẩu Gốc',
+  username: 'Tên người dùng',
+  password: 'Mật khẩu',
+  masterPassword: 'Mật khẩu chính',
+  confirmPassword: 'Xác nhận mật khẩu',
+  next: 'Tiếp theo',
+  chooseUsername: 'Chọn tên người dùng',
+  enterUsername: 'Nhập tên người dùng',
+  enterPassword: 'Nhập mật khẩu',
+  usernameTaken: 'Tên người dùng đã tồn tại. Vui lòng chọn tên khác.',
+  userNotFound: 'Không tìm thấy người dùng. Vui lòng đăng ký.',
+  alreadyHaveAccount: 'Đã có tài khoản? Đăng nhập',
+  dontHaveAccount: 'Chưa có tài khoản? Đăng ký',
+  step1Title: 'Xác thực tài khoản',
+  step2Title: 'Xác minh bảo mật',
   unlockVault: 'Mở Khóa Kho Dữ Liệu',
-  unlocking: 'Đang mở khóa...',
+  unlocking: 'Đang giải mã...',
   unlock: 'Mở Khóa',
+  heroHeadline: 'Bảo Mật Tối Đa · Tốc Độ Edge',
+  heroSub: 'Không gian làm việc Markdown Zero-Trust thế hệ mới bảo mật bằng mã hóa phong bì và lưu trữ toàn cầu Edge.',
+  
+  // Bento Subtitles & Titles & Details
+  bentoE2eeTitle: 'Mã Hóa Không Tri Thức',
+  bentoE2eeSub: 'Mã hóa phong bì AES-GCM không tri thức',
+  bentoE2eeDesc: 'Mã hóa phong bì đa tầng phía máy khách. Mỗi tài liệu được bảo vệ bằng một khóa DEK riêng biệt bọc bởi khóa chính (VMK). Máy chủ hoàn toàn không thấy dữ liệu gốc.',
+  bentoE2eeTag: 'AES-256-GCM',
+  
+  bentoEdgeTitle: 'Lưu Trữ Phân Tán Toàn Cầu',
+  bentoEdgeSub: '300+ PoPs Toàn Cầu',
+  bentoEdgeDesc: 'Vận hành trên mạng lưới hơn 300 thành phố của Cloudflare. Siêu dữ liệu truy vấn bằng D1 SQL phân tán và truyền tệp mã hóa qua R2 Storage theo thời gian thực.',
+  bentoEdgeTag: '< 15ms Độ Trễ',
+  
+  bentoMfaTitle: 'Xác Thực Đa Yếu Tố (MFA)',
+  bentoMfaSub: '2FA Tức Thì · Trình Xác Thực',
+  bentoMfaDesc: 'Giao thức tiêu chuẩn RFC 6238 TOTP với chu kỳ xoay vòng mã 30 giây. Tương thích hoàn toàn với Google Authenticator, 1Password và Apple Keychain.',
+  bentoMfaTag: 'RFC 6238 TOTP',
+  
+  bentoOprfTitle: 'Đánh Giá Ẩn OPRF',
+  bentoOprfSub: 'Cổng bảo mật Zero-Knowledge đường cong Elliptic',
+  bentoOprfDesc: 'Đánh giá điểm mù trên đường cong NIST P-256. Máy khách làm mờ mã PIN trước khi gửi, máy chủ xác thực an toàn tuyệt đối mà không cần biết mật mã gốc.',
+  bentoOprfTag: 'Zero-Knowledge',
+  
+  bentoVersionControlTitle: 'Quản Lý Phiên Bản',
+  bentoVersionControlSub: 'Merkle DAG · Cam Kết Bất Biến',
+  bentoHistoryTitle: 'Lịch Sử Phiên Bản Bất Biến',
+  bentoHistoryDesc: 'Chuỗi cam kết định danh theo nội dung. Mọi chỉnh sửa được băm bằng SHA-256 cho phép khôi phục chính xác về bất kỳ thời điểm nào.',
+  bentoHistoryTag: 'SHA-256 Commits',
+  
+  bentoKaTeXTitle: 'KaTeX + Mermaid',
+  bentoKaTeXSub: 'Trình Bày Khoa Học & Sơ Đồ AST',
+  bentoMarkdownTitle: 'Bộ Máy Khoa Học Trực Tiếp',
+  bentoMarkdownDesc: 'Công thức toán học KaTeX tăng tốc phần cứng và kết xuất lưu đồ động Mermaid.js với bộ phân tích cú pháp tăng dần Lezer.',
+  bentoMarkdownTag: 'KaTeX & Mermaid',
+  
+  bentoTableTitle: 'Chỉnh Sửa Bảng Trực Quan',
+  bentoTableSub: 'Bảng Tính WYSIWYG & Công Thức',
+  bentoTableDetailTitle: 'Trình Chỉnh Sửa Bảng Trực Quan Tương Tác',
+  bentoTableDesc: 'Trải nghiệm bảng tính hoàn chỉnh ngay trong ghi chú Markdown. Hỗ trợ chỉnh sửa ô tức thì, thao tác hàng/cột và công thức thời gian thực (SUM, AVG, COUNT, IF).',
+  bentoTableTag: 'Bảng tính & fx',
+  
+  bentoNonceTitle: 'Chống Phát Lại Nonce',
+  bentoNonceSub: 'Thử Thách 6 Byte · RFC 9449 DPoP',
+  bentoNonceDesc: 'Thử thách mật mã Nonce liên kết với mã token thiết bị cho mỗi thao tác. Bất kỳ nỗ lực phát lại nào đều kích hoạt ngắt mạch hủy phiên tức thì.',
+  bentoNonceTag: 'RFC 9449 DPoP',
+  
+  bentoMemoryTitle: 'Không Dấu Vết Đĩa',
+  bentoMemorySub: 'Khóa Mật Mã Không Thể Trích Xuất',
+  bentoMemoryDesc: 'Mọi khóa mật mã đều được tạo với thuộc tính extractable: false trong Web Crypto API. Dọn sạch hoàn toàn bộ nhớ RAM khi khóa kho hoặc đăng xuất.',
+  bentoMemoryTag: 'RAM Cô Lập',
+  
+  bentoBufferTitle: 'Tự Động Lưu Thích Ứng',
+  bentoBufferSub: 'Đồng Bộ Mã Hóa Thời Gian Thực',
+  bentoBufferDesc: 'Lưu mã hóa chống rung 800ms với cơ chế xoay vòng khóa DEK vi sai đảm bảo không mất dữ liệu.',
+  bentoBufferTag: '800ms Debounce',
+  
+  bentoTypographyTitle: 'Kiểu Chữ & Chế Độ Tối',
+  bentoTypographySub: 'Nghệ Thuật Kiểu Chữ OLED Đen Thuần',
+  bentoTypographyDesc: 'Phông chữ đơn cách GitHub Monaspace Neon kết hợp bộ phông đa ngôn ngữ Noto, tối ưu hóa độ tương phản trên màn hình OLED.',
+  bentoTypographyTag: 'OLED Obsidian',
+
+  // Auth Form Extras
+  useTotpCode: 'Dùng mã OTP',
+  usePassword: 'Dùng mật khẩu',
+  totpCodePlaceholder: 'Mã OTP 6 chữ số',
+  backToUsername: 'Quay lại tên người dùng',
+  securityAlert: 'Cảnh Báo Bảo Mật',
 
   // Version Control & History
   history: 'Lịch sử',

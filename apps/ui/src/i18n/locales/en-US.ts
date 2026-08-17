@@ -21,16 +21,95 @@ export const enUS = {
   confirm: 'Confirm',
   confirmDelete: 'Are you sure you want to delete?',
 
-  // Authentication
+  // Authentication & Bento Showcase
   welcomeTitle: 'Welcome to Markspace',
   signIn: 'Sign In',
   register: 'Register',
   username: 'Username',
   password: 'Password',
   masterPassword: 'Master Password',
+  confirmPassword: 'Confirm Password',
+  next: 'Next',
+  chooseUsername: 'Choose a username',
+  enterUsername: 'Enter your username',
+  enterPassword: 'Enter your password',
+  usernameTaken: 'Username already taken. Please choose another or sign in.',
+  userNotFound: 'User not found. Please check username or register.',
+  alreadyHaveAccount: 'Already have an account? Sign In',
+  dontHaveAccount: "Don't have an account? Register",
+  step1Title: 'Account Identity',
+  step2Title: 'Security Verification',
   unlockVault: 'Unlock Data Vault',
   unlocking: 'Unlocking...',
   unlock: 'Unlock',
+  heroHeadline: 'Privacy First. Edge Fast.',
+  heroSub: 'Next-generation Zero-Trust markdown workspace secured by mathematical envelope encryption and global edge storage.',
+  
+  // Bento Subtitles & Titles & Details
+  bentoE2eeTitle: 'Zero-Knowledge Encryption',
+  bentoE2eeSub: 'Zero-Knowledge AES-GCM Envelope Encryption',
+  bentoE2eeDesc: 'Multi-tier envelope encryption. Every document node is secured with its own unique Data Encryption Key (DEK), wrapped by your Vault Master Key (VMK). Plaintext and keys never touch server disks.',
+  bentoE2eeTag: 'AES-256-GCM',
+  
+  bentoEdgeTitle: 'Global Edge Storage',
+  bentoEdgeSub: '300+ Edge PoPs',
+  bentoEdgeDesc: 'Powered by Cloudflare global edge fabric across 300+ cities worldwide. Tree metadata is queried via distributed Cloudflare D1 SQL, with encrypted blobs streamed via Cloudflare R2 object storage.',
+  bentoEdgeTag: '< 15ms Global Latency',
+  
+  bentoMfaTitle: 'Multi-Factor Authentication (MFA)',
+  bentoMfaSub: 'Instant 2FA · Authenticator',
+  bentoMfaDesc: 'Multi-Factor Authentication (MFA) with 30-second rotating security tokens. Pair with Google Authenticator, 1Password, or Apple Keychain for passwordless instant access.',
+  bentoMfaTag: 'RFC 6238 TOTP',
+  
+  bentoOprfTitle: 'OPRF Blind Verification',
+  bentoOprfSub: 'Elliptic Curve Zero-Knowledge Gate',
+  bentoOprfDesc: 'Blinded Point evaluation on NIST P-256 curve. Client blinds the PIN before sending, server evaluates it oblivious to plaintext, protecting against dictionary and brute-force attacks.',
+  bentoOprfTag: 'Zero-Knowledge',
+  
+  bentoVersionControlTitle: 'Version Control',
+  bentoVersionControlSub: 'Merkle DAG · Immutable Commits',
+  bentoHistoryTitle: 'Immutable Time-Travel',
+  bentoHistoryDesc: 'Content-addressable commit chain. Every document revision is hashed with SHA-256, allowing instant point-in-time timeline rollback and tamper-proof verification.',
+  bentoHistoryTag: 'SHA-256 Commits',
+  
+  bentoKaTeXTitle: 'KaTeX + Mermaid',
+  bentoKaTeXSub: 'Scientific Typesetting & AST Diagrams',
+  bentoMarkdownTitle: 'Scientific Live Engine',
+  bentoMarkdownDesc: 'Full mathematical typesetting engine powered by KaTeX and dynamic interactive flowchart renderer powered by Mermaid.js. Incremental syntax highlighting with Lezer parser.',
+  bentoMarkdownTag: 'KaTeX & Mermaid',
+  
+  bentoTableTitle: 'Visual Table Editor',
+  bentoTableSub: 'WYSIWYG Spreadsheet & Formulas',
+  bentoTableDetailTitle: 'Interactive Visual Table Editor',
+  bentoTableDesc: 'Full spreadsheet editing right inside markdown documents. Features interactive cell editing, column/row insertion, alignment controls, and real-time formula evaluation engine.',
+  bentoTableTag: 'Spreadsheet & fx',
+  
+  bentoNonceTitle: 'Anti-Replay Nonce',
+  bentoNonceSub: '6-Byte Challenge · RFC 9449 DPoP',
+  bentoNonceDesc: 'Cryptographic challenge nonces bind every mutation to unique device tokens. Replay attempts trigger immediate circuit-breaker session invalidation.',
+  bentoNonceTag: 'RFC 9449 DPoP',
+  
+  bentoMemoryTitle: 'Zero Disk Trace',
+  bentoMemorySub: 'Non-Extractable Keys',
+  bentoMemoryDesc: 'All cryptographic keys are created with extractable: false in Web Crypto API. On vault lock or sign out, memory buffers are completely scrubbed to prevent cold-boot dumps.',
+  bentoMemoryTag: 'RAM Isolation',
+  
+  bentoBufferTitle: 'Adaptive Auto-Save',
+  bentoBufferSub: 'Adaptive Auto-Save Sync',
+  bentoBufferDesc: '800ms dynamic debounce encrypted saving with differential DEK key rotation.',
+  bentoBufferTag: '800ms Debounce',
+  
+  bentoTypographyTitle: 'Noto & Monaspace',
+  bentoTypographySub: 'OLED Pure Obsidian Typography',
+  bentoTypographyDesc: 'GitHub Monaspace Neon variable code typography integrated with Noto Multilingual typefaces, calibrated for pure pitch-black OLED contrast.',
+  bentoTypographyTag: 'OLED Obsidian',
+
+  // Auth Form Extras
+  useTotpCode: 'Use TOTP Code',
+  usePassword: 'Use Password',
+  totpCodePlaceholder: '6-Digit TOTP Code',
+  backToUsername: 'Back to username',
+  securityAlert: 'Security Alert',
 
   // Version Control & History
   history: 'History',

@@ -83,8 +83,8 @@ export const RecoveryUnlockView: React.FC<RecoveryUnlockViewProps> = ({
       try {
         const stored = localStorage.getItem(`markspace_vaults_${username}`);
         if (stored) {
-          const parsed = JSON.parse(stored);
-          const updated = parsed.map((v: any) =>
+          const parsed: VaultInfo[] = JSON.parse(stored);
+          const updated = parsed.map((v: VaultInfo) =>
             v.id === activeVault.id ? { ...v, wrappedVmkByPin: newWrappedVmkByPin } : v
           );
           localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(updated));

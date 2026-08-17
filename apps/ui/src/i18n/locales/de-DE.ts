@@ -23,16 +23,95 @@ export const deDE: typeof enUS = {
   confirm: 'Bestätigen',
   confirmDelete: 'Möchten Sie dies wirklich löschen?',
 
-  // Authentication
+  // Authentication & Bento Showcase
   welcomeTitle: 'Willkommen bei Markspace',
   signIn: 'Anmelden',
   register: 'Registrieren',
   username: 'Benutzername',
   password: 'Passwort',
   masterPassword: 'Master-Passwort',
-  unlockVault: 'Datentresor entschlüsseln',
-  unlocking: 'Entschlüsseln...',
-  unlock: 'Entschlüsseln',
+  confirmPassword: 'Passwort bestätigen',
+  next: 'Weiter',
+  chooseUsername: 'Benutzername wählen',
+  enterUsername: 'Benutzername eingeben',
+  enterPassword: 'Passwort eingeben',
+  usernameTaken: 'Benutzername bereits vergeben. Bitte wählen Sie einen anderen.',
+  userNotFound: 'Benutzer nicht gefunden. Bitte registrieren.',
+  alreadyHaveAccount: 'Bereits registriert? Anmelden',
+  dontHaveAccount: 'Noch kein Konto? Registrieren',
+  step1Title: 'Kontoidentität',
+  step2Title: 'Sicherheitsüberprüfung',
+  unlockVault: 'Tresor entsperren',
+  unlocking: 'Wird entschlüsselt...',
+  unlock: 'Entsperren',
+  heroHeadline: 'Datenschutz zuerst · Edge-Geschwindigkeit',
+  heroSub: 'Next-Gen Zero-Trust Markdown-Workspace mit mathematischer Envelope-Verschlüsselung und globalem Edge-Storage.',
+  
+  // Bento Subtitles & Titles & Details
+  bentoE2eeTitle: 'Zero-Knowledge-Verschlüsselung',
+  bentoE2eeSub: 'Zero-Knowledge AES-GCM Envelope-Verschlüsselung',
+  bentoE2eeDesc: 'Mehrstufige clientseitige Envelope-Verschlüsselung. Jedes Dokument wird mit einem individuellen DEK geschützt und durch Ihren Masterschlüssel (VMK) versiegelt.',
+  bentoE2eeTag: 'AES-256-GCM',
+  
+  bentoEdgeTitle: 'Globaler Edge-Speicher',
+  bentoEdgeSub: '300+ Edge PoPs',
+  bentoEdgeDesc: 'Verteilt über 300+ Städte weltweit mit Cloudflare D1 SQL und R2 Object Storage für verzögerungsfreie Echtzeitübertragung.',
+  bentoEdgeTag: '< 15ms Latenz',
+  
+  bentoMfaTitle: 'Multi-Faktor-Authentifizierung (MFA)',
+  bentoMfaSub: 'Sofortige 2FA · Authenticator',
+  bentoMfaDesc: 'RFC 6238 TOTP-Standardprotokoll mit 30-Sekunden-Token-Rotation. Kompatibel mit Google Authenticator, 1Password und Apple Keychain.',
+  bentoMfaTag: 'RFC 6238 TOTP',
+  
+  bentoOprfTitle: 'OPRF-Blindevaluierung',
+  bentoOprfSub: 'Zero-Knowledge-Schutz mit elliptischen Kurven',
+  bentoOprfDesc: 'Blind-Point-Validierung auf der NIST P-256-Kurve. Der Client blendet die PIN vor dem Senden aus; der Server validiert ohne Klartextkenntnis.',
+  bentoOprfTag: 'Zero-Knowledge',
+  
+  bentoVersionControlTitle: 'Versionskontrolle',
+  bentoVersionControlSub: 'Merkle DAG · Unveränderliche Commits',
+  bentoHistoryTitle: 'Unveränderliche Versionshistorie',
+  bentoHistoryDesc: 'Inhaltsadressierte Commit-Kette mit SHA-256-Prüfsummen für punktgenaue und manipulationssichere Rollbacks.',
+  bentoHistoryTag: 'SHA-256 Commits',
+  
+  bentoKaTeXTitle: 'KaTeX + Mermaid',
+  bentoKaTeXSub: 'Wissenschaftlicher Schriftsatz & AST-Diagramme',
+  bentoMarkdownTitle: 'Wissenschaftliche Live-Engine',
+  bentoMarkdownDesc: 'Hardwarebeschleunigte KaTeX-Mathematikformeln und dynamische Mermaid.js-Flussdiagramme mit inkrementellem Lezer-Syntax-Parser.',
+  bentoMarkdownTag: 'KaTeX & Mermaid',
+  
+  bentoTableTitle: 'Visuelle Tabellenbearbeitung',
+  bentoTableSub: 'WYSIWYG Tabellenkalkulation & Formeln',
+  bentoTableDetailTitle: 'Interaktiver visueller Tabellen-Editor',
+  bentoTableDesc: 'Vollwertige Tabellenkalkulation direkt in Markdown-Dokumenten. Interaktive Zellbearbeitung, Zeilen-/Spaltenoperationen und integrierte Formelauswertung (SUM, AVG, COUNT, IF).',
+  bentoTableTag: 'Tabellen & fx',
+  
+  bentoNonceTitle: 'Anti-Replay Nonce',
+  bentoNonceSub: '6-Byte Challenge · RFC 9449 DPoP',
+  bentoNonceDesc: 'Kryptografische Nonces binden jede Anfrage an eindeutige Gerätetoken. Replay-Versuche lösen sofortige Sitzungssperren aus.',
+  bentoNonceTag: 'RFC 9449 DPoP',
+  
+  bentoMemoryTitle: 'Keine Disk-Spuren',
+  bentoMemorySub: 'Nicht-extrahierbare Schlüssel',
+  bentoMemoryDesc: 'Alle kryptografischen Schlüssel werden mit extractable: false in der Web Crypto API erzeugt. Sofortige Speicherbereinigung beim Sperren oder Abmelden.',
+  bentoMemoryTag: 'RAM-Isolation',
+  
+  bentoBufferTitle: 'Adaptive Autospeicherung',
+  bentoBufferSub: 'Adaptive Echtzeit-Verschlüsselungssynchronisation',
+  bentoBufferDesc: '800ms dynamische Debounce-Verschlüsselung mit differenzieller DEK-Schlüsselrotation.',
+  bentoBufferTag: '800ms Debounce',
+  
+  bentoTypographyTitle: 'Typografie & Dark Mode',
+  bentoTypographySub: 'OLED Pure Obsidian Typografie',
+  bentoTypographyDesc: 'GitHub Monaspace Neon Code-Typografie kombiniert mit Noto Multilingual-Schriftarten, optimiert für OLED-Kontraste.',
+  bentoTypographyTag: 'OLED Obsidian',
+
+  // Auth Form Extras
+  useTotpCode: 'Mit TOTP-Code anmelden',
+  usePassword: 'Mit Passwort anmelden',
+  totpCodePlaceholder: '6-stelliger TOTP-Code',
+  backToUsername: 'Zurück zur Benutzernameneingabe',
+  securityAlert: 'Sicherheitswarnung',
 
   // Version Control & History
   history: 'Verlauf',

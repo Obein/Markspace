@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ShieldCheck, LogOut } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
@@ -36,6 +36,18 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
   const [mode, setMode] = useState<'pin' | 'recovery' | 'create'>(
     vaults.length === 0 ? 'create' : 'pin'
   );
+
+  const prevVaultsLengthRef = useRef(vaults.length);
+
+  // Automatically adjust mode when vaults list becomes available or empty
+  useEffect(() => {
+    if (vaults.length === 0) {
+      setMode('create');
+    } else if (prevVaultsLengthRef.current === 0 && vaults.length > 0) {
+      setMode('pin');
+    }
+    prevVaultsLengthRef.current = vaults.length;
+  }, [vaults.length]);
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [shake, setShake] = useState(false);

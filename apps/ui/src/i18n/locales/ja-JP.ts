@@ -23,16 +23,95 @@ export const jaJP: typeof enUS = {
   confirm: '確認',
   confirmDelete: '本当に削除しますか？',
 
-  // Authentication
-  welcomeTitle: 'Markspaceへようこそ',
-  signIn: 'ログイン',
-  register: '新規登録',
+  // Authentication & Bento Showcase
+  welcomeTitle: 'Markspace へようこそ',
+  signIn: 'サインイン',
+  register: 'アカウント登録',
   username: 'ユーザー名',
   password: 'パスワード',
   masterPassword: 'マスターパスワード',
-  unlockVault: 'データ保管庫を解除',
-  unlocking: '解除中...',
-  unlock: '解除',
+  confirmPassword: 'パスワード再入力',
+  next: '次へ',
+  chooseUsername: 'ユーザー名を入力',
+  enterUsername: 'ユーザー名を入力してください',
+  enterPassword: 'パスワードを入力してください',
+  usernameTaken: 'このユーザー名は既に使用されています。',
+  userNotFound: 'ユーザーが見つかりません。新規登録してください。',
+  alreadyHaveAccount: 'アカウントをお持ちですか？ サインイン',
+  dontHaveAccount: 'アカウントをお持ちでないですか？ 新規登録',
+  step1Title: 'アカウント確認',
+  step2Title: 'セキュリティ検証',
+  unlockVault: 'データ保管庫をロック解除',
+  unlocking: '暗号化解除中...',
+  unlock: 'ロック解除',
+  heroHeadline: 'プライバシー優先 · エッジ高速',
+  heroSub: 'エンベロープ暗号化とグローバル分散エッジストレージに基づく次世代ゼロトラスト Markdown ワークスペース。',
+  
+  // Bento Subtitles & Titles & Details
+  bentoE2eeTitle: 'ゼロ知識 E2E 暗号化',
+  bentoE2eeSub: 'ゼロ知識 AES-GCM エンベロープ暗号化',
+  bentoE2eeDesc: 'クライアントネイティブのマルチレイヤーエンベロープ暗号化。各ドキュメントは独自の DEK で保護され、マスターキー (VMK) でカプセル化されます。サーバーには平文や鍵が一切露出されません。',
+  bentoE2eeTag: 'AES-256-GCM',
+  
+  bentoEdgeTitle: 'グローバルエッジ分散ストレージ',
+  bentoEdgeSub: '300+ エッジ PoP',
+  bentoEdgeDesc: '世界 300 以上の都市に展開する Cloudflare エッジネットワーク。D1 分散 SQL によるミリ秒単位のメタデータクエリと R2 オブジェクトストレージによるリアルタイム配信。',
+  bentoEdgeTag: '< 15ms グローバル低遅延',
+  
+  bentoMfaTitle: '多要素認証 (MFA)',
+  bentoMfaSub: '即時 2FA · Authenticator',
+  bentoMfaDesc: 'RFC 6238 TOTP 標準プロトコルをネイティブサポート。30 秒の動的トークン更新。Google Authenticator、1Password、Apple キーチェーンと完全互換。',
+  bentoMfaTag: 'RFC 6238 TOTP',
+  
+  bentoOprfTitle: 'OPRF 楕円曲線ブラインド検証',
+  bentoOprfSub: '楕円曲線ゼロ知識保護ゲート',
+  bentoOprfDesc: 'NIST P-256 楕円曲線に基づくブラインドポイント評価。PIN をブラインド化して送信するため、サーバーは平文を知ることなく安全に検証を完了します。',
+  bentoOprfTag: 'Zero-Knowledge',
+  
+  bentoVersionControlTitle: 'バージョン管理',
+  bentoVersionControlSub: 'Merkle DAG · 改ざん不可能なコミット',
+  bentoHistoryTitle: 'タイムマシンと信頼できる履歴',
+  bentoHistoryDesc: '暗号ハッシュに基づくコンテンツアドレス指定コミットチェーン。ドキュメントの改訂履歴を SHA-256 で記録し、任意の時点へのロールバックに対応。',
+  bentoHistoryTag: 'SHA-256 コミット',
+  
+  bentoKaTeXTitle: 'KaTeX + Mermaid',
+  bentoKaTeXSub: '学術組版と AST ダイアグラム',
+  bentoMarkdownTitle: '学術レベルのリアルタイム描画',
+  bentoMarkdownDesc: 'KaTeX によるハードウェアアクセラレーション数式組版と Mermaid.js による対話型フローチャート描画。Lezer パーサーによるインクリメンタル高速構文解析。',
+  bentoMarkdownTag: 'KaTeX & Mermaid',
+  
+  bentoTableTitle: 'ビジュアル表編集',
+  bentoTableSub: 'WYSIWYG スプレッドシートと数式計算',
+  bentoTableDetailTitle: 'インタラクティブなビジュアル表エディタ',
+  bentoTableDesc: 'Markdown ドキュメント内で直感的なスプレッドシート編集が可能。セルの即時入力、行・列の追加/削除、リアルタイム関数計算エンジン (SUM, AVG, COUNT, IF など) を搭載。',
+  bentoTableTag: 'スプレッドシート & fx 計算',
+  
+  bentoNonceTitle: 'リプレイ防止 Nonce',
+  bentoNonceSub: '6 バイトチャレンジ · RFC 9449 DPoP',
+  bentoNonceDesc: '暗号化チャレンジ Nonce とデバイスバインディングにより、操作ごとに一意のトークンを検証。リプレイ試行時には直ちにサーキットブレーカーが作動します。',
+  bentoNonceTag: 'RFC 9449 DPoP',
+  
+  bentoMemoryTitle: 'ゼロディスクトレース',
+  bentoMemorySub: 'エクスポート不可の暗号鍵',
+  bentoMemoryDesc: 'すべての暗号鍵は Web Crypto API で extractable: false として生成。保管庫ロックやログアウト時にメモリバッファを完全に消去します。',
+  bentoMemoryTag: 'RAM メモリ分離',
+  
+  bentoBufferTitle: 'アダプティブ自動保存',
+  bentoBufferSub: 'リアルタイム暗号化同期',
+  bentoBufferDesc: '800ms の動的デバウンス暗号化保存と差分 DEK ローテーションにより、データ消失を完全に防止。',
+  bentoBufferTag: '800ms デバウンス',
+  
+  bentoTypographyTitle: 'タイポグラフィとダークモード',
+  bentoTypographySub: 'OLED ピュアブラック美学',
+  bentoTypographyDesc: 'GitHub Monaspace 等幅フォントと Noto 多言語フォントファミリーを統合。OLED ピュアブラックに最適化された高コントラストタイポグラフィ。',
+  bentoTypographyTag: 'OLED ピュアブラック',
+
+  // Auth Form Extras
+  useTotpCode: '認証コードでログイン',
+  usePassword: 'パスワードでログイン',
+  totpCodePlaceholder: '6 桁の認証コード',
+  backToUsername: 'ユーザー名入力に戻る',
+  securityAlert: 'セキュリティアラート',
 
   // Version Control & History
   history: '履歴',
