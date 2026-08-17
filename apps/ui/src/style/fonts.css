@@ -1,0 +1,32 @@
+/* Local Static Noto Sans Mono CJK Web Fonts */
+@font-face {
+  font-family: 'Noto Sans Mono CJK SC';
+  src: url('../assets/NotoSansMonoCJKsc-Regular.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans Mono CJK TC';
+  src: url('../assets/NotoSansMonoCJKtc-Regular.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans Mono CJK JP';
+  src: url('../assets/NotoSansMonoCJKjp-Regular.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans Mono CJK KR';
+  src: url('../assets/NotoSansMonoCJKkr-Regular.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}

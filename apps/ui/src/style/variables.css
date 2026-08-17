@@ -1,0 +1,68 @@
+@layer base {
+  :root,
+  [data-lang="en-US"],
+  [data-lang="es-ES"],
+  [data-lang="de-DE"],
+  [data-lang="vi-VN"] {
+    --bg-base: #F4F4F5;
+    --text-main: #09090B;
+    --text-muted: #71717A;
+    --glass-bg: rgba(255, 255, 255, 0.75);
+    --glass-bar-bg: rgba(255, 255, 255, 0.78);
+    --glass-capsule-bg: rgba(255, 255, 255, 0.80);
+    --glass-border: rgba(0, 0, 0, 0.08);
+
+    /* Monaspace Monospace + Noto Sans Mono Fallback */
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono', monospace;
+    /* Noto Serif Headings */
+    --font-preview-heading: 'Noto Serif', serif;
+    /* Noto Sans Body & UI */
+    --font-preview-body: 'Noto Sans', sans-serif;
+  }
+
+  [data-lang="zh-CN"] {
+    /* Monaspace for ASCII/Code + Noto Sans Mono CJK SC for Chinese */
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK SC', 'Noto Sans Mono', 'Noto Sans SC', monospace;
+    /* Noto Serif SC 衬线体 */
+    --font-preview-heading: 'Noto Serif SC', 'Noto Serif', serif;
+    /* Noto Sans SC 非衬线体 */
+    --font-preview-body: 'Noto Sans SC', 'Noto Sans', sans-serif;
+  }
+
+  [data-lang="zh-TW"] {
+    /* Monaspace for ASCII/Code + Noto Sans Mono CJK TC for Traditional Chinese */
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK TC', 'Noto Sans Mono', 'Noto Sans TC', monospace;
+    /* Noto Serif TC 襯線體 */
+    --font-preview-heading: 'Noto Serif TC', 'Noto Serif', serif;
+    /* Noto Sans TC 非襯線體 */
+    --font-preview-body: 'Noto Sans TC', 'Noto Sans', sans-serif;
+  }
+
+  [data-lang="ja-JP"] {
+    /* Monaspace for ASCII/Code + Noto Sans Mono CJK JP for Japanese */
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK JP', 'Noto Sans Mono', 'Noto Sans JP', monospace;
+    /* Noto Serif JP 明朝体 */
+    --font-preview-heading: 'Noto Serif JP', 'Noto Serif', serif;
+    /* Noto Sans JP ゴシック体 */
+    --font-preview-body: 'Noto Sans JP', 'Noto Sans', sans-serif;
+  }
+
+  [data-lang="ko-KR"] {
+    /* Monaspace for ASCII/Code + Noto Sans Mono CJK KR for Korean */
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK KR', 'Noto Sans Mono', 'Noto Sans KR', monospace;
+    /* Noto Serif KR 명조体 */
+    --font-preview-heading: 'Noto Serif KR', 'Noto Serif', serif;
+    /* Noto Sans KR 고딕体 */
+    --font-preview-body: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  }
+
+  .dark {
+    --bg-base: #09090B;
+    --text-main: #F4F4F5;
+    --text-muted: #A1A1AA;
+    --glass-bg: rgba(18, 18, 22, 0.75);
+    --glass-bar-bg: rgba(15, 15, 18, 0.76);
+    --glass-capsule-bg: rgba(18, 18, 22, 0.78);
+    --glass-border: rgba(255, 255, 255, 0.12);
+  }
+}

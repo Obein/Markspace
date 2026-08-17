@@ -1,0 +1,27 @@
+/* Lezer Syntax Highlighting Color Theme (Sapphire Accent Palette) */
+.tok-keyword { color: #60a5fa; font-weight: 600; }
+.tok-string { color: #93c5fd; }
+.tok-number { color: #93c5fd; font-weight: 500; }
+.tok-comment { color: #71717a; font-style: italic; }
+.tok-variableName { color: #f4f4f5; }
+.tok-propertyName { color: #bfdbfe; }
+.tok-typeName { color: #3b82f6; font-weight: 600; }
+.tok-operator { color: #93c5fd; }
+.tok-punctuation { color: #a1a1aa; }
+.tok-atom { color: #60a5fa; }
+.tok-literal { color: #93c5fd; }
+.tok-meta { color: #a1a1aa; }
+
+/* Lezer Markdown Syntax Classes */
+.tok-heading { font-family: var(--font-preview-heading); color: #60a5fa; font-weight: 700; }
+.tok-heading1 { font-family: var(--font-preview-heading); color: #3b82f6; font-weight: 800; }
+.tok-heading2 { font-family: var(--font-preview-heading); color: #60a5fa; font-weight: 700; }
+.tok-heading3 { font-family: var(--font-preview-heading); color: #93c5fd; font-weight: 600; }
+.tok-emphasis { font-style: italic; color: #a1a1aa; }
+.tok-strong { font-weight: 700; color: #60a5fa; }
+.tok-link { color: #3b82f6; text-decoration: underline; }
+.tok-url { color: #93c5fd; }
+.tok-quote { color: #a1a1aa; font-style: italic; }
+.tok-monospace { font-family: var(--font-editor-mono); color: #bfdbfe; background: rgba(255, 255, 255, 0.06); padding: 0.1rem 0.25rem; border-radius: 0.25rem; }
+.tok-processingInstruction { color: #71717a; }
+.tok-processingInstructionMark { color: #60a5fa; }
