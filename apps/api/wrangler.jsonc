@@ -27,11 +27,7 @@
 		}
 	],
 	"vars": {
-		// The JWT_SECRET is used for signing and verifying JSON Web Tokens (JWTs).
-		// In production, you should replace this with a secure, random string.
 		// "JWT_SECRET": "default-markspace-jwt-secret-replace-in-prod",
-		// The TOTP_SECRET is used for generating Time-based One-Time Passwords (TOTP) for two-factor authentication.
-		// In production, you should replace this with a secure, random string.
 		// "MASTER_ENCRYPTION_KEY": "default-markspace-master-encryption-key-replace-in-prod",
 		"ENVIRONMENT": "production"
 	}
