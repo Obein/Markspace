@@ -52,7 +52,7 @@ export class ApiClient implements IApiClient {
   /**
    * AOP Request Interceptor: Injects X-Nonce, Authorization, Content-Type, DPoP headers.
    */
-  private async getHeaders(method: string, path: string): Promise<HeadersInit> {
+  private async getHeaders(method: string, path: string): Promise<Record<string, string>> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -286,16 +286,22 @@ export class ApiClient implements IApiClient {
   async updateVaultNodeContent(
     id: string,
     contentBlob: ArrayBuffer | Uint8Array | string,
-    mimeType = 'application/octet-stream'
+    mimeType = 'application/octet-stream',
+    encryptedDek?: string
   ): Promise<VaultNodeResponse> {
     const defaultHeaders = await this.getHeaders('PUT', `/vault/nodes/${id}/content`);
+    const headers: Record<string, string> = {
+      ...defaultHeaders,
+      'Content-Type': mimeType,
+    };
+    if (encryptedDek) {
+      headers['X-Encrypted-DEK'] = encryptedDek;
+    }
+
     const res = await fetch(`${this.baseUrl}/vault/nodes/${id}/content`, {
       method: 'PUT',
       credentials: 'include',
-      headers: {
-        ...defaultHeaders,
-        'Content-Type': mimeType,
-      },
+      headers,
       body: contentBlob as any,
     });
 

@@ -212,9 +212,16 @@ export class VaultController {
     const userId = ctx.user!.userId;
     const nodeId = ctx.params.id;
     const contentType = ctx.request.headers.get('Content-Type') || 'application/octet-stream';
+    const encryptedDek = ctx.request.headers.get('X-Encrypted-DEK') || undefined;
 
     const arrayBuffer = await ctx.request.arrayBuffer();
-    const updatedNode = await this.vaultService.updateFileContent(userId, nodeId, arrayBuffer, contentType);
+    const updatedNode = await this.vaultService.updateFileContent(
+      userId,
+      nodeId,
+      arrayBuffer,
+      contentType,
+      encryptedDek
+    );
 
     return new Response(
       JSON.stringify({

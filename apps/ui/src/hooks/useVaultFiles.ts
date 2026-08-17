@@ -517,13 +517,32 @@ export function useVaultFiles({
         setIsSaving(true);
         const currentTarget = files.find((f) => f.id === activeFileId);
         if (!currentTarget) return;
-
         const updatedFilename = getUniqueFilename(activeTitle, '.md', activeFileId);
 
+        let currentWrappedDek = currentTarget.encryptedDek;
         if (currentTarget.content !== activeContent) {
-          const dek = await cryptoService.unwrapDEK(currentTarget.encryptedDek, cmk);
+          let dek: CryptoKey | null = null;
+          if (currentTarget.encryptedDek) {
+            try {
+              dek = await cryptoService.unwrapDEK(currentTarget.encryptedDek, cmk);
+            } catch (unwrapErr) {
+              console.warn(`Rotating DEK for node ${activeFileId} due to unwrap failure:`, unwrapErr);
+              dek = null;
+            }
+          }
+
+          if (!dek) {
+            dek = await cryptoService.generateDEK();
+            currentWrappedDek = await cryptoService.wrapDEK(dek, cmk);
+          }
+
           const encryptedPayload = await cryptoService.encryptText(activeContent, dek);
-          await apiClient.updateVaultNodeContent(activeFileId, encryptedPayload, 'text/markdown');
+          await apiClient.updateVaultNodeContent(
+            activeFileId,
+            encryptedPayload,
+            'text/markdown',
+            currentWrappedDek
+          );
         }
 
         const lastSlash = currentTarget.path.lastIndexOf('/');
@@ -543,6 +562,7 @@ export function useVaultFiles({
                   filename: updatedFilename,
                   path: updatedPath,
                   content: activeContent,
+                  encryptedDek: currentWrappedDek,
                   size: activeContent.length,
                   updatedAt: Date.now(),
                 }

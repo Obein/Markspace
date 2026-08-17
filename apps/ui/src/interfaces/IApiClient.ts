@@ -96,7 +96,12 @@ export interface IApiClient {
     contentBlob?: ArrayBuffer | Uint8Array | string;
   }): Promise<VaultNodeResponse>;
   getVaultNodeContent(id: string): Promise<{ body: ArrayBuffer; encryptedDek: string; fileName: string }>;
-  updateVaultNodeContent(id: string, contentBlob: ArrayBuffer | Uint8Array | string, mimeType?: string): Promise<VaultNodeResponse>;
+  updateVaultNodeContent(
+    id: string,
+    contentBlob: ArrayBuffer | Uint8Array | string,
+    mimeType?: string,
+    encryptedDek?: string
+  ): Promise<VaultNodeResponse>;
   deleteVaultNode(id: string): Promise<void>;
   moveVaultNode(nodeId: string, newPath: string): Promise<VaultNodeResponse>;
 

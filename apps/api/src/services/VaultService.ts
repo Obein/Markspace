@@ -163,7 +163,8 @@ export class VaultService {
     userId: string,
     nodeId: string,
     contentBlob: ArrayBuffer | Uint8Array | string,
-    mimeType?: string
+    mimeType?: string,
+    encryptedDek?: string
   ): Promise<VaultNodeEntity> {
     const node = await this.getNode(userId, nodeId);
     if (node.isDirectory || !node.objectKey) {
@@ -180,7 +181,10 @@ export class VaultService {
     const contentType = mimeType || node.mimeType;
     await this.objectStorage.putObject(node.objectKey, contentBlob, contentType);
 
-    const updated = await this.nodeRepo.updateNode(userId, nodeId, { size });
+    const updated = await this.nodeRepo.updateNode(userId, nodeId, {
+      size,
+      encryptedDek: encryptedDek || undefined,
+    });
     if (!updated) {
       throw new Error('INTERNAL_ERROR: Failed to update node metadata size');
     }
