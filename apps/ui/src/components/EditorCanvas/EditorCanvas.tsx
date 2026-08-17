@@ -38,7 +38,13 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const lines = useMemo(() => content.split('\n'), [content]);
 
   // Hook: Calculate dynamic wrapped line heights
-  const { lineHeights, mirrorRef, textareaRef } = useLineHeights(lines, content, isSplitView);
+  const { lineHeights, mirrorRef, textareaRef } = useLineHeights(
+    lines,
+    content,
+    isSplitView,
+    isPreview,
+    isFullWidth
+  );
 
   // Track active line and selection word/char counts
   const handleSelectionChange = useCallback(() => {
@@ -101,8 +107,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
   if (!activeFile) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 font-editor-mono font-mono text-sm select-none">
-        <FileText className="w-12 h-12 mb-3 opacity-20 text-blue-400" />
+      <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 font-editor-mono font-mono text-sm select-none">
+        <FileText className="w-12 h-12 mb-3 opacity-20 text-blue-500 dark:text-blue-400" />
         <p>Select or create a note to begin</p>
       </div>
     );
@@ -113,7 +119,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const bottomCapsuleSpacingClass = hasBottomCapsule ? 'h-24' : 'h-12';
 
   return (
-    <main className="flex-1 flex flex-col h-full bg-[#121216]/85 dark:bg-[#121216]/85 rounded-glass-lg border border-white/10 relative overflow-hidden shadow-2xl">
+    <main className="flex-1 flex flex-col h-full bg-white/85 dark:bg-[#121216]/85 rounded-glass-lg border border-black/10 dark:border-white/10 relative overflow-hidden shadow-xl dark:shadow-2xl transition-colors">
       {/* Hidden line measurement mirror */}
       <div
         ref={mirrorRef}
@@ -142,7 +148,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       </div>
 
       {/* Floating Frosted Glass Header & Toolbar */}
-      <div className="absolute top-0 inset-x-0 z-30 px-6 pt-3 pb-2.5 glass-bar backdrop-blur-[10px] border-b border-white/10 flex flex-col justify-center space-y-2 shadow-md pointer-events-auto min-h-[52px]">
+      <div className="absolute top-0 inset-x-0 z-30 px-6 pt-3 pb-2.5 glass-bar backdrop-blur-[10px] border-b border-black/5 dark:border-white/10 flex flex-col justify-center space-y-2 shadow-md pointer-events-auto min-h-[52px]">
         <EditorHeader
           title={title}
           onTitleChange={onTitleChange}
@@ -174,7 +180,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
         {/* Markdown Dual-Column Split View */}
         {category === 'markdown' && isSplitView && (
-          <div className="flex-1 flex w-full h-full overflow-hidden divide-x divide-white/10">
+          <div className="flex-1 flex w-full h-full overflow-hidden divide-x divide-black/10 dark:divide-white/10">
             {/* Left Column: Code Editor */}
             <div
               ref={scrollContainerRef}

@@ -27,19 +27,29 @@
 .tok-processingInstructionMark { color: #60a5fa; }
 
 /* Light Theme Syntax Overrides */
-:root:not(.dark) .tok-keyword { color: #2563eb; }
-:root:not(.dark) .tok-string { color: #15803d; }
-:root:not(.dark) .tok-number { color: #b45309; }
-:root:not(.dark) .tok-comment { color: #a1a1aa; }
-:root:not(.dark) .tok-variableName { color: #18181b; }
-:root:not(.dark) .tok-propertyName { color: #4338ca; }
-:root:not(.dark) .tok-typeName { color: #0284c7; }
-:root:not(.dark) .tok-operator { color: #4b5563; }
-:root:not(.dark) .tok-punctuation { color: #9ca3af; }
+:root:not(.dark) .tok-keyword, .light .tok-keyword { color: #2563eb; }
+:root:not(.dark) .tok-string, .light .tok-string { color: #15803d; }
+:root:not(.dark) .tok-number, .light .tok-number { color: #b45309; }
+:root:not(.dark) .tok-comment, .light .tok-comment { color: #9ca3af; font-style: italic; }
+:root:not(.dark) .tok-variableName, .light .tok-variableName { color: #18181b; }
+:root:not(.dark) .tok-propertyName, .light .tok-propertyName { color: #4338ca; }
+:root:not(.dark) .tok-typeName, .light .tok-typeName { color: #0284c7; }
+:root:not(.dark) .tok-operator, .light .tok-operator { color: #4b5563; }
+:root:not(.dark) .tok-punctuation, .light .tok-punctuation { color: #6b7280; }
+:root:not(.dark) .tok-atom, .light .tok-atom { color: #6366f1; }
+:root:not(.dark) .tok-literal, .light .tok-literal { color: #db2777; }
+:root:not(.dark) .tok-meta, .light .tok-meta { color: #6b7280; }
 :root:not(.dark) .tok-heading,
 :root:not(.dark) .tok-heading1,
 :root:not(.dark) .tok-heading2,
-:root:not(.dark) .tok-heading3 { color: #1d4ed8; }
-:root:not(.dark) .tok-strong { color: #1e40af; }
-:root:not(.dark) .tok-link { color: #0284c7; }
-:root:not(.dark) .tok-monospace { color: #0369a1; background: rgba(0, 0, 0, 0.06); }
+:root:not(.dark) .tok-heading3,
+.light .tok-heading,
+.light .tok-heading1,
+.light .tok-heading2,
+.light .tok-heading3 { color: #1d4ed8; }
+:root:not(.dark) .tok-strong, .light .tok-strong { color: #1e40af; }
+:root:not(.dark) .tok-emphasis, .light .tok-emphasis { color: #4b5563; font-style: italic; }
+:root:not(.dark) .tok-link, .light .tok-link { color: #0284c7; }
+:root:not(.dark) .tok-url, .light .tok-url { color: #0369a1; }
+:root:not(.dark) .tok-quote, .light .tok-quote { color: #6b7280; font-style: italic; }
+:root:not(.dark) .tok-monospace, .light .tok-monospace { color: #0369a1; background: rgba(0, 0, 0, 0.06); }

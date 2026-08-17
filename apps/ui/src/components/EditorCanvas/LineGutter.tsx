@@ -23,7 +23,7 @@ export const LineGutter: React.FC<LineGutterProps> = ({
   const { t } = useI18n();
 
   return (
-    <div className="w-20 pl-1.5 pr-2.5 text-right select-none font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-white/5 space-y-0 relative">
+    <div className="w-20 pl-1.5 pr-2.5 text-right select-none font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-black/5 dark:border-white/5 space-y-0 relative">
       {lines.map((_, i) => {
         const isActive = activeLineIndex === i;
         const tableAtLine = documentTables.find((tbl) => tbl.startLine === i);
@@ -35,8 +35,8 @@ export const LineGutter: React.FC<LineGutterProps> = ({
             style={{ height: lineHeights[i] ? `${lineHeights[i]}px` : '24px' }}
             className={`relative flex items-start justify-end leading-6 transition-all duration-150 cursor-gutter ${
               isActive
-                ? 'text-blue-400 font-bold opacity-100 scale-105'
-                : 'text-zinc-500 opacity-40 hover:opacity-75'
+                ? 'text-blue-600 dark:text-blue-400 font-bold opacity-100 scale-105'
+                : 'text-zinc-400 dark:text-zinc-500 opacity-50 hover:opacity-100'
             }`}
           >
             {/* Floating Table Action Button on the left side of table first row line number */}

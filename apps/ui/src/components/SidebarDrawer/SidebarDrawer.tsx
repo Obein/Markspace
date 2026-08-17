@@ -148,25 +148,23 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
     isDirectory: boolean,
     fileItem?: VaultFileItem
   ) => {
-    if (touchTimerRef.current) {
-      clearTimeout(touchTimerRef.current);
-    }
     const touch = e.touches[0];
-    const clientX = touch.clientX;
-    const clientY = touch.clientY;
+    const touchX = touch.clientX;
+    const touchY = touch.clientY;
 
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
     touchTimerRef.current = setTimeout(() => {
       setConfirmDeleteNodeId(null);
       setContextMenu({
-        x: clientX,
-        y: clientY,
+        x: touchX,
+        y: touchY,
         nodeId,
         nodeName,
         nodePath,
         isDirectory,
         fileItem,
       });
-    }, 500);
+    }, 550);
   };
 
   const handleTouchEndOrMove = () => {
@@ -177,35 +175,34 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
   };
 
   const handleRenameSubmit = (nodeId: string, newName: string) => {
-    if (onRenameNode) {
-      onRenameNode(nodeId, newName);
+    if (onRenameNode && newName.trim()) {
+      onRenameNode(nodeId, newName.trim());
     }
+    setEditingNodeId(null);
   };
 
   return (
     <aside
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      style={{
-        transform: isCollapsed ? 'translateX(calc(-100% + 14px))' : 'translateX(0)',
-        marginRight: isCollapsed ? 'calc(-20rem + 14px)' : '0px',
-      }}
-      className="relative w-80 h-full shrink-0 flex flex-col glass-panel rounded-glass-lg border border-white/10 overflow-visible transition-all duration-300 ease-out z-30 shadow-2xl"
+      className={`glass-panel rounded-glass-lg flex flex-col transition-all duration-300 relative select-none h-full z-20 overflow-visible shrink-0 ${
+        isCollapsed ? 'w-0 sm:w-12 p-0 sm:p-2' : 'w-72 sm:w-80'
+      }`}
     >
-      {/* Physical Edge Drawer Pull Handle: 100% Flush to right edge */}
+      {/* Collapse Toggle Handle */}
       <div
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute top-1/2 -translate-y-1/2 left-full z-50 flex items-center justify-center w-5 h-16 bg-[#09090B]/90 backdrop-blur-xl border border-white/20 border-l-0 rounded-r-xl cursor-pointer opacity-40 hover:opacity-100 active:opacity-100 transition-all duration-200 shadow-2xl group select-none"
-        title={isCollapsed ? 'Expand Sidebar Drawer' : 'Collapse Sidebar Drawer'}
+        className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-4 h-12 bg-white/80 dark:bg-black/80 hover:bg-white dark:hover:bg-[#18181b] border border-black/10 dark:border-white/10 rounded-full flex items-center justify-center cursor-pointer shadow-lg z-30 transition group backdrop-blur-md"
+        title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
       >
         <div className="flex flex-col items-center justify-center gap-1">
-          <div className="w-1 h-3 rounded-full bg-white/40 group-hover:bg-blue-400 transition" />
+          <div className="w-1 h-3 rounded-full bg-black/30 dark:bg-white/40 group-hover:bg-blue-600 dark:group-hover:bg-blue-400 transition" />
           {isCollapsed ? (
-            <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white transition" />
+            <ChevronRight className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition" />
           ) : (
-            <ChevronLeft className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white transition" />
+            <ChevronLeft className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition" />
           )}
-          <div className="w-1 h-3 rounded-full bg-white/40 group-hover:bg-blue-400 transition" />
+          <div className="w-1 h-3 rounded-full bg-black/30 dark:bg-white/40 group-hover:bg-blue-600 dark:group-hover:bg-blue-400 transition" />
         </div>
       </div>
 
@@ -227,7 +224,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       />
 
       {/* Action Utility Bar: New Note, New Folder, Upload Media */}
-      <div className="p-3 border-b border-white/10 flex items-center gap-2">
+      <div className="p-3 border-b border-black/5 dark:border-white/10 flex items-center gap-2">
         <button
           onClick={onCreateNote}
           disabled={isCreatingNote}
@@ -244,11 +241,11 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
         <button
           onClick={() => setIsFolderInputOpen(true)}
           disabled={isCreatingFolderLoading}
-          className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition border border-white/10 cursor-pointer disabled:opacity-50"
+          className="p-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition border border-black/10 dark:border-white/10 cursor-pointer disabled:opacity-50"
           title={t('createDirectory')}
         >
           {isCreatingFolderLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+            <Loader2 className="w-4 h-4 animate-spin text-blue-600 dark:text-blue-400" />
           ) : (
             <FolderPlus className="w-4 h-4" />
           )}
@@ -257,11 +254,11 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploadingFiles}
-          className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition border border-white/10 cursor-pointer disabled:opacity-50"
+          className="p-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition border border-black/10 dark:border-white/10 cursor-pointer disabled:opacity-50"
           title={isUploadingFiles ? t('uploading') : t('addFileMedia')}
         >
           {isUploadingFiles ? (
-            <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+            <Loader2 className="w-4 h-4 animate-spin text-blue-600 dark:text-blue-400" />
           ) : (
             <Upload className="w-4 h-4" />
           )}
@@ -272,7 +269,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       {isFolderInputOpen && (
         <form
           onSubmit={handleCreateFolderSubmit}
-          className="p-3 border-b border-white/10 flex items-center gap-2"
+          className="p-3 border-b border-black/5 dark:border-white/10 flex items-center gap-2"
         >
           <input
             ref={folderInputRef}
@@ -281,15 +278,15 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             onChange={(e) => setNewFolderName(e.target.value)}
             placeholder={t('createDirectory')}
             autoFocus
-            className="flex-1 px-2.5 py-1 bg-black/40 border border-white/10 rounded-lg text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+            className="flex-1 px-2.5 py-1 bg-white dark:bg-black/40 border border-black/15 dark:border-white/10 rounded-lg text-xs font-mono text-zinc-900 dark:text-white focus:outline-none focus:border-blue-500"
           />
-          <button type="submit" className="p-1 text-blue-400 hover:text-blue-300 cursor-pointer">
+          <button type="submit" className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer">
             <Check className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={() => setIsFolderInputOpen(false)}
-            className="p-1 text-zinc-500 hover:text-zinc-300 cursor-pointer"
+            className="p-1 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -297,15 +294,15 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       )}
 
       {/* Live Search Bar */}
-      <div className="p-3 border-b border-white/10">
+      <div className="p-3 border-b border-black/5 dark:border-white/10">
         <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={t('searchPlaceholder')}
-            className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-black/20 border border-white/5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 font-mono"
+            className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-black/5 dark:bg-black/20 border border-black/5 dark:border-white/5 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 font-mono"
           />
         </div>
       </div>
@@ -313,12 +310,12 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       {/* File Tree Explorer (Hierarchical) */}
       <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
         {isLoadingVaultTree ? (
-          <div className="p-8 text-center text-zinc-400 text-xs font-mono flex flex-col items-center justify-center gap-2">
-            <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
+          <div className="p-8 text-center text-zinc-500 dark:text-zinc-400 text-xs font-mono flex flex-col items-center justify-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin text-blue-600 dark:text-blue-400" />
             <span>{t('loadingVaultTree')}</span>
           </div>
         ) : treeNodes.length === 0 ? (
-          <div className="p-8 text-center text-zinc-500 text-xs font-mono">
+          <div className="p-8 text-center text-zinc-400 dark:text-zinc-500 text-xs font-mono">
             {t('noFilesFound')}
           </div>
         ) : (
@@ -361,11 +358,11 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
         >
           <div
             style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }}
-            className="fixed w-48 backdrop-blur-xl bg-[#09090B]/95 border border-white/10 rounded-xl shadow-2xl p-1.5 z-50 text-xs font-mono animate-in fade-in zoom-in-95 duration-100"
+            className="fixed w-48 backdrop-blur-xl bg-white/95 dark:bg-[#09090B]/95 border border-black/10 dark:border-white/10 rounded-xl shadow-2xl p-1.5 z-50 text-xs font-mono animate-in fade-in zoom-in-95 duration-100"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-3 py-1.5 border-b border-white/10 text-[11px] text-zinc-400 font-semibold truncate flex items-center gap-1.5">
-              <Folder className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+            <div className="px-3 py-1.5 border-b border-black/5 dark:border-white/10 text-[11px] text-zinc-600 dark:text-zinc-400 font-semibold truncate flex items-center gap-1.5">
+              <Folder className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
               <span className="truncate">{contextMenu.nodeName}</span>
             </div>
 
@@ -378,9 +375,9 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
                   onDownloadNode(targetId);
                 }
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-zinc-200 hover:text-white flex items-center gap-2 transition my-0.5 cursor-pointer"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-200 hover:text-zinc-900 dark:hover:text-white flex items-center gap-2 transition my-0.5 cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5 text-blue-400" />
+              <Download className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               <span>{t('download')}</span>
             </button>
 
@@ -395,16 +392,16 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
                   setEditingNodeId(targetId);
                   setEditingName(targetName);
                 }}
-                className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-zinc-200 hover:text-white flex items-center gap-2 transition my-0.5 cursor-pointer"
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-200 hover:text-zinc-900 dark:hover:text-white flex items-center gap-2 transition my-0.5 cursor-pointer"
               >
-                <Edit2 className="w-3.5 h-3.5 text-blue-400" />
+                <Edit2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                 <span>{t('rename')}</span>
               </button>
             )}
 
             {confirmDeleteNodeId === contextMenu.nodeId ? (
               <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/30 space-y-1.5 my-1 animate-in fade-in duration-100">
-                <p className="text-[11px] text-red-300 font-medium">{t('confirmDelete')}</p>
+                <p className="text-[11px] text-red-600 dark:text-red-300 font-medium">{t('confirmDelete')}</p>
                 <div className="flex items-center gap-1.5 justify-end pt-0.5">
                   <button
                     onClick={() => {
@@ -421,7 +418,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
                   </button>
                   <button
                     onClick={() => setConfirmDeleteNodeId(null)}
-                    className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/15 text-zinc-300 text-[10px] transition cursor-pointer"
+                    className="px-2.5 py-1 rounded bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-zinc-700 dark:text-zinc-300 text-[10px] transition cursor-pointer"
                   >
                     {t('cancel')}
                   </button>
@@ -431,12 +428,12 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
               <button
                 onClick={() => setConfirmDeleteNodeId(contextMenu.nodeId)}
                 disabled={isDeletingNodeId === contextMenu.nodeId}
-                className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/15 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isDeletingNodeId === contextMenu.nodeId ? (
-                  <Loader2 className="w-3.5 h-3.5 text-red-400 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 text-red-500 animate-spin" />
                 ) : (
-                  <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                  <Trash2 className="w-3.5 h-3.5 text-red-500" />
                 )}
                 <span>{isDeletingNodeId === contextMenu.nodeId ? t('deleting') : t('delete')}</span>
               </button>

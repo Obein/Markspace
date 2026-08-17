@@ -44,28 +44,28 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
     switch (cat) {
       case 'image':
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shrink-0 self-center">
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shrink-0 self-center">
             <ImageIcon className="w-3 h-3" />
             <span>IMAGE</span>
           </span>
         );
       case 'video':
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1 shrink-0 self-center">
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 flex items-center gap-1 shrink-0 self-center">
             <Film className="w-3 h-3" />
             <span>VIDEO</span>
           </span>
         );
       case 'audio':
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30 flex items-center gap-1 shrink-0 self-center">
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-pink-500/15 text-pink-700 dark:text-pink-300 border border-pink-500/30 flex items-center gap-1 shrink-0 self-center">
             <Music className="w-3 h-3" />
             <span>AUDIO</span>
           </span>
         );
       case 'binary':
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1 shrink-0 self-center">
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1 shrink-0 self-center">
             <File className="w-3 h-3" />
             <span>FILE</span>
           </span>
@@ -102,11 +102,11 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
                 e.currentTarget.select();
               }}
               placeholder="Untitled Note"
-              className="absolute inset-0 w-full h-full text-xl font-bold bg-transparent text-white placeholder-zinc-500 focus:outline-none tracking-tight p-0 m-0 border-none leading-7"
+              className="absolute inset-0 w-full h-full text-xl font-bold bg-transparent text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none tracking-tight p-0 m-0 border-none leading-7"
             />
           </div>
           {extension && (
-            <span className="text-xl font-bold text-zinc-300 opacity-70 select-none shrink-0 tracking-tight leading-7">
+            <span className="text-xl font-bold text-zinc-500 dark:text-zinc-300 opacity-80 select-none shrink-0 tracking-tight leading-7">
               {extension}
             </span>
           )}
@@ -118,13 +118,13 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={onToggleFullWidth}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer flex items-center justify-center"
+            className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition cursor-pointer flex items-center justify-center"
             title={isFullWidth ? 'Standard Width' : 'Full Width'}
           >
             {isFullWidth ? (
-              <Minimize2 className="w-3.5 h-3.5 text-blue-400" />
+              <Minimize2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             ) : (
-              <Maximize2 className="w-3.5 h-3.5 text-blue-400" />
+              <Maximize2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             )}
           </button>
         </div>

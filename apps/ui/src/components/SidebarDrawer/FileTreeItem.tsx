@@ -93,15 +93,15 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
   const getFileIcon = (category: string) => {
     switch (category) {
       case 'image':
-        return <ImageIcon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />;
+        return <ImageIcon className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />;
       case 'video':
-        return <Film className="w-3.5 h-3.5 text-purple-400 shrink-0" />;
+        return <Film className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />;
       case 'audio':
-        return <Music className="w-3.5 h-3.5 text-pink-400 shrink-0" />;
+        return <Music className="w-3.5 h-3.5 text-pink-600 dark:text-pink-400 shrink-0" />;
       case 'binary':
-        return <File className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
+        return <File className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />;
       default:
-        return <FileText className="w-3.5 h-3.5 text-blue-400 shrink-0" />;
+        return <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />;
     }
   };
 
@@ -127,7 +127,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
                 className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/40 text-xs font-mono my-0.5"
                 style={{ paddingLeft: `${depth * 12 + 8}px` }}
               >
-                <Folder className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                <Folder className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                 <input
                   ref={editInputRef}
                   type="text"
@@ -142,11 +142,11 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
                     }
                     onCancelRename();
                   }}
-                  className="flex-1 bg-transparent text-white font-mono text-xs focus:outline-none min-w-0"
+                  className="flex-1 bg-transparent text-zinc-900 dark:text-white font-mono text-xs focus:outline-none min-w-0"
                 />
                 <button
                   type="submit"
-                  className="p-0.5 text-blue-400 hover:text-white shrink-0 cursor-pointer"
+                  className="p-0.5 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-white shrink-0 cursor-pointer"
                   title={t('confirm')}
                 >
                   <Check className="w-3 h-3" />
@@ -170,24 +170,24 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
                 onTouchEnd={onTouchEndOrMove}
                 onTouchMove={onTouchEndOrMove}
                 disabled={isDeleting}
-                className={`w-full text-left px-2 py-1.5 rounded-lg flex items-center gap-1.5 text-xs text-zinc-300 font-mono transition border cursor-pointer ${
+                className={`w-full text-left px-2 py-1.5 rounded-lg flex items-center gap-1.5 text-xs text-zinc-700 dark:text-zinc-300 font-mono transition border cursor-pointer ${
                   isTarget
-                    ? 'bg-blue-500/20 border-blue-500/40 text-blue-300'
-                    : 'hover:bg-white/5 border-transparent'
+                    ? 'bg-blue-500/15 dark:bg-blue-500/20 border-blue-500/40 text-blue-700 dark:text-blue-300'
+                    : 'hover:bg-black/5 dark:hover:bg-white/5 border-transparent'
                 } ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 style={{ paddingLeft: `${depth * 12 + 8}px` }}
               >
                 {isDeleting ? (
                   <Loader2 className="w-3 h-3 text-red-400 animate-spin" />
                 ) : isOpen ? (
-                  <ChevronDown className="w-3 h-3 text-zinc-500" />
+                  <ChevronDown className="w-3 h-3 text-zinc-400 dark:text-zinc-500" />
                 ) : (
-                  <ChevronRight className="w-3 h-3 text-zinc-500" />
+                  <ChevronRight className="w-3 h-3 text-zinc-400 dark:text-zinc-500" />
                 )}
                 {isOpen ? (
-                  <FolderOpen className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <FolderOpen className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                 ) : (
-                  <Folder className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <Folder className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                 )}
                 <span className="truncate">{node.name}</span>
               </button>
@@ -255,11 +255,11 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
                   }
                   onCancelRename();
                 }}
-                className="flex-1 bg-transparent text-white font-mono text-xs focus:outline-none min-w-0"
+                className="flex-1 bg-transparent text-zinc-900 dark:text-white font-mono text-xs focus:outline-none min-w-0"
               />
               <button
                 type="submit"
-                className="p-0.5 text-blue-400 hover:text-white shrink-0 cursor-pointer"
+                className="p-0.5 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-white shrink-0 cursor-pointer"
                 title={t('confirm')}
               >
                 <Check className="w-3 h-3" />
@@ -285,8 +285,8 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
             disabled={isDeleting}
             className={`w-full text-left px-2 py-1.5 rounded-lg transition flex items-center justify-between text-xs font-mono border cursor-grab active:cursor-grabbing ${
               isActive
-                ? 'bg-blue-600/20 border-blue-500/40 text-white font-medium'
-                : 'bg-white/0 hover:bg-white/5 border-transparent text-zinc-300'
+                ? 'bg-blue-600/15 dark:bg-blue-600/20 border-blue-500/40 text-blue-700 dark:text-white font-medium'
+                : 'bg-white/0 hover:bg-black/5 dark:hover:bg-white/5 border-transparent text-zinc-700 dark:text-zinc-300'
             } ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={{ paddingLeft: `${depth * 12 + 12}px` }}
           >
@@ -298,7 +298,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
               )}
               <span className="truncate">{fileItem.filename}</span>
             </div>
-            <span className="text-[10px] text-zinc-500 shrink-0 font-mono">
+            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 shrink-0 font-mono">
               {(fileItem.size / 1024).toFixed(0)}K
             </span>
           </button>

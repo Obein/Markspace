@@ -37,7 +37,7 @@ export const EditorCodeArea: React.FC<EditorCodeAreaProps> = ({
       {/* Real-time Syntax Highlighted Backdrop */}
       <pre
         aria-hidden="true"
-        className="absolute inset-0 px-4 m-0 p-0 border-0 bg-transparent text-zinc-100 dark:text-zinc-100 font-editor-mono font-mono text-[15px] leading-6 whitespace-pre-wrap break-words pointer-events-none select-none z-0 overflow-hidden syntax-backdrop"
+        className="absolute inset-0 px-4 m-0 p-0 border-0 bg-transparent text-zinc-900 dark:text-zinc-100 font-editor-mono font-mono text-[15px] leading-6 whitespace-pre-wrap break-words pointer-events-none select-none z-0 overflow-hidden syntax-backdrop"
         dangerouslySetInnerHTML={{
           __html: highlightedHtml,
         }}
@@ -58,7 +58,7 @@ export const EditorCodeArea: React.FC<EditorCodeAreaProps> = ({
         onFocus={onSelectionChange}
         placeholder={placeholder}
         spellCheck={false}
-        className="relative z-10 w-full h-full min-h-[500px] px-4 m-0 p-0 border-0 bg-transparent text-transparent placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-[15px] leading-6 editor-textarea whitespace-pre-wrap break-words selection:bg-blue-500/35 overflow-hidden scrollbar-none"
+        className="relative z-10 w-full h-full min-h-[500px] px-4 m-0 p-0 border-0 bg-transparent text-transparent placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-[15px] leading-6 editor-textarea whitespace-pre-wrap break-words selection:bg-blue-500/25 dark:selection:bg-blue-500/35 overflow-hidden scrollbar-none"
       />
     </div>
   );

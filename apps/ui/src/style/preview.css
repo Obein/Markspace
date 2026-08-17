@@ -173,3 +173,100 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* Light Theme Overrides for Markdown Preview */
+:root:not(.dark) .markdown-preview,
+.light .markdown-preview {
+  color: #27272a;
+}
+
+:root:not(.dark) .markdown-preview h1,
+.light .markdown-preview h1 {
+  color: #09090b;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+:root:not(.dark) .markdown-preview h2,
+.light .markdown-preview h2 {
+  color: #09090b;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+:root:not(.dark) .markdown-preview h3,
+.light .markdown-preview h3 {
+  color: #18181b;
+}
+
+:root:not(.dark) .markdown-preview h4,
+:root:not(.dark) .markdown-preview h5,
+:root:not(.dark) .markdown-preview h6,
+.light .markdown-preview h4,
+.light .markdown-preview h5,
+.light .markdown-preview h6 {
+  color: #27272a;
+}
+
+:root:not(.dark) .markdown-preview p,
+.light .markdown-preview p {
+  color: #3f3f46;
+}
+
+:root:not(.dark) .markdown-preview a,
+.light .markdown-preview a {
+  color: #2563eb;
+}
+
+:root:not(.dark) .markdown-preview a:hover,
+.light .markdown-preview a:hover {
+  color: #1d4ed8;
+}
+
+:root:not(.dark) .markdown-preview strong,
+.light .markdown-preview strong {
+  color: #09090b;
+}
+
+:root:not(.dark) .markdown-preview em,
+.light .markdown-preview em {
+  color: #3f3f46;
+}
+
+:root:not(.dark) .markdown-preview blockquote,
+.light .markdown-preview blockquote {
+  border-left: 3px solid #2563eb;
+  color: #52525b;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+:root:not(.dark) .markdown-preview li,
+.light .markdown-preview li {
+  color: #3f3f46;
+}
+
+:root:not(.dark) .markdown-preview hr,
+.light .markdown-preview hr {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+:root:not(.dark) .markdown-preview code,
+.light .markdown-preview code {
+  background: rgba(0, 0, 0, 0.06);
+  color: #1e40af;
+}
+
+:root:not(.dark) .markdown-preview pre,
+.light .markdown-preview pre {
+  background: #f4f4f5;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+:root:not(.dark) .markdown-preview pre code,
+.light .markdown-preview pre code {
+  color: #18181b;
+}
+
+:root:not(.dark) .markdown-preview img,
+.light .markdown-preview img {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
