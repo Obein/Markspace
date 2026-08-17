@@ -11,7 +11,7 @@ export interface Env {
   /** JWT Secret Key for signing and verifying tokens */
   JWT_SECRET: string;
   /** Master Key Encryption Key (KEK) for envelope encrypting TOTP secrets */
-  MASTER_ENCRYPTION_KEY?: string;
+  MASTER_ENCRYPTION_KEY: string;
   /** Environment indicator (development, production) */
   ENVIRONMENT?: string;
 }
