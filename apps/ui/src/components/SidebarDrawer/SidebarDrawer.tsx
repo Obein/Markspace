@@ -182,40 +182,48 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
   };
 
   return (
-    /* Outer Layout Slot (Adjusts width without squishing inner panel) */
+    /* Outer Layout Slot (Adjusts width without squishing inner panel, maintains peek strip when collapsed) */
     <div
       className={`relative h-full shrink-0 transition-all duration-300 ease-in-out z-20 ${
-        isCollapsed ? 'w-0' : 'w-72 sm:w-80'
+        isCollapsed ? 'w-3.5 sm:w-4' : 'w-72 sm:w-80'
       }`}
     >
-      {/* Solid Inner Panel with Rigid Width & Smooth Translation (整体平移) */}
+      {/* Solid Inner Panel with Rigid Width & Smooth Translation*/}
       <aside
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         className={`glass-panel rounded-glass-lg flex flex-col select-none h-full w-72 sm:w-80 absolute top-0 left-0 transition-transform duration-300 ease-in-out overflow-visible ${
-          isCollapsed ? '-translate-x-full' : 'translate-x-0'
+          isCollapsed ? '-translate-x-[calc(100%-14px)] hover:-translate-x-[calc(100%-18px)] cursor-pointer' : 'translate-x-0'
         }`}
+        onClick={() => {
+          if (isCollapsed) setIsCollapsed(false);
+        }}
       >
         {/* Chrome Tab Style Collapse Handle (Attached to the right border) */}
         <div
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-6 top-1/2 -translate-y-1/2 z-40 cursor-pointer group flex items-center justify-center select-none"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsCollapsed(!isCollapsed);
+          }}
+          className={`absolute -right-6 top-1/2 -translate-y-1/2 z-40 cursor-pointer flex items-center justify-center select-none transition-opacity duration-200 ${
+            isCollapsed ? 'opacity-95 hover:opacity-100' : 'opacity-70 hover:opacity-100'
+          }`}
           title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
         >
-          {/* Chrome Tab Body */}
-          <div className="relative w-6 h-18 bg-white/95 dark:bg-[#18181b]/95 hover:bg-white dark:hover:bg-[#222226] border border-l-0 border-black/15 dark:border-white/15 rounded-r-2xl shadow-xl flex flex-col items-center justify-center gap-1.5 backdrop-blur-xl transition-all duration-200 group-hover:w-7 group-hover:shadow-blue-500/15">
+          {/* Chrome Tab Body (Increased height, pure opacity hover without stretch or color change) */}
+          <div className="relative w-6 h-20 bg-white/95 dark:bg-[#18181b]/95 border border-l-0 border-black/15 dark:border-white/15 rounded-r-2xl shadow-xl flex flex-col items-center justify-center gap-2.5 backdrop-blur-xl">
             {/* Top Grip Accent */}
-            <div className="w-1 h-2 rounded-full bg-black/25 dark:bg-white/30 group-hover:bg-blue-500 transition-colors" />
+            <div className="w-1 h-3 rounded-full bg-black/25 dark:bg-white/30" />
 
             {/* Direction Indicator */}
             {isCollapsed ? (
-              <ChevronRight className="w-3.5 h-5 text-zinc-600 dark:text-zinc-300 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400" />
             ) : (
-              <ChevronLeft className="w-3.5 h-5 text-zinc-600 dark:text-zinc-300 transition-transform" />
+              <ChevronLeft className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400" />
             )}
 
             {/* Bottom Grip Accent */}
-            <div className="w-1 h-2 rounded-full bg-black/25 dark:bg-white/30 group-hover:bg-blue-500 transition-colors" />
+            <div className="w-1 h-3 rounded-full bg-black/25 dark:bg-white/30" />
           </div>
         </div>
 
