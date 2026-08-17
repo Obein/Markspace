@@ -114,11 +114,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setVaultKey(activeVaultId, key);
   };
 
-  const lockVault = (vaultId?: string) => {
-    if (vaultId) {
-      setVaultKey(vaultId, null);
-    } else {
+  const lockVault = (vaultId?: string | unknown) => {
+    if (typeof vaultId === 'string' && vaultId.trim()) {
+      setVaultKey(vaultId.trim(), null);
+    } else if (activeVaultId) {
       setVaultKey(activeVaultId, null);
+    } else {
+      setUnlockedVaultKeys({});
     }
   };
 

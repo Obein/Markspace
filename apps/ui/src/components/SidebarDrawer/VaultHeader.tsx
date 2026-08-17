@@ -49,7 +49,7 @@ export const VaultHeader: React.FC<VaultHeaderProps> = ({
         )}
 
         <button
-          onClick={onLockVault}
+          onClick={() => onLockVault()}
           className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition cursor-pointer"
           title={t('lockVault')}
         >

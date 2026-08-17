@@ -226,7 +226,7 @@ export const AppContent: React.FC = () => {
             onCreateFolder={handleCreateFolder}
             onAddFiles={handleAddFiles}
             onMoveFileToDirectory={handleMoveFileToDirectory}
-            onLockVault={lockVault}
+            onLockVault={() => lockVault(activeVaultId)}
             onOpenVaultSettings={openVaultSettings}
             onLogoutAccount={logoutAccount}
             searchQuery={searchQuery}
