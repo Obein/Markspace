@@ -1,24 +1,38 @@
-/* Typography Utility Classes with Font Ligatures Enabled */
+/* Full OpenType Font Ligatures & Rendering Specifications */
 .font-editor-mono {
   font-family: var(--font-editor-mono);
-  font-variant-ligatures: contextual common-ligatures;
-  font-feature-settings: "calt" 1, "liga" 1;
+  font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures contextual;
+  font-feature-settings: "calt" 1, "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "kern" 1;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .font-preview-heading {
   font-family: var(--font-preview-heading);
+  font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures contextual;
+  font-feature-settings: "calt" 1, "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .font-preview-body {
   font-family: var(--font-preview-body);
+  font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures contextual;
+  font-feature-settings: "calt" 1, "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Enable code ligatures on code blocks and pre tags */
-pre, code, textarea, .lezer-code-block {
-  font-variant-ligatures: contextual common-ligatures;
-  font-feature-settings: "calt" 1, "liga" 1;
+/* Enable all ligatures on code blocks, pre, code, and textarea across editor and preview */
+pre, code, textarea, .lezer-code-block, .syntax-backdrop, .markdown-preview pre, .markdown-preview code {
+  font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures contextual;
+  font-feature-settings: "calt" 1, "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "kern" 1;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Right-pointing line selection cursor for line numbers gutter */
@@ -28,17 +42,15 @@ pre, code, textarea, .lezer-code-block {
 
 /* Editor Textarea Caret & Text Styling */
 textarea.editor-textarea {
-  color: transparent !important;
-  -webkit-text-fill-color: transparent !important;
-  caret-color: #f4f4f5;
+  color: var(--text-main, #f4f4f5);
+  -webkit-text-fill-color: transparent;
   font-size: 15px;
   line-height: 24px;
   letter-spacing: normal;
   tab-size: 2;
-}
-
-:root:not(.dark) textarea.editor-textarea {
-  caret-color: #18181b;
+  font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures contextual;
+  font-feature-settings: "calt" 1, "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
 }
 
 textarea.editor-textarea::placeholder {
@@ -48,12 +60,14 @@ textarea.editor-textarea::placeholder {
 
 textarea.editor-textarea::selection {
   background-color: rgba(59, 130, 246, 0.35);
-  color: transparent !important;
-  -webkit-text-fill-color: transparent !important;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Syntax Backdrop Sizing */
 .syntax-backdrop {
   tab-size: 2;
   letter-spacing: normal;
+  font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures contextual;
+  font-feature-settings: "calt" 1, "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
 }
