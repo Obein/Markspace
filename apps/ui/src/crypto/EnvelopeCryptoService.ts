@@ -38,11 +38,29 @@ export class EnvelopeCryptoService implements ICryptoService {
   }
 
   /**
-   * Multi-Factor Key Derivation combining user PIN with Server Ticket Key:
-   * 1. Local PBKDF2(PIN, salt, 100,000, SHA-256)
-   * 2. HMAC-SHA256(LocalKey, ServerTicketKey)
+   * Computes one-way blinded element M for OPRF evaluation using HMAC-SHA256.
    */
-  public async deriveKeyFromPin(pin: string, salt: string, serverTicketKey?: string): Promise<CryptoKey> {
+  public async computeOprfBlindPoint(input: string, salt: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const saltKey = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(`markspace-oprf-salt:${salt}`),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const blindPayload = encoder.encode(`markspace-blind-input:${input.trim()}`);
+    const sig = await crypto.subtle.sign('HMAC', saltKey, blindPayload);
+    const bytes = new Uint8Array(sig);
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /**
+   * Multi-Factor Key Derivation combining user PIN with OPRF Evaluation Response:
+   * 1. Local PBKDF2(PIN, salt, 100,000, SHA-256)
+   * 2. HMAC-SHA256(LocalKey, oprfEvaluatedPoint)
+   */
+  public async deriveKeyFromPin(pin: string, salt: string, oprfEvaluatedPoint?: string): Promise<CryptoKey> {
     const encoder = new TextEncoder();
     const pinBuffer = encoder.encode(pin.trim());
     const saltBuffer = encoder.encode(`markspace-pin-salt:${salt}`);
@@ -50,7 +68,7 @@ export class EnvelopeCryptoService implements ICryptoService {
     try {
       const baseKey = await crypto.subtle.importKey('raw', pinBuffer, 'PBKDF2', false, ['deriveKey', 'deriveBits']);
       
-      if (!serverTicketKey) {
+      if (!oprfEvaluatedPoint) {
         // Fallback without server factor
         return await crypto.subtle.deriveKey(
           {
@@ -78,7 +96,7 @@ export class EnvelopeCryptoService implements ICryptoService {
         256
       );
 
-      const serverKeyData = encoder.encode(serverTicketKey);
+      const serverKeyData = encoder.encode(oprfEvaluatedPoint);
       const hmacKey = await crypto.subtle.importKey(
         'raw',
         serverKeyData,
@@ -103,14 +121,14 @@ export class EnvelopeCryptoService implements ICryptoService {
   }
 
   /**
-   * Multi-Factor Key Derivation combining 8-word Mnemonic with Server Ticket Key:
+   * Multi-Factor Key Derivation combining 8-word Mnemonic with OPRF Evaluation Response:
    * 1. Local PBKDF2(Mnemonic, salt, 100,000, SHA-256)
-   * 2. HMAC-SHA256(LocalKey, ServerTicketKey)
+   * 2. HMAC-SHA256(LocalKey, oprfEvaluatedPoint)
    */
   public async deriveKeyFromRecoveryKey(
     mnemonic: string,
     salt: string,
-    serverTicketKey?: string
+    oprfEvaluatedPoint?: string
   ): Promise<CryptoKey> {
     const normalized = MnemonicService.normalizeMnemonic(mnemonic);
     const encoder = new TextEncoder();
@@ -120,7 +138,7 @@ export class EnvelopeCryptoService implements ICryptoService {
     try {
       const baseKey = await crypto.subtle.importKey('raw', mnemonicBuffer, 'PBKDF2', false, ['deriveKey', 'deriveBits']);
 
-      if (!serverTicketKey) {
+      if (!oprfEvaluatedPoint) {
         return await crypto.subtle.deriveKey(
           {
             name: 'PBKDF2',
@@ -146,7 +164,7 @@ export class EnvelopeCryptoService implements ICryptoService {
         256
       );
 
-      const serverKeyData = encoder.encode(serverTicketKey);
+      const serverKeyData = encoder.encode(oprfEvaluatedPoint);
       const hmacKey = await crypto.subtle.importKey(
         'raw',
         serverKeyData,

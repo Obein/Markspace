@@ -12,9 +12,11 @@ export class ApiClient implements IApiClient {
   private token: string | null = null;
   private baseUrl = '/api/v1';
   private currentNonce: string | null = null;
+  private currentNonceTimestamp = 0;
   private onForceLogoutCallback: ((reason: string) => void) | null = null;
 
-  constructor() {
+  constructor(baseUrl: string = '/api/v1') {
+    this.baseUrl = baseUrl;
     this.token = localStorage.getItem('markspace_jwt_token');
   }
 
@@ -32,7 +34,7 @@ export class ApiClient implements IApiClient {
   }
 
   /**
-   * AOP Aspect: Perform initial Nonce handshake if not already cached.
+   * AOP Aspect: Perform initial Nonce handshake if not already cached or expired.
    */
   private async getNonce(): Promise<string> {
     try {
@@ -42,6 +44,7 @@ export class ApiClient implements IApiClient {
       const nonce = nextNonceHeader || json?.data?.nonce || '';
       if (nonce) {
         this.currentNonce = nonce;
+        this.currentNonceTimestamp = Date.now();
       }
       return nonce;
     } catch {
@@ -60,8 +63,9 @@ export class ApiClient implements IApiClient {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    // AOP: Ensure we have an active anti-replay nonce before sending request
-    if (!this.currentNonce && path !== '/auth/nonce') {
+    // AOP: Ensure we have an active, non-expired anti-replay nonce before sending request
+    const isExpired = Date.now() - this.currentNonceTimestamp > 50000;
+    if ((!this.currentNonce || isExpired) && path !== '/auth/nonce') {
       await this.getNonce();
     }
     if (this.currentNonce) {
@@ -81,7 +85,7 @@ export class ApiClient implements IApiClient {
   /**
    * Core AOP HTTP Request Pipeline with Automatic Header Nonce Handshake & Dispatch.
    */
-  private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  private async request<T>(path: string, options: RequestInit = {}, isRetry = false): Promise<T> {
     const method = (options.method || 'GET').toUpperCase();
     const defaultHeaders = await this.getHeaders(method, path);
 
@@ -98,6 +102,7 @@ export class ApiClient implements IApiClient {
     const nextNonceHeader = res.headers.get('X-Next-Nonce');
     if (nextNonceHeader) {
       this.currentNonce = nextNonceHeader;
+      this.currentNonceTimestamp = Date.now();
     }
 
     const json = await res.json().catch(() => null);
@@ -106,11 +111,25 @@ export class ApiClient implements IApiClient {
       const errorCode = json?.error?.code;
       const errorMsg = json?.error?.message || `API Error: ${res.status}`;
 
-      // AOP Nonce Violation Safety Net
+      // AOP Nonce Violation Self-Healing: Try 1-time re-handshake before terminating session
+      if (
+        (errorCode === 'SECURITY_NONCE_VIOLATION' || errorMsg.includes('SECURITY_NONCE_VIOLATION')) &&
+        !isRetry &&
+        path !== '/auth/nonce'
+      ) {
+        console.warn('Anti-replay nonce desynced or expired. Performing automatic handshake recovery...');
+        this.currentNonce = null;
+        this.currentNonceTimestamp = 0;
+        await this.getNonce();
+        return this.request<T>(path, options, true);
+      }
+
+      // If persistent violation occurs
       if (errorCode === 'SECURITY_NONCE_VIOLATION' || errorMsg.includes('SECURITY_NONCE_VIOLATION')) {
-        console.error('CRITICAL SECURITY VIOLATION: Nonce verification failed. Forcefully terminating user session.');
+        console.error('CRITICAL SECURITY VIOLATION: Nonce verification failed after retry. Terminating user session.');
         this.setToken('');
         this.currentNonce = null;
+        this.currentNonceTimestamp = 0;
         if (this.onForceLogoutCallback) {
           this.onForceLogoutCallback(
             'Security Alert: Anti-replay nonce chain was violated or expired. Your session was terminated for data protection.'
@@ -196,35 +215,33 @@ export class ApiClient implements IApiClient {
     return this.request<AuditLogResponse[]>('/auth/audit-logs', { method: 'GET' });
   }
 
-  async getVaultTicketKey(vaultId: string): Promise<{ serverTicketKey: string }> {
-    return this.request<{ serverTicketKey: string }>('/vault/ticket-key', {
+  async setupVaultOprf(vaultId: string, blindedPoint: string): Promise<{ evaluatedPoint: string }> {
+    return this.request<{ evaluatedPoint: string }>('/vault/oprf/setup', {
       method: 'POST',
-      body: JSON.stringify({ vaultId }),
+      body: JSON.stringify({ vaultId, blindedPoint }),
     });
   }
 
-  async requestVaultUnlockTicket(
-    vaultId: string
-  ): Promise<{ serverTicketKey: string; failCount: number; serverTime: number }> {
-    return this.request<{ serverTicketKey: string; failCount: number; serverTime: number }>(
-      '/vault/unlock-ticket',
-      {
-        method: 'POST',
-        body: JSON.stringify({ vaultId }),
-      }
-    );
-  }
-
-  async reportVaultPinFailure(
-    vaultId: string
-  ): Promise<{ failCount: number; lockedUntil: number; remainingSeconds: number }> {
-    return this.request<{ failCount: number; lockedUntil: number; remainingSeconds: number }>(
-      '/vault/report-fail',
-      {
-        method: 'POST',
-        body: JSON.stringify({ vaultId }),
-      }
-    );
+  async evaluateVaultOprf(
+    vaultId: string,
+    blindedPoint: string
+  ): Promise<{
+    evaluatedPoint: string;
+    failCount: number;
+    lockedUntil: number;
+    remainingSeconds: number;
+    serverTime: number;
+  }> {
+    return this.request<{
+      evaluatedPoint: string;
+      failCount: number;
+      lockedUntil: number;
+      remainingSeconds: number;
+      serverTime: number;
+    }>('/vault/oprf/evaluate', {
+      method: 'POST',
+      body: JSON.stringify({ vaultId, blindedPoint }),
+    });
   }
 
   async reportVaultPinSuccess(vaultId: string): Promise<{ message: string }> {

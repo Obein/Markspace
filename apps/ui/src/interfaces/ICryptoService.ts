@@ -10,14 +10,19 @@ export interface ICryptoService {
   generateVMK(): Promise<CryptoKey>;
 
   /**
-   * Derives a cryptographic wrapping key from a Vault PIN (4-6 digits) combined with server ticket key.
+   * Computes one-way blinded element M for OPRF evaluation.
    */
-  deriveKeyFromPin(pin: string, salt: string, serverTicketKey?: string): Promise<CryptoKey>;
+  computeOprfBlindPoint(input: string, salt: string): Promise<string>;
 
   /**
-   * Derives a cryptographic wrapping key from an 8-word Mnemonic Recovery Key combined with server ticket key.
+   * Derives a cryptographic wrapping key from a Vault PIN (4-6 digits) combined with OPRF evaluation.
    */
-  deriveKeyFromRecoveryKey(mnemonic: string, salt: string, serverTicketKey?: string): Promise<CryptoKey>;
+  deriveKeyFromPin(pin: string, salt: string, oprfEvaluatedPoint?: string): Promise<CryptoKey>;
+
+  /**
+   * Derives a cryptographic wrapping key from an 8-word Mnemonic Recovery Key combined with OPRF evaluation.
+   */
+  deriveKeyFromRecoveryKey(mnemonic: string, salt: string, oprfEvaluatedPoint?: string): Promise<CryptoKey>;
 
   /**
    * Wraps (encrypts) a Vault Master Key (VMK) with a wrapping key.

@@ -44,7 +44,7 @@ export class ServiceContainer {
     const objectStorageService = new R2ObjectStorageService(env.BUCKET);
     const passwordHasher = new WebCryptoHasher();
     this.tokenService = new JwtTokenService();
-    this.nonceService = new NonceService();
+    this.nonceService = new NonceService(env.JWT_SECRET);
     this.totpService = new TotpService();
     this.vaultSecurityService = new VaultSecurityService(env.DB);
 

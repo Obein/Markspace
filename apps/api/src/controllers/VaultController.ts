@@ -22,23 +22,24 @@ export class VaultController {
     return ctx.request.headers.get('User-Agent') || 'Unknown Client';
   }
 
-  public async getTicketKey(ctx: RequestContext): Promise<Response> {
+  public async setupOprf(ctx: RequestContext): Promise<Response> {
     const userId = ctx.user!.userId;
-    const body = (await ctx.request.json()) as { vaultId?: string };
-    if (!body.vaultId) {
-      throw new Error('BAD_REQUEST: Missing required vaultId');
+    const body = (await ctx.request.json()) as { vaultId?: string; blindedPoint?: string };
+    if (!body.vaultId || !body.blindedPoint) {
+      throw new Error('BAD_REQUEST: Missing required fields (vaultId, blindedPoint)');
     }
 
-    const serverTicketKey = await this.vaultSecurityService.getOrCreateTicketKey(
+    const evaluatedPoint = await this.vaultSecurityService.setupVaultOprf(
       userId,
       body.vaultId,
+      body.blindedPoint,
       ctx.env.MASTER_ENCRYPTION_KEY
     );
 
     const response: ApiResponse = {
       success: true,
       data: {
-        serverTicketKey,
+        evaluatedPoint,
       },
       timestamp: new Date().toISOString(),
     };
@@ -51,52 +52,32 @@ export class VaultController {
     });
   }
 
-  public async requestUnlockTicket(ctx: RequestContext): Promise<Response> {
+  public async evaluateOprf(ctx: RequestContext): Promise<Response> {
     const userId = ctx.user!.userId;
-    const body = (await ctx.request.json()) as { vaultId?: string };
-    if (!body.vaultId) {
-      throw new Error('BAD_REQUEST: Missing required vaultId');
+    const body = (await ctx.request.json()) as { vaultId?: string; blindedPoint?: string };
+    if (!body.vaultId || !body.blindedPoint) {
+      throw new Error('BAD_REQUEST: Missing required fields (vaultId, blindedPoint)');
     }
 
-    const result = await this.vaultSecurityService.requestUnlockTicket(
+    const result = await this.vaultSecurityService.evaluateOprf(
       userId,
       body.vaultId,
+      body.blindedPoint,
       ctx.env.MASTER_ENCRYPTION_KEY
     );
 
-    const response: ApiResponse = {
-      success: true,
-      data: result,
-      timestamp: new Date().toISOString(),
-    };
-
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-  }
-
-  public async reportPinFailure(ctx: RequestContext): Promise<Response> {
-    const userId = ctx.user!.userId;
-    const body = (await ctx.request.json()) as { vaultId?: string };
-    if (!body.vaultId) {
-      throw new Error('BAD_REQUEST: Missing required vaultId');
+    if (result.remainingSeconds > 0) {
+      await this.auditLogRepo.recordLog({
+        userId,
+        username: ctx.user?.username || 'unknown',
+        action: 'MFA_VERIFY',
+        authMethod: 'Vault OPRF Rate-Limiting Gate',
+        ipAddress: this.getClientIp(ctx),
+        userAgent: this.getUserAgent(ctx),
+        status: 'FAILED',
+        details: `Vault OPRF evaluation hit lockout tier (fail count: ${result.failCount}). Lockout: ${result.remainingSeconds}s`,
+      });
     }
-
-    const result = await this.vaultSecurityService.reportPinFailure(userId, body.vaultId);
-
-    await this.auditLogRepo.recordLog({
-      userId,
-      username: ctx.user?.username || 'unknown',
-      action: 'MFA_VERIFY',
-      authMethod: 'Vault PIN Envelope Verification',
-      ipAddress: this.getClientIp(ctx),
-      userAgent: this.getUserAgent(ctx),
-      status: 'FAILED',
-      details: `Incorrect vault PIN entered (fail count: ${result.failCount}). Lockout: ${result.remainingSeconds}s`,
-    });
 
     const response: ApiResponse = {
       success: true,
@@ -120,6 +101,17 @@ export class VaultController {
     }
 
     await this.vaultSecurityService.reportPinSuccess(userId, body.vaultId);
+
+    await this.auditLogRepo.recordLog({
+      userId,
+      username: ctx.user?.username || 'unknown',
+      action: 'MFA_VERIFY',
+      authMethod: 'Vault OPRF Evaluation',
+      ipAddress: this.getClientIp(ctx),
+      userAgent: this.getUserAgent(ctx),
+      status: 'SUCCESS',
+      details: 'PIN successfully verified via OPRF. Lockout counter reset.',
+    });
 
     const response: ApiResponse = {
       success: true,

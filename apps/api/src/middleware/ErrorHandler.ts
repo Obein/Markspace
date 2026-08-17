@@ -12,6 +12,9 @@ export class ErrorHandler {
     } else if (message.startsWith('UNAUTHORIZED:')) {
       status = 401;
       code = 'UNAUTHORIZED';
+    } else if (message.startsWith('SECURITY_NONCE_VIOLATION:')) {
+      status = 401;
+      code = 'SECURITY_NONCE_VIOLATION';
     } else if (message.startsWith('INVALID_CREDENTIALS:')) {
       status = 401;
       code = 'INVALID_CREDENTIALS';

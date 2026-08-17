@@ -102,15 +102,12 @@ export class Router {
       container.vaultController.moveNode(ctx)
     );
 
-    // 4.1 Vault Multi-Factor Security & Lockout Endpoints (Protected)
-    this.addRoute('POST', '/api/v1/vault/ticket-key', true, false, (container, ctx) =>
-      container.vaultController.getTicketKey(ctx)
+    // 4.1 Vault Multi-Factor OPRF Security & Zero-Trust Gate (Protected)
+    this.addRoute('POST', '/api/v1/vault/oprf/setup', true, false, (container, ctx) =>
+      container.vaultController.setupOprf(ctx)
     );
-    this.addRoute('POST', '/api/v1/vault/unlock-ticket', true, false, (container, ctx) =>
-      container.vaultController.requestUnlockTicket(ctx)
-    );
-    this.addRoute('POST', '/api/v1/vault/report-fail', true, false, (container, ctx) =>
-      container.vaultController.reportPinFailure(ctx)
+    this.addRoute('POST', '/api/v1/vault/oprf/evaluate', true, false, (container, ctx) =>
+      container.vaultController.evaluateOprf(ctx)
     );
     this.addRoute('POST', '/api/v1/vault/report-success', true, false, (container, ctx) =>
       container.vaultController.reportPinSuccess(ctx)

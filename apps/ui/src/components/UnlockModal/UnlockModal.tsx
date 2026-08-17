@@ -102,20 +102,23 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
       setLoading(true);
       setErrorMsg(null);
 
-      // 1. Request Server Ticket Key (Enforces Online Check & Server Lockout Gate)
-      const ticket = await apiClient.requestVaultUnlockTicket(activeVault.id);
-
       if (activeVault.wrappedVmkByPin && activeVault.salt) {
-        // Multi-factor derivation: (PBKDF2(PIN, salt) + ServerTicketKey)
+        // 1. Blind PIN on client
+        const blindPoint = await cryptoService.computeOprfBlindPoint(pin, activeVault.salt);
+
+        // 2. Evaluate with Server (Server pre-charges 1 attempt & enforces rate-limiting gate)
+        const oprfResult = await apiClient.evaluateVaultOprf(activeVault.id, blindPoint);
+
+        // 3. Multi-factor derivation: (PBKDF2(PIN, salt) + OPRF Evaluation)
         const pinKey = await cryptoService.deriveKeyFromPin(
           pin,
           activeVault.salt,
-          ticket.serverTicketKey
+          oprfResult.evaluatedPoint
         );
         // AES-GCM Unwrap VMK in memory
         const vmk = await cryptoService.unwrapVMK(activeVault.wrappedVmkByPin, pinKey);
 
-        // Notify server of successful unlock
+        // Notify server of successful unlock to reset fail counter
         await apiClient.reportVaultPinSuccess(activeVault.id);
         recordSuccess();
         setVaultKey(activeVault.id, vmk);
@@ -127,30 +130,15 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
         setVaultKey(activeVault.id, cmk);
       }
     } catch (err: any) {
-      // Check if server rejected due to lockout
-      if (err.message?.includes('VAULT_LOCKED_OUT')) {
-        recordFailure();
+      recordFailure();
+      triggerShake();
+
+      // Check if server rejected due to lockout or unwrap failed
+      if (err.message?.includes('VAULT_LOCKED_OUT') || err.code === 'VAULT_LOCKED_OUT') {
         setErrorMsg(err.message);
-        triggerShake();
-        return;
-      }
-
-      // PIN mismatch on client unwrap -> report failure to server
-      try {
-        const failStatus = await apiClient.reportVaultPinFailure(activeVault.id);
-        recordFailure();
-        triggerShake();
-
-        const remainingTries = 3 - (failStatus.failCount % 3 || 3);
-        if (failStatus.failCount >= 3) {
-          setErrorMsg(`Incorrect PIN. Security lockout activated for ${failStatus.remainingSeconds}s.`);
-        } else {
-          setErrorMsg(`Incorrect PIN. ${remainingTries} attempt(s) remaining before temporary timeout.`);
-        }
-      } catch (reportErr: any) {
-        recordFailure();
-        triggerShake();
-        setErrorMsg(err instanceof Error ? err.message : 'Authentication failed');
+      } else {
+        // PIN mismatch on client unwrap
+        setErrorMsg('Incorrect PIN. Authentication failed.');
       }
     } finally {
       setLoading(false);
@@ -179,21 +167,28 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
         throw new Error('This vault does not contain a recovery key envelope');
       }
 
-      // Request Server Ticket Key
-      const ticket = await apiClient.requestVaultUnlockTicket(activeVault.id);
+      // 1. Blind Recovery Key on client
+      const blindPoint = await cryptoService.computeOprfBlindPoint(recoveryMnemonic, activeVault.salt);
+
+      // 2. Evaluate with Server
+      const oprfResult = await apiClient.evaluateVaultOprf(activeVault.id, blindPoint);
 
       const recoveryKey = await cryptoService.deriveKeyFromRecoveryKey(
         recoveryMnemonic,
         activeVault.salt,
-        ticket.serverTicketKey
+        oprfResult.evaluatedPoint
       );
       const vmk = await cryptoService.unwrapVMK(activeVault.wrappedVmkByRecovery, recoveryKey);
 
-      // Re-wrap VMK with new PIN + Server Ticket Key
+      // 3. Setup OPRF for new PIN
+      const newPinBlindPoint = await cryptoService.computeOprfBlindPoint(newPinAfterRecovery, activeVault.salt);
+      const newPinOprf = await apiClient.setupVaultOprf(activeVault.id, newPinBlindPoint);
+
+      // 4. Re-wrap VMK with new PIN + OPRF
       const newPinKey = await cryptoService.deriveKeyFromPin(
         newPinAfterRecovery,
         activeVault.salt,
-        ticket.serverTicketKey
+        newPinOprf.evaluatedPoint
       );
       const newWrappedVmkByPin = await cryptoService.wrapVMK(vmk, newPinKey);
 

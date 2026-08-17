@@ -77,16 +77,20 @@ export function useVaults({
       // 1. Pure standard UUID for Vault ID
       const vaultId = crypto.randomUUID();
 
-      // 2. Request Server Ticket Key for multi-factor online envelope
-      const { serverTicketKey } = await apiClient.getVaultTicketKey(vaultId);
-
       const salt = cryptoService.generateSalt();
       const vmk = await cryptoService.generateVMK();
       const recoveryKey = customRecoveryKey || MnemonicService.generateRecoveryKey(8);
 
-      // 3. Multi-Factor Key Derivation (PIN/Recovery + Server Ticket Key)
-      const pinKey = await cryptoService.deriveKeyFromPin(pin, salt, serverTicketKey);
-      const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(recoveryKey, salt, serverTicketKey);
+      // 2. Request Server OPRF evaluations for PIN & Recovery Key
+      const pinBlindPoint = await cryptoService.computeOprfBlindPoint(pin, salt);
+      const recoveryBlindPoint = await cryptoService.computeOprfBlindPoint(recoveryKey, salt);
+
+      const pinOprfRes = await apiClient.setupVaultOprf(vaultId, pinBlindPoint);
+      const recoveryOprfRes = await apiClient.setupVaultOprf(vaultId, recoveryBlindPoint);
+
+      // 3. Multi-Factor OPRF Key Derivation
+      const pinKey = await cryptoService.deriveKeyFromPin(pin, salt, pinOprfRes.evaluatedPoint);
+      const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(recoveryKey, salt, recoveryOprfRes.evaluatedPoint);
 
       const wrappedVmkByPin = await cryptoService.wrapVMK(vmk, pinKey);
       const wrappedVmkByRecovery = await cryptoService.wrapVMK(vmk, recoveryKeyKey);
@@ -117,17 +121,26 @@ export function useVaults({
         throw new Error('Vault metadata is missing recovery key wrapping');
       }
 
-      // Request Server Ticket Key
-      const { serverTicketKey } = await apiClient.getVaultTicketKey(vaultId);
+      // OPRF Evaluation for recovery key
+      const recoveryBlindPoint = await cryptoService.computeOprfBlindPoint(mnemonic, targetVault.salt);
+      const recoveryOprf = await apiClient.evaluateVaultOprf(vaultId, recoveryBlindPoint);
 
       const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(
         mnemonic,
         targetVault.salt,
-        serverTicketKey
+        recoveryOprf.evaluatedPoint
       );
       const vmk = await cryptoService.unwrapVMK(targetVault.wrappedVmkByRecovery, recoveryKeyKey);
 
-      const newPinKey = await cryptoService.deriveKeyFromPin(newPin, targetVault.salt, serverTicketKey);
+      // Setup OPRF for new PIN
+      const newPinBlindPoint = await cryptoService.computeOprfBlindPoint(newPin, targetVault.salt);
+      const newPinOprf = await apiClient.setupVaultOprf(vaultId, newPinBlindPoint);
+
+      const newPinKey = await cryptoService.deriveKeyFromPin(
+        newPin,
+        targetVault.salt,
+        newPinOprf.evaluatedPoint
+      );
       const newWrappedVmkByPin = await cryptoService.wrapVMK(vmk, newPinKey);
 
       await apiClient.reportVaultPinSuccess(vaultId);

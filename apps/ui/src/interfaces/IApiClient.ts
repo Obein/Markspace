@@ -77,10 +77,18 @@ export interface IApiClient {
   disableTotp(code: string): Promise<{ message: string }>;
   getAuditLogs(): Promise<AuditLogResponse[]>;
 
-  // Vault Multi-Factor Online Ticket & Lockout API
-  getVaultTicketKey(vaultId: string): Promise<{ serverTicketKey: string }>;
-  requestVaultUnlockTicket(vaultId: string): Promise<{ serverTicketKey: string; failCount: number; serverTime: number }>;
-  reportVaultPinFailure(vaultId: string): Promise<{ failCount: number; lockedUntil: number; remainingSeconds: number }>;
+  // Vault Multi-Factor OPRF Online Evaluation & Lockout API
+  setupVaultOprf(vaultId: string, blindedPoint: string): Promise<{ evaluatedPoint: string }>;
+  evaluateVaultOprf(
+    vaultId: string,
+    blindedPoint: string
+  ): Promise<{
+    evaluatedPoint: string;
+    failCount: number;
+    lockedUntil: number;
+    remainingSeconds: number;
+    serverTime: number;
+  }>;
   reportVaultPinSuccess(vaultId: string): Promise<{ message: string }>;
 
   // Vault Tree & Object Storage API
