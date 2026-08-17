@@ -54,10 +54,9 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
               type="button"
               onClick={onOpenProfile}
               className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer"
-              title="User Profile & Settings"
+              title={t('userProfile')}
             >
               <User className="w-3.5 h-3.5 text-blue-400" />
-              <span>{t('userProfile')}</span>
             </button>
           </div>
         )}
