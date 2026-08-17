@@ -30,7 +30,7 @@ export const zhTW: typeof enUS = {
   username: '使用者名稱',
   password: '密碼',
   masterPassword: '主解密密碼',
-  unlockVault: '解鎖資料保險庫',
+  unlockVault: '解鎖保險庫',
   unlocking: '解密中...',
   unlock: '解鎖',
 

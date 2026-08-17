@@ -5,9 +5,11 @@ export interface UnlockModalProps {
   activeVaultId: string;
   onSelectVault: (id: string) => void;
   onOpenProfile?: () => void;
+  onDeleteVault?: (id: string) => void;
   onCreateVault: (
     name: string,
     pin: string,
     recoveryKey?: string
   ) => Promise<{ vault: VaultInfo; recoveryKey: string; vmk: CryptoKey }>;
 }
+

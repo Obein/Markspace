@@ -21,6 +21,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
   onSelectVault,
   onOpenProfile,
   onCreateVault,
+  onDeleteVault,
 }) => {
   const {
     setVaultKey,
@@ -127,6 +128,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
             remainingSeconds={remainingSeconds}
             recordSuccess={recordSuccess}
             recordFailure={recordFailure}
+            onDeleteVault={onDeleteVault}
           />
         ) : (
           <RecoveryUnlockView

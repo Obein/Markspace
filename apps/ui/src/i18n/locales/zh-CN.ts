@@ -30,7 +30,7 @@ export const zhCN: typeof enUS = {
   username: '用户名',
   password: '密码',
   masterPassword: '主解密密码',
-  unlockVault: '解锁数据保险库',
+  unlockVault: '解锁保险库',
   unlocking: '解密中...',
   unlock: '解锁',
 
