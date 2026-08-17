@@ -209,9 +209,9 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
 
             {/* Direction Indicator */}
             {isCollapsed ? (
-              <ChevronRight className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:scale-110 transition-transform" />
+              <ChevronRight className="w-3.5 h-5 text-zinc-600 dark:text-zinc-300 transition-transform" />
             ) : (
-              <ChevronLeft className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:scale-110 transition-transform" />
+              <ChevronLeft className="w-3.5 h-5 text-zinc-600 dark:text-zinc-300 transition-transform" />
             )}
 
             {/* Bottom Grip Accent */}
