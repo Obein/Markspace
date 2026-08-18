@@ -310,7 +310,7 @@ export class EnvelopeCryptoService implements ICryptoService {
     }
   }
 
-  async encryptText(plainText: string, dek: CryptoKey): Promise<string> {
+  async encryptText(plainText: string, dek: CryptoKey): Promise<Uint8Array> {
     const encoder = new TextEncoder();
     const plainBuffer = encoder.encode(plainText);
     const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -325,18 +325,31 @@ export class EnvelopeCryptoService implements ICryptoService {
       const combined = new Uint8Array(iv.length + cipherBuffer.byteLength);
       combined.set(iv, 0);
       combined.set(new Uint8Array(cipherBuffer), iv.length);
-
-      const base64Str = this.bufferToBase64(combined.buffer);
-      combined.fill(0);
-      return base64Str;
+      return combined;
     } finally {
       plainBuffer.fill(0);
       iv.fill(0);
     }
   }
 
-  async decryptText(cipherTextBase64: string, dek: CryptoKey): Promise<string> {
-    const combined = new Uint8Array(this.base64ToBuffer(cipherTextBase64));
+  async decryptText(
+    cipherInput: ArrayBuffer | Uint8Array | string,
+    dek: CryptoKey
+  ): Promise<string> {
+    let combined: Uint8Array;
+    if (typeof cipherInput === 'string') {
+      // Legacy Base64 string backward compatibility
+      combined = new Uint8Array(this.base64ToBuffer(cipherInput));
+    } else if (cipherInput instanceof ArrayBuffer) {
+      combined = new Uint8Array(cipherInput);
+    } else {
+      combined = cipherInput;
+    }
+
+    if (combined.byteLength < 12) {
+      return '';
+    }
+
     const iv = combined.slice(0, 12);
     const cipherData = combined.slice(12);
 
@@ -349,7 +362,6 @@ export class EnvelopeCryptoService implements ICryptoService {
 
       return new TextDecoder().decode(plainBuffer);
     } finally {
-      combined.fill(0);
       iv.fill(0);
     }
   }

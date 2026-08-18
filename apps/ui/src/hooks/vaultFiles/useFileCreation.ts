@@ -70,8 +70,14 @@ export function useFileCreation({
         encryptedDek: wrappedDek,
         mimeType: 'text/markdown',
         category: 'markdown',
-        contentBlob: encryptedPayload,
       });
+
+      await apiClient.updateVaultNodeContent(
+        createdNode.id,
+        encryptedPayload,
+        'application/octet-stream',
+        wrappedDek
+      );
 
       const newFile: VaultFileItem = {
         id: createdNode.id,
@@ -83,7 +89,7 @@ export function useFileCreation({
         size: defaultContent.length,
         content: defaultContent,
         encryptedTitle: filename,
-        encryptedPayload,
+        encryptedPayload: '',
         encryptedDek: wrappedDek,
         vaultId: activeVaultId,
         createdAt: createdNode.createdAt,

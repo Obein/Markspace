@@ -16,10 +16,10 @@ export interface VaultFileItem {
   path: string; // e.g. "notes.md" or "assets/image.png"
   category: FileCategory;
   mimeType: string;
-  size: number;
+  size?: number;
   content: string; // Plaintext content for md/text, or base64/dataURL for binary
   encryptedTitle: string;
-  encryptedPayload: string;
+  encryptedPayload?: string | Uint8Array;
   encryptedDek: string;
   vaultId: string;
   createdAt: number;

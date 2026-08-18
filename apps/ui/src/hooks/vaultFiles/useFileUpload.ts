@@ -65,7 +65,7 @@ export function useFileUpload({
 
             let textContent = '';
             let blobUrl = '';
-            let uploadPayload: ArrayBuffer | string = '';
+            let uploadPayload: ArrayBuffer | Uint8Array = new Uint8Array(0);
 
             const dek = await cryptoService.generateDEK();
             const wrappedDek = await cryptoService.wrapDEK(dek, cmk);
@@ -87,8 +87,14 @@ export function useFileUpload({
               size: file.size,
               mimeType: file.type || 'application/octet-stream',
               category,
-              contentBlob: uploadPayload,
             });
+
+            await apiClient.updateVaultNodeContent(
+              createdNode.id,
+              uploadPayload,
+              file.type || 'application/octet-stream',
+              wrappedDek
+            );
 
             newFileItems.push({
               id: createdNode.id,

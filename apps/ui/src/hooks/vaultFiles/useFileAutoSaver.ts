@@ -134,7 +134,7 @@ export function useFileAutoSaver({
         await apiClient.updateVaultNodeContent(
           fileId,
           encryptedPayload,
-          'text/markdown',
+          'application/octet-stream',
           currentWrappedDek
         );
       }

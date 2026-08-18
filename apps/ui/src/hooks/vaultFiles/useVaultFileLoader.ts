@@ -99,8 +99,7 @@ export function useVaultFileLoader({
             if (body.byteLength === 0) {
               contentText = '';
             } else if (node.category === 'markdown') {
-              const encryptedStr = new TextDecoder().decode(body);
-              contentText = await cryptoService.decryptText(encryptedStr, dek);
+              contentText = await cryptoService.decryptText(body, dek);
             } else {
               const blob = new Blob([body], { type: node.mimeType });
               blobUrl = URL.createObjectURL(blob);

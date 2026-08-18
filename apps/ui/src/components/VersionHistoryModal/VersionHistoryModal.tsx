@@ -59,7 +59,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
       setLoadingPreview(true);
       const { body, encryptedDek } = await apiClient.getVersionContent(file.id, version.timestamp);
       const dek = await cryptoService.unwrapDEK(encryptedDek, cmk);
-      const decryptedText = await cryptoService.decryptText(new TextDecoder().decode(body), dek);
+      const decryptedText = await cryptoService.decryptText(body, dek);
       setPreviewContent(decryptedText);
     } catch (err) {
       console.error('Failed to decrypt historical version payload', err);
@@ -79,7 +79,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
       // Decrypt reverted content payload for local UI state
       const { body, encryptedDek } = await apiClient.getVaultNodeContent(file.id);
       const dek = await cryptoService.unwrapDEK(encryptedDek, cmk);
-      const newText = await cryptoService.decryptText(new TextDecoder().decode(body), dek);
+      const newText = await cryptoService.decryptText(body, dek);
 
       const revertedFileItem: VaultFileItem = {
         ...file,

@@ -55,14 +55,14 @@ export interface ICryptoService {
   unwrapDEK(encryptedDekBase64: string, vmk: CryptoKey): Promise<CryptoKey>;
 
   /**
-   * Encrypt text payload with DEK.
+   * Encrypt text payload with DEK to raw binary bytes (12-byte IV + AES-GCM ciphertext).
    */
-  encryptText(plainText: string, dek: CryptoKey): Promise<string>;
+  encryptText(plainText: string, dek: CryptoKey): Promise<Uint8Array>;
 
   /**
-   * Decrypt text payload with DEK.
+   * Decrypt raw binary or legacy string payload with DEK.
    */
-  decryptText(cipherTextBase64: string, dek: CryptoKey): Promise<string>;
+  decryptText(cipherInput: ArrayBuffer | Uint8Array | string, dek: CryptoKey): Promise<string>;
 
   /**
    * Derive auth token for API registration/login (hash of password + salt).
