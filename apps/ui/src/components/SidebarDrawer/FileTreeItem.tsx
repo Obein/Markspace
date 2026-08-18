@@ -298,9 +298,6 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
               )}
               <span className="truncate">{fileItem.filename}</span>
             </div>
-            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 shrink-0 font-mono">
-              {(fileItem.size / 1024).toFixed(0)}K
-            </span>
           </button>
         );
       })}

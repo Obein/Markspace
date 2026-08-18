@@ -177,9 +177,6 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
                         <Clock className="w-3 h-3 text-blue-400 shrink-0" />
                         <span>{formatTimestamp(ver.timestamp)}</span>
                       </span>
-                      <span className="text-[10px] text-zinc-500 font-mono">
-                        {(ver.size / 1024).toFixed(1)}KB
-                      </span>
                     </div>
 
                     <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 pt-0.5">
