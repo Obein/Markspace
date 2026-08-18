@@ -115,6 +115,7 @@ export const AppContent: React.FC = () => {
     setSearchQuery,
     isSaving,
     isSaveFailed,
+    handleRetrySave,
     isLoadingVaultTree,
     isCreatingNote,
     isCreatingFolderLoading,
@@ -296,6 +297,7 @@ export const AppContent: React.FC = () => {
               onToggleTheme={toggleTheme}
               isSaving={isSaving}
               isSaveFailed={isSaveFailed}
+              onRetrySave={handleRetrySave}
               onOpenHistory={openHistory}
               onDownloadCurrentFile={handleDownloadActiveFile}
               onDeleteCurrentFile={handleDeleteFile}

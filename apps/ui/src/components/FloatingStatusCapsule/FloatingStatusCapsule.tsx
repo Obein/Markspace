@@ -25,6 +25,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   onToggleTheme,
   isSaving,
   isSaveFailed = false,
+  onRetrySave,
   onDownloadCurrentFile,
   onDeleteCurrentFile,
   onOpenHistory,
@@ -94,10 +95,15 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
                 {t('saving')}
               </span>
             ) : isSaveFailed ? (
-              <span className="text-amber-500 dark:text-amber-400 flex items-center gap-1.5 font-mono text-[11px] whitespace-nowrap font-medium">
+              <button
+                type="button"
+                onClick={onRetrySave}
+                className="flex items-center gap-1.5 font-mono text-[11px] whitespace-nowrap font-medium text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 transition cursor-pointer hover:underline focus:outline-none"
+                title="Unsaved changes. Click to retry saving / 未保存，点击重试保存"
+              >
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse" />
-                {t('unsaved')}
-              </span>
+                <span>{t('unsaved')}</span>
+              </button>
             ) : (
               <span className="text-zinc-400 dark:text-zinc-500 font-mono text-[11px] whitespace-nowrap">
                 {t('saved')}

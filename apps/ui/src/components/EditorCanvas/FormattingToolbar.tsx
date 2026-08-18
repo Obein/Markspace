@@ -8,6 +8,7 @@ import {
   Heading3,
   List,
   Quote,
+  Terminal,
   Code,
   Table as TableIcon,
   Link as LinkIcon,
@@ -92,6 +93,13 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
         title="Blockquote (>)"
       >
         <Quote className="w-3.5 h-3.5" />
+      </button>
+      <button
+        onClick={() => onInsertFormatting('`', '`')}
+        className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition cursor-pointer flex items-center justify-center shrink-0"
+        title="Inline Code (`code`)"
+      >
+        <Terminal className="w-3.5 h-3.5" />
       </button>
       <button
         onClick={() => onInsertFormatting('```\n', '\n```', true)}

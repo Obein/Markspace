@@ -89,7 +89,7 @@ export function useVaultFiles({
   });
 
   // 4. Background Debounced Auto-Saver to R2 Storage
-  const { isSaving, isSaveFailed } = useFileAutoSaver({
+  const { isSaving, isSaveFailed, handleRetrySave } = useFileAutoSaver({
     activeFileId,
     activeTitle,
     activeContent,
@@ -129,6 +129,7 @@ export function useVaultFiles({
     setSearchQuery,
     isSaving,
     isSaveFailed,
+    handleRetrySave,
     isLoadingVaultTree,
     isCreatingNote,
     isCreatingFolderLoading,

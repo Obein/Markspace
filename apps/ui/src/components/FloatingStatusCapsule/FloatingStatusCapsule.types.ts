@@ -19,6 +19,7 @@ export interface FloatingStatusCapsuleProps {
   onToggleTheme: () => void;
   isSaving: boolean;
   isSaveFailed?: boolean;
+  onRetrySave?: () => void;
   onDownloadCurrentFile?: () => void;
   onDeleteCurrentFile?: () => void;
   onOpenHistory?: () => void;
