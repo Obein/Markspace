@@ -142,7 +142,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   }
 
   const hasFormattingToolbar = category === 'markdown' && (!isPreview || isSplitView);
-  const topToolbarSpacingClass = hasFormattingToolbar ? 'h-24' : 'h-16';
+  const topToolbarSpacingClass = hasFormattingToolbar ? 'h-28' : 'h-20';
   const bottomCapsuleSpacingClass = hasBottomCapsule ? 'h-24' : 'h-12';
 
   return (

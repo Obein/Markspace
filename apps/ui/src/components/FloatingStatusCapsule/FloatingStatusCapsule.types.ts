@@ -6,6 +6,7 @@ export interface FloatingStatusCapsuleProps {
   isVaultUnlocked: boolean;
   hasActiveFile?: boolean;
   onOpenProfile: () => void;
+  onOpenAdmin?: () => void;
   onOpenUnlockModal: () => void;
   wordCount: number;
   charCount: number;

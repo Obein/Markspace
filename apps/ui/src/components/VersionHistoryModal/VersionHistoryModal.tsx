@@ -129,8 +129,13 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg">
-      <div className="w-full max-w-4xl h-[80vh] p-6 glass-panel rounded-glass-lg border border-white/10 text-white shadow-2xl relative overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg cursor-pointer"
+    >
+      <div className="w-full max-w-4xl h-[80vh] p-6 glass-panel rounded-glass-lg border border-white/10 text-white shadow-2xl relative overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200 cursor-default">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-3">

@@ -35,25 +35,24 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg">
-        <div className="w-full max-w-lg p-8 glass-panel rounded-glass-lg border border-white/10 text-white shadow-2xl relative overflow-visible animate-in fade-in zoom-in-95 duration-200">
+      <div
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg cursor-pointer"
+      >
+        <div className="w-full max-w-lg p-6 sm:p-8 glass-panel rounded-glass-lg border border-white/10 text-white shadow-2xl relative overflow-visible animate-in fade-in zoom-in-95 duration-200 cursor-default">
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"
+            className="absolute top-4 right-4 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer z-10"
           >
             <X className="w-4 h-4" />
           </button>
 
-          {/* Modal Header */}
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-            <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
-              <Database className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-white">{t('vaultSettings')}</h2>
-              <p className="text-xs text-zinc-400 mt-0.5">Manage data vaults and export local backups</p>
-            </div>
+          {/* Centered Modal Header */}
+          <div className="text-center pb-3 border-b border-white/10 mb-6">
+            <h2 className="text-base font-bold text-white tracking-wide">{t('vaultSettings')}</h2>
           </div>
 
           {/* Active Vault Switch & Create Vault Section */}

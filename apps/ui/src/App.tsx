@@ -7,6 +7,7 @@ import {
   ToastContainer,
   UnlockModal,
   UserProfileModal,
+  AdminModal,
   VaultSettingsModal,
   VersionHistoryModal,
 } from './components';
@@ -47,6 +48,9 @@ export const AppContent: React.FC = () => {
     isProfileOpen,
     openProfile,
     closeProfile,
+    isAdminOpen,
+    openAdmin,
+    closeAdmin,
     isVaultSettingsOpen,
     openVaultSettings,
     closeVaultSettings,
@@ -207,6 +211,12 @@ export const AppContent: React.FC = () => {
         onChangeAutoLockMinutes={setAutoLockMinutes}
       />
 
+      {/* Step 3.5: Dedicated System Administration Modal */}
+      <AdminModal
+        isOpen={isAdminOpen}
+        onClose={closeAdmin}
+      />
+
       {/* Step 4: Vault Settings Modal */}
       <VaultSettingsModal
         isOpen={isVaultSettingsOpen}
@@ -285,6 +295,7 @@ export const AppContent: React.FC = () => {
               isVaultUnlocked={isVaultUnlocked}
               hasActiveFile={Boolean(activeFileId)}
               onOpenProfile={openProfile}
+              onOpenAdmin={openAdmin}
               onOpenUnlockModal={openUnlockModal}
               wordCount={wordCount}
               charCount={charCount}

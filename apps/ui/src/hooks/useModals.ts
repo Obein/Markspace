@@ -5,6 +5,7 @@ export function useModals() {
   const [isVaultSettingsOpen, setIsVaultSettingsOpen] = useState(false);
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   const openProfile = useCallback(() => setIsProfileOpen(true), []);
   const closeProfile = useCallback(() => setIsProfileOpen(false), []);
@@ -17,6 +18,9 @@ export function useModals() {
 
   const openHistory = useCallback(() => setIsHistoryOpen(true), []);
   const closeHistory = useCallback(() => setIsHistoryOpen(false), []);
+
+  const openAdmin = useCallback(() => setIsAdminOpen(true), []);
+  const closeAdmin = useCallback(() => setIsAdminOpen(false), []);
 
   return {
     isProfileOpen,
@@ -38,5 +42,10 @@ export function useModals() {
     setIsHistoryOpen,
     openHistory,
     closeHistory,
+
+    isAdminOpen,
+    setIsAdminOpen,
+    openAdmin,
+    closeAdmin,
   };
 }

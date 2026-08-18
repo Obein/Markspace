@@ -12,6 +12,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   isVaultUnlocked,
   hasActiveFile = false,
   onOpenProfile,
+  onOpenAdmin,
   onOpenUnlockModal,
   wordCount,
   charCount,
@@ -40,7 +41,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none px-5 py-2.5 glass-capsule backdrop-blur-[10px] rounded-capsule flex items-center gap-3 sm:gap-4 text-xs text-zinc-800 dark:text-zinc-200 transition-all hover:scale-[1.01] select-none pointer-events-auto whitespace-nowrap shadow-xl">
       {/* User Profile & Role Link */}
-      <UserBadge username={username} role={role} onOpenProfile={onOpenProfile} />
+      <UserBadge username={username} role={role} onOpenProfile={onOpenProfile} onOpenAdmin={onOpenAdmin} />
 
       {/* Only show Lock warning if Vault is Locked */}
       {!isVaultUnlocked && (

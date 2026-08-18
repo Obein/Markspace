@@ -4,7 +4,6 @@ import { useApp } from '../../context/AppContext';
 import { LANGUAGE_OPTIONS, Language, useI18n } from '../../i18n/i18nContext';
 import { AuditLogResponse } from '../../interfaces/IApiClient';
 import { TotpSetupSection } from './TotpSetupSection';
-import { AdminManagementSection } from './AdminManagementSection';
 import { UserProfileModalProps } from './UserProfileModal.types';
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
@@ -88,21 +87,33 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg">
-      <div className="w-full max-w-lg p-8 glass-panel rounded-glass-lg border border-white/10 text-white shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg cursor-pointer"
+    >
+      <div className="w-full max-w-lg p-6 sm:p-8 glass-panel rounded-glass-lg border border-white/10 text-white shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto cursor-default">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer"
+          className="absolute top-4 right-4 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer z-10"
         >
           <X className="w-4 h-4" />
         </button>
 
-        {/* User Header */}
-        <div className="mb-6 pb-4 border-b border-white/10 space-y-2">
+        {/* Top Centered Modal Title */}
+        <div className="text-center pb-3 border-b border-white/10 mb-5">
+          <h2 className="text-base font-bold text-white tracking-wide">
+            {t('userProfile')}
+          </h2>
+        </div>
+
+        {/* User Info Header */}
+        <div className="mb-5 pb-4 border-b border-white/10 space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <h2 className="text-xl font-bold text-white">{username || 'Anonymous'}</h2>
+              <h3 className="text-lg font-bold text-white">{username || 'Anonymous'}</h3>
               {role === 'admin' ? (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center gap-1">
                   <span>SYSTEM ADMIN</span>
@@ -113,7 +124,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-400">{t('userProfile')}</p>
           </div>
 
           {/* User UUID Bar */}
@@ -142,9 +152,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </span>
           </div>
         </div>
-
-        {/* System Administration Console (Admin Only) */}
-        {role === 'admin' && <AdminManagementSection />}
 
         {/* TOTP Multi-Factor Authentication Management */}
         <div className="mb-4">

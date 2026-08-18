@@ -104,8 +104,15 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-150">
-      <div className="w-full max-w-md p-6 glass-panel rounded-glass-lg border border-white/15 text-white shadow-2xl relative overflow-hidden">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget && step === 'form') {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-150 cursor-pointer"
+    >
+      <div className="w-full max-w-md p-6 glass-panel rounded-glass-lg border border-white/15 text-white shadow-2xl relative overflow-hidden cursor-default">
         {step === 'form' ? (
           <div>
             <div className="flex items-center gap-3 mb-5 pb-4 border-b border-white/10">

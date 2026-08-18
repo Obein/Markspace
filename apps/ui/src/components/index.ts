@@ -4,6 +4,7 @@ export * from './FloatingStatusCapsule';
 export * from './SidebarDrawer';
 export * from './Toast';
 export * from './UnlockModal';
+export * from './AdminModal';
 export * from './UserProfileModal';
 export * from './VaultSettingsModal';
 export * from './VersionHistoryModal';
