@@ -24,7 +24,7 @@ export const jaJP: typeof enUS = {
   confirmDelete: '本当に削除しますか？',
 
   // Authentication & Bento Showcase
-  welcomeTitle: 'Markspace へようこそ',
+  welcomeTitle: 'プライベート Markdown ワークスペース',
   signIn: 'サインイン',
   register: 'アカウント登録',
   username: 'ユーザー名',

@@ -24,7 +24,7 @@ export const zhTW: typeof enUS = {
   confirmDelete: '確定要刪除嗎？',
 
   // Authentication & Bento Showcase
-  welcomeTitle: '歡迎來到 Markspace',
+  welcomeTitle: '私人 Markdown 空間',
   signIn: '登入帳號',
   register: '註冊帳號',
   username: '使用者名稱',

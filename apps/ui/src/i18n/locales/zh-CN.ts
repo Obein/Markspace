@@ -24,7 +24,7 @@ export const zhCN: typeof enUS = {
   confirmDelete: '确定要删除吗？',
 
   // Authentication & Bento Showcase
-  welcomeTitle: '欢迎来到 Markspace',
+  welcomeTitle: '私人 Markdown 空间',
   signIn: '登录账号',
   register: '注册账号',
   username: '用户名',

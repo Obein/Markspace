@@ -24,7 +24,7 @@ export const viVN: typeof enUS = {
   confirmDelete: 'Bạn có chắc chắn muốn xóa không?',
 
   // Authentication & Bento Showcase
-  welcomeTitle: 'Chào mừng đến với Markspace',
+  welcomeTitle: 'Không Gian Markdown Riêng Tư',
   signIn: 'Đăng Nhập',
   register: 'Đăng Ký',
   username: 'Tên người dùng',

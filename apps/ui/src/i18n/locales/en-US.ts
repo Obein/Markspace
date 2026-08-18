@@ -22,7 +22,7 @@ export const enUS = {
   confirmDelete: 'Are you sure you want to delete?',
 
   // Authentication & Bento Showcase
-  welcomeTitle: 'Welcome to Markspace',
+  welcomeTitle: 'Privacy Markdown Workspace',
   signIn: 'Sign In',
   register: 'Register',
   username: 'Username',

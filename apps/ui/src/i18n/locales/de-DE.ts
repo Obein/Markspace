@@ -24,7 +24,7 @@ export const deDE: typeof enUS = {
   confirmDelete: 'Möchten Sie dies wirklich löschen?',
 
   // Authentication & Bento Showcase
-  welcomeTitle: 'Willkommen bei Markspace',
+  welcomeTitle: 'Privater Markdown Arbeitsbereich',
   signIn: 'Anmelden',
   register: 'Registrieren',
   username: 'Benutzername',

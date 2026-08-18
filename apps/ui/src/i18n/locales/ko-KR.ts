@@ -24,7 +24,7 @@ export const koKR: typeof enUS = {
   confirmDelete: '정말 삭제하시겠습니까?',
 
   // Authentication & Bento Showcase
-  welcomeTitle: 'Markspace에 오신 것을 환영합니다',
+  welcomeTitle: '프라이빗 Markdown 워크스페이스',
   signIn: '로그인',
   register: '회원가입',
   username: '사용자 이름',
