@@ -4,7 +4,7 @@
 
 # Markspace
 
-**A Zero-Trust, Privacy-First, FastCDC & Merkle DAG Edge-Native Markdown Workspace**
+**A Zero-Trust, Privacy-First, Incremental Synchronization, Edge-Native Markdown Workspace**
 
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL_v3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/agpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6.svg?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
