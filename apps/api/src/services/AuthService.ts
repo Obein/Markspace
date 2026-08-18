@@ -14,6 +14,17 @@ import {
   UserRole,
 } from '../types/domain';
 
+export interface AuthResult {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  user: {
+    id: string;
+    username: string;
+    role: UserRole;
+  };
+}
+
 export class AuthService {
   constructor(
     private readonly userRepository: IUserRepository,
@@ -32,9 +43,11 @@ export class AuthService {
   }
 
   async register(
+    db: D1Database,
     dto: RegisterDTO,
-    jwtSecret: string
-  ): Promise<{ token: string; user: { id: string; username: string; role: UserRole } }> {
+    jwtSecret: string,
+    dpopJkt?: string
+  ): Promise<AuthResult> {
     if (!dto.username || dto.username.trim().length === 0) {
       throw new Error('USERNAME_REQUIRED: Username cannot be empty');
     }
@@ -69,13 +82,18 @@ export class AuthService {
 
     await this.userRepository.create(user);
 
-    const token = await this.tokenService.generateToken(
+    const tokenPair = await this.tokenService.issueInitialTokenPair(
+      db,
+      user.id,
       { userId: user.id, username: user.username, role: user.role },
-      jwtSecret
+      jwtSecret,
+      dpopJkt
     );
 
     return {
-      token,
+      accessToken: tokenPair.accessToken,
+      refreshToken: tokenPair.rawRefreshToken,
+      expiresIn: tokenPair.expiresInSeconds,
       user: {
         id: user.id,
         username: user.username,
@@ -85,10 +103,12 @@ export class AuthService {
   }
 
   async login(
+    db: D1Database,
     dto: LoginDTO,
     jwtSecret: string,
-    kek?: string
-  ): Promise<{ token: string; user: { id: string; username: string; role: UserRole } }> {
+    kek?: string,
+    dpopJkt?: string
+  ): Promise<AuthResult> {
     if (!dto.username || !dto.authToken) {
       throw new Error('INVALID_CREDENTIALS: Username and Auth Token are required');
     }
@@ -116,13 +136,18 @@ export class AuthService {
       }
     }
 
-    const token = await this.tokenService.generateToken(
+    const tokenPair = await this.tokenService.issueInitialTokenPair(
+      db,
+      user.id,
       { userId: user.id, username: user.username, role: user.role },
-      jwtSecret
+      jwtSecret,
+      dpopJkt
     );
 
     return {
-      token,
+      accessToken: tokenPair.accessToken,
+      refreshToken: tokenPair.rawRefreshToken,
+      expiresIn: tokenPair.expiresInSeconds,
       user: {
         id: user.id,
         username: user.username,
@@ -132,10 +157,12 @@ export class AuthService {
   }
 
   async loginPasswordlessTotp(
+    db: D1Database,
     dto: LoginTotpPasswordlessDTO,
     jwtSecret: string,
-    kek?: string
-  ): Promise<{ token: string; user: { id: string; username: string; role: UserRole } }> {
+    kek?: string,
+    dpopJkt?: string
+  ): Promise<AuthResult> {
     if (!dto.username || !dto.totpCode) {
       throw new Error('INVALID_CREDENTIALS: Username and TOTP code are required');
     }
@@ -155,19 +182,65 @@ export class AuthService {
       throw new Error('INVALID_TOTP: Invalid or expired TOTP verification code');
     }
 
-    const token = await this.tokenService.generateToken(
+    const tokenPair = await this.tokenService.issueInitialTokenPair(
+      db,
+      user.id,
       { userId: user.id, username: user.username, role: user.role },
-      jwtSecret
+      jwtSecret,
+      dpopJkt
     );
 
     return {
-      token,
+      accessToken: tokenPair.accessToken,
+      refreshToken: tokenPair.rawRefreshToken,
+      expiresIn: tokenPair.expiresInSeconds,
       user: {
         id: user.id,
         username: user.username,
         role: user.role,
       },
     };
+  }
+
+  async refreshTokens(
+    db: D1Database,
+    rawRefreshToken: string,
+    jwtSecret: string,
+    dpopJkt?: string
+  ): Promise<AuthResult> {
+    const rotated = await this.tokenService.rotateRefreshToken(db, rawRefreshToken, jwtSecret, dpopJkt);
+    return {
+      accessToken: rotated.accessToken,
+      refreshToken: rotated.rawRefreshToken,
+      expiresIn: rotated.expiresInSeconds,
+      user: {
+        id: rotated.userPayload.userId,
+        username: rotated.userPayload.username,
+        role: rotated.userPayload.role,
+      },
+    };
+  }
+
+  async logout(db: D1Database, rawRefreshToken?: string): Promise<void> {
+    if (!rawRefreshToken) return;
+    try {
+      const encoder = new TextEncoder();
+      const hashBuf = await crypto.subtle.digest('SHA-256', encoder.encode(rawRefreshToken));
+      const tokenHash = Array.from(new Uint8Array(hashBuf))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      const record = await db
+        .prepare(`SELECT family_id FROM refresh_tokens WHERE token_hash = ?`)
+        .bind(tokenHash)
+        .first<{ family_id: string }>();
+
+      if (record) {
+        await this.tokenService.revokeFamily(db, record.family_id, 'USER_LOGOUT');
+      }
+    } catch {
+      // Best-effort logout cleanup
+    }
   }
 
   setupTotp(_userId: string, username: string): TotpSetupResponseDTO {

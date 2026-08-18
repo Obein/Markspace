@@ -149,7 +149,7 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
         );
       }
 
-      setToken(res.token);
+      setToken(res.accessToken || res.token || '');
       setUsername(res.user.username);
       setRole(res.user.role);
     } catch (err: unknown) {
@@ -181,7 +181,7 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
         'markspace-account-auth-salt'
       );
       const res = await apiClient.register(usernameInput.trim(), authToken);
-      setToken(res.token);
+      setToken(res.accessToken || res.token || '');
       setUsername(res.user.username);
       setRole(res.user.role);
     } catch (err: unknown) {

@@ -29,6 +29,18 @@ export class AuthController {
     return ctx.request.headers.get('User-Agent') || 'Unknown Client';
   }
 
+  private extractRefreshToken(cookieHeader: string | null): string | null {
+    if (!cookieHeader) return null;
+    const cookies = cookieHeader.split(';');
+    for (const cookie of cookies) {
+      const [name, ...valueParts] = cookie.trim().split('=');
+      if (name === '__Host-auth_refresh_token' || name === 'auth_refresh_token') {
+        return valueParts.join('=').trim();
+      }
+    }
+    return null;
+  }
+
   async getNonce(ctx: RequestContext): Promise<Response> {
     const nonceInfo = this.nonceService.generateNonce(ctx.user?.userId);
     const response: ApiResponse = {
@@ -70,7 +82,7 @@ export class AuthController {
     const userAgent = this.getUserAgent(ctx);
 
     try {
-      const result = await this.authService.register(body, ctx.env.JWT_SECRET);
+      const result = await this.authService.register(ctx.env.DB, body, ctx.env.JWT_SECRET);
 
       await this.auditLogRepo.recordLog({
         userId: result.user.id,
@@ -80,18 +92,22 @@ export class AuthController {
         ipAddress: ip,
         userAgent,
         status: 'SUCCESS',
-        details: 'User account created with zero-trust key isolation',
+        details: 'User account created with zero-trust dual-token model',
       });
 
       const response: ApiResponse = {
         success: true,
-        data: result,
+        data: {
+          accessToken: result.accessToken,
+          expiresIn: result.expiresIn,
+          user: result.user,
+        },
         timestamp: new Date().toISOString(),
       };
 
       const headers = new Headers({
         'Content-Type': 'application/json',
-        'Set-Cookie': `__Host-auth_token=${result.token}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=86400`,
+        'Set-Cookie': `__Host-auth_refresh_token=${result.refreshToken}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=86400`,
       });
 
       return new Response(JSON.stringify(response), {
@@ -119,7 +135,12 @@ export class AuthController {
     const userAgent = this.getUserAgent(ctx);
 
     try {
-      const result = await this.authService.login(body, ctx.env.JWT_SECRET, ctx.env.MASTER_ENCRYPTION_KEY);
+      const result = await this.authService.login(
+        ctx.env.DB,
+        body,
+        ctx.env.JWT_SECRET,
+        ctx.env.MASTER_ENCRYPTION_KEY
+      );
 
       await this.auditLogRepo.recordLog({
         userId: result.user.id,
@@ -129,18 +150,22 @@ export class AuthController {
         ipAddress: ip,
         userAgent,
         status: 'SUCCESS',
-        details: 'User successfully authenticated',
+        details: 'User successfully authenticated with dual-token model',
       });
 
       const response: ApiResponse = {
         success: true,
-        data: result,
+        data: {
+          accessToken: result.accessToken,
+          expiresIn: result.expiresIn,
+          user: result.user,
+        },
         timestamp: new Date().toISOString(),
       };
 
       const headers = new Headers({
         'Content-Type': 'application/json',
-        'Set-Cookie': `__Host-auth_token=${result.token}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=86400`,
+        'Set-Cookie': `__Host-auth_refresh_token=${result.refreshToken}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=86400`,
       });
 
       return new Response(JSON.stringify(response), {
@@ -169,6 +194,7 @@ export class AuthController {
 
     try {
       const result = await this.authService.loginPasswordlessTotp(
+        ctx.env.DB,
         body,
         ctx.env.JWT_SECRET,
         ctx.env.MASTER_ENCRYPTION_KEY
@@ -187,13 +213,17 @@ export class AuthController {
 
       const response: ApiResponse = {
         success: true,
-        data: result,
+        data: {
+          accessToken: result.accessToken,
+          expiresIn: result.expiresIn,
+          user: result.user,
+        },
         timestamp: new Date().toISOString(),
       };
 
       const headers = new Headers({
         'Content-Type': 'application/json',
-        'Set-Cookie': `__Host-auth_token=${result.token}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=86400`,
+        'Set-Cookie': `__Host-auth_refresh_token=${result.refreshToken}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=86400`,
       });
 
       return new Response(JSON.stringify(response), {
@@ -215,11 +245,101 @@ export class AuthController {
     }
   }
 
-  async logout(ctx: RequestContext): Promise<Response> {
-    const userId = ctx.user!.userId;
-    const username = ctx.user!.username;
+  async refresh(ctx: RequestContext): Promise<Response> {
+    const cookieHeader = ctx.request.headers.get('Cookie');
+    const rawRefreshToken = this.extractRefreshToken(cookieHeader);
     const ip = this.getClientIp(ctx);
     const userAgent = this.getUserAgent(ctx);
+
+    if (!rawRefreshToken) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'No refresh token provided in secure HttpOnly cookie',
+          },
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    try {
+      const result = await this.authService.refreshTokens(
+        ctx.env.DB,
+        rawRefreshToken,
+        ctx.env.JWT_SECRET
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        data: {
+          accessToken: result.accessToken,
+          expiresIn: result.expiresIn,
+          user: result.user,
+        },
+        timestamp: new Date().toISOString(),
+      };
+
+      const headers = new Headers({
+        'Content-Type': 'application/json',
+        'Set-Cookie': `__Host-auth_refresh_token=${result.refreshToken}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=86400`,
+      });
+
+      return new Response(JSON.stringify(response), {
+        status: 200,
+        headers,
+      });
+    } catch (err: any) {
+      const isBreach = String(err?.message || '').includes('BREACH_DETECTED');
+      await this.auditLogRepo.recordLog({
+        userId: 'anonymous',
+        username: 'refresh_session',
+        action: isBreach ? 'AUTH_BREACH_DETECTED' : 'AUTH_TOKEN_REFRESH',
+        authMethod: 'Refresh Token Rotation (RTR)',
+        ipAddress: ip,
+        userAgent,
+        status: 'FAILED',
+        details: err instanceof Error ? err.message : String(err),
+      });
+
+      const clearCookieHeader = new Headers({
+        'Content-Type': 'application/json',
+        'Set-Cookie': '__Host-auth_refresh_token=; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0',
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: {
+            code: isBreach ? 'BREACH_DETECTED' : 'UNAUTHORIZED',
+            message: err instanceof Error ? err.message : 'Invalid or expired refresh token',
+          },
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 401,
+          headers: clearCookieHeader,
+        }
+      );
+    }
+  }
+
+  async logout(ctx: RequestContext): Promise<Response> {
+    const userId = ctx.user?.userId || 'anonymous';
+    const username = ctx.user?.username || 'unknown';
+    const ip = this.getClientIp(ctx);
+    const userAgent = this.getUserAgent(ctx);
+    const cookieHeader = ctx.request.headers.get('Cookie');
+    const rawRefreshToken = this.extractRefreshToken(cookieHeader);
+
+    if (rawRefreshToken) {
+      await this.authService.logout(ctx.env.DB, rawRefreshToken);
+    }
 
     await this.auditLogRepo.recordLog({
       userId,
@@ -229,7 +349,7 @@ export class AuthController {
       ipAddress: ip,
       userAgent,
       status: 'SUCCESS',
-      details: 'User logged out and session revoked',
+      details: 'User logged out and refresh token family revoked',
     });
 
     const response: ApiResponse = {
@@ -240,7 +360,7 @@ export class AuthController {
 
     const headers = new Headers({
       'Content-Type': 'application/json',
-      'Set-Cookie': '__Host-auth_token=; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0',
+      'Set-Cookie': '__Host-auth_refresh_token=; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0',
     });
 
     return new Response(JSON.stringify(response), {

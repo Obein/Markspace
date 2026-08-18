@@ -38,7 +38,10 @@ export class Router {
     this.addRoute('POST', '/api/v1/auth/login/passwordless-totp', false, false, (container, ctx) =>
       container.authController.loginPasswordlessTotp(ctx)
     );
-    this.addRoute('POST', '/api/v1/auth/logout', true, false, (container, ctx) =>
+    this.addRoute('POST', '/api/v1/auth/refresh', false, false, (container, ctx) =>
+      container.authController.refresh(ctx)
+    );
+    this.addRoute('POST', '/api/v1/auth/logout', false, false, (container, ctx) =>
       container.authController.logout(ctx)
     );
     this.addRoute('POST', '/api/v1/auth/totp/setup', true, false, (container, ctx) =>

@@ -47,14 +47,32 @@ const AppContext = createContext<AppContextType | null>(null);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [unlockedVaultKeys, setUnlockedVaultKeys] = useState<Record<string, CryptoKey>>({});
   const [activeVaultId, setActiveVaultId] = useState<string>('');
-  const [token, setTokenState] = useState<string | null>(localStorage.getItem('markspace_jwt_token'));
+  // Zero-Trust: In-memory token only (0 localStorage persistence)
+  const [token, setTokenState] = useState<string | null>(null);
   const [username, setUsernameState] = useState<string | null>(localStorage.getItem('markspace_username'));
   const [role, setRoleState] = useState<UserRole | null>(
     (localStorage.getItem('markspace_user_role') as UserRole) || null
   );
   const [securityAlert, setSecurityAlert] = useState<string | null>(null);
 
-  // Wire ApiClient Nonce Violation force logout handler
+  // Zero-Trust Session Initialization from HttpOnly Cookie
+  useEffect(() => {
+    apiClient.initSession().then((session) => {
+      if (session) {
+        setTokenState(session.accessToken);
+        setUsernameState(session.user.username);
+        setRoleState(session.user.role);
+        if (session.user.username) {
+          localStorage.setItem('markspace_username', session.user.username);
+        }
+        if (session.user.role) {
+          localStorage.setItem('markspace_user_role', session.user.role);
+        }
+      }
+    });
+  }, []);
+
+  // Wire ApiClient Nonce / Session Violation force logout handler
   useEffect(() => {
     apiClient.setOnForceLogout((reason: string) => {
       setUnlockedVaultKeys({});
@@ -62,7 +80,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setTokenState(null);
       setUsernameState(null);
       setRoleState(null);
-      localStorage.removeItem('markspace_jwt_token');
       localStorage.removeItem('markspace_username');
       localStorage.removeItem('markspace_user_role');
       setSecurityAlert(reason);
@@ -71,13 +88,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setToken = (newToken: string | null) => {
     setTokenState(newToken);
-    if (newToken) {
-      localStorage.setItem('markspace_jwt_token', newToken);
-      apiClient.setToken(newToken);
-    } else {
-      localStorage.removeItem('markspace_jwt_token');
-      apiClient.setToken('');
-    }
+    apiClient.setToken(newToken || '');
   };
 
   const setUsername = (name: string | null) => {
@@ -153,7 +164,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setRole,
     token,
     setToken,
-    isAuthenticated: !!token,
+    isAuthenticated: Boolean(token),
     isVaultUnlocked: activeVmk !== null,
     lockVault,
     logoutAccount,

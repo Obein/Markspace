@@ -33,7 +33,7 @@ export class AuthMiddleware {
       throw new Error('UNAUTHORIZED: Missing or invalid Authorization credentials');
     }
 
-    const userPayload = await this.tokenService.verifyToken(token, ctx.env.JWT_SECRET);
+    const userPayload = await this.tokenService.verifyAccessToken(token, ctx.env.JWT_SECRET);
     if (!userPayload) {
       throw new Error('UNAUTHORIZED: Invalid or expired access token');
     }

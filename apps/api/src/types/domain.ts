@@ -21,6 +21,8 @@ export interface AuditLogEntity {
     | 'AUTH_REGISTER'
     | 'AUTH_LOGOUT'
     | 'AUTH_PASSWORDLESS_TOTP'
+    | 'AUTH_TOKEN_REFRESH'
+    | 'AUTH_BREACH_DETECTED'
     | 'PASSWORD_CHANGE'
     | 'MFA_VERIFY'
     | 'VAULT_OPRF_EVAL'

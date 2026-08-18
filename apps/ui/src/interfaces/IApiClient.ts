@@ -3,12 +3,14 @@ import { FileCategory, NoteItem, NoteMetadataItem } from './INoteModels';
 export type UserRole = 'admin' | 'user';
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
+  expiresIn: number;
   user: {
     id: string;
     username: string;
     role: UserRole;
   };
+  token?: string; // Backward compatibility alias
 }
 
 export interface AuditLogResponse {
@@ -20,6 +22,8 @@ export interface AuditLogResponse {
     | 'AUTH_REGISTER'
     | 'AUTH_LOGOUT'
     | 'AUTH_PASSWORDLESS_TOTP'
+    | 'AUTH_TOKEN_REFRESH'
+    | 'AUTH_BREACH_DETECTED'
     | 'PASSWORD_CHANGE'
     | 'MFA_VERIFY'
     | 'VAULT_OPRF_EVAL'
@@ -60,43 +64,49 @@ export interface VaultNodeResponse {
   mimeType: string;
   category: FileCategory;
   encryptedDek: string;
-  objectKey: string | null;
-  activeManifestId?: string | null;
   createdAt: number;
   updatedAt: number;
+  activeManifestId?: string | null;
 }
 
 export interface IApiClient {
   setToken(token: string): void;
+  getAccessToken(): string | null;
   setOnForceLogout(callback: (reason: string) => void): void;
+
+  // Zero-Trust Session & Token Lifecycle
+  initSession(): Promise<AuthResponse | null>;
+  refreshToken(): Promise<AuthResponse>;
+  logout(): Promise<void>;
+
+  // Nonce & Prelogin Handshakes
   prelogin(username: string): Promise<{ exists: boolean; isTotpEnabled: boolean; serverTime: number }>;
   register(username: string, authToken: string): Promise<AuthResponse>;
   login(username: string, authToken: string, totpCode?: string): Promise<AuthResponse>;
   loginPasswordlessTotp(username: string, totpCode: string): Promise<AuthResponse>;
-  logout(): Promise<void>;
+
+  // TOTP 2FA Management
   setupTotp(): Promise<{ secret: string; otpauthUri: string; expiresAt: number }>;
-  enableTotp(code: string, secret: string): Promise<{ message: string }>;
+  enableTotp(secret: string, code: string): Promise<{ message: string }>;
   disableTotp(code: string): Promise<{ message: string }>;
+
+  // Audit Logs API
   getAuditLogs(): Promise<AuditLogResponse[]>;
 
-  // Vault Multi-Factor OPRF Online Evaluation & Lockout API
-  setupVaultOprf(vaultId: string, blindedPoint: string): Promise<{ evaluatedPoint: string }>;
-  evaluateVaultOprf(
-    vaultId: string,
-    blindedPoint: string
-  ): Promise<{
-    evaluatedPoint: string;
-    failCount: number;
-    lockedUntil: number;
-    remainingSeconds: number;
-    serverTime: number;
-  }>;
-  reportVaultPinSuccess(vaultId: string): Promise<{ message: string }>;
+  // Zero-Knowledge OPRF PIN / Recovery Key Endpoints
+  setupVaultOprf(vaultId: string, blindedElement: string): Promise<{ evaluatedPoint: string }>;
+  evaluateVaultOprf(vaultId: string, blindedElement: string): Promise<{ evaluatedPoint: string }>;
+  evaluateVaultPinOprf(vaultId: string, blindedElement: string): Promise<{ evaluatedPoint: string }>;
+  evaluateVaultRecoveryOprf(vaultId: string, blindedElement: string): Promise<{ evaluatedPoint: string }>;
+  reportVaultPinFailure(vaultId: string): Promise<{ remainingAttempts: number; lockoutUntil: number; serverTime: number }>;
+  reportVaultPinSuccess(vaultId: string): Promise<void>;
 
-  // Vault Tree & Object Storage API
+  // Vault File & Tree APIs
   getVaultTree(): Promise<VaultNodeResponse[]>;
-  createVaultNode(dto: {
+  createVaultNode(node: {
+    id?: string;
     path: string;
+    parentPath?: string;
     name: string;
     isDirectory: boolean;
     encryptedDek: string;

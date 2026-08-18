@@ -9,7 +9,9 @@ import {
 import { FileCategory, NoteItem, NoteMetadataItem } from '../interfaces/INoteModels';
 
 export class ApiClient implements IApiClient {
-  private token: string | null = null;
+  private inMemoryAccessToken: string | null = null;
+  private tokenExpiresAt = 0;
+  private refreshPromise: Promise<string | null> | null = null;
   private baseUrl = '/api/v1';
   private currentNonce: string | null = null;
   private currentNonceTimestamp = 0;
@@ -17,20 +19,105 @@ export class ApiClient implements IApiClient {
 
   constructor(baseUrl: string = '/api/v1') {
     this.baseUrl = baseUrl;
-    this.token = localStorage.getItem('markspace_jwt_token');
+    // Zero disk persistence: strictly in-memory variable (destroyed on page reload/close)
   }
 
-  setToken(token: string): void {
-    this.token = token;
+  setToken(token: string, expiresInSeconds = 60): void {
+    this.inMemoryAccessToken = token || null;
     if (token) {
-      localStorage.setItem('markspace_jwt_token', token);
+      // Set refresh threshold to 80% of TTL or at least 10s ahead of expiry
+      this.tokenExpiresAt = Date.now() + Math.max(expiresInSeconds * 800, 10000);
     } else {
-      localStorage.removeItem('markspace_jwt_token');
+      this.tokenExpiresAt = 0;
+      this.refreshPromise = null;
     }
+  }
+
+  getAccessToken(): string | null {
+    return this.inMemoryAccessToken;
   }
 
   setOnForceLogout(callback: (reason: string) => void): void {
     this.onForceLogoutCallback = callback;
+  }
+
+  /**
+   * Retrieves a valid Access Token, triggering proactive silent refresh if near expiry.
+   */
+  private async getValidAccessToken(): Promise<string | null> {
+    if (this.inMemoryAccessToken && Date.now() < this.tokenExpiresAt) {
+      return this.inMemoryAccessToken;
+    }
+    return this.silentRefresh();
+  }
+
+  /**
+   * Proactive / Reactive Silent Refresh via HttpOnly Cookie (RTR)
+   */
+  private async silentRefresh(): Promise<string | null> {
+    if (this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    this.refreshPromise = (async () => {
+      try {
+        const res = await fetch(`${this.baseUrl}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        const json = await res.json().catch(() => null);
+        if (!res.ok || !json?.success || !json?.data?.accessToken) {
+          this.setToken('');
+          return null;
+        }
+
+        const data = json.data as AuthResponse;
+        this.setToken(data.accessToken, data.expiresIn || 60);
+        return data.accessToken;
+      } catch {
+        return null;
+      } finally {
+        this.refreshPromise = null;
+      }
+    })();
+
+    return this.refreshPromise;
+  }
+
+  /**
+   * App Startup session initializer: checks for active HttpOnly session cookie.
+   */
+  async initSession(): Promise<AuthResponse | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success || !json?.data?.accessToken) {
+        this.setToken('');
+        return null;
+      }
+
+      const data = json.data as AuthResponse;
+      this.setToken(data.accessToken, data.expiresIn || 60);
+      return data;
+    } catch {
+      this.setToken('');
+      return null;
+    }
+  }
+
+  async refreshToken(): Promise<AuthResponse> {
+    const res = await this.request<AuthResponse>('/auth/refresh', {
+      method: 'POST',
+    });
+    this.setToken(res.accessToken || res.token || '', res.expiresIn || 60);
+    return res;
   }
 
   /**
@@ -59,8 +146,21 @@ export class ApiClient implements IApiClient {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+
+    const isPublicAuthPath =
+      path.startsWith('/auth/prelogin') ||
+      path.startsWith('/auth/login') ||
+      path.startsWith('/auth/register') ||
+      path.startsWith('/auth/refresh') ||
+      path.startsWith('/auth/nonce');
+
+    if (!isPublicAuthPath) {
+      const validToken = await this.getValidAccessToken();
+      if (validToken) {
+        headers['Authorization'] = `Bearer ${validToken}`;
+      }
+    } else if (this.inMemoryAccessToken) {
+      headers['Authorization'] = `Bearer ${this.inMemoryAccessToken}`;
     }
 
     // AOP: Ensure we have an active, non-expired anti-replay nonce before sending request
@@ -70,7 +170,6 @@ export class ApiClient implements IApiClient {
     }
     if (this.currentNonce) {
       headers['X-Nonce'] = this.currentNonce;
-      // Single-use guarantee: Clear local nonce immediately upon attachment to prevent duplicate in-flight reuse
       this.currentNonce = null;
     }
 
@@ -112,6 +211,15 @@ export class ApiClient implements IApiClient {
     if (!res.ok || !json?.success) {
       const errorCode = json?.error?.code;
       const errorMsg = json?.error?.message || `API Error: ${res.status}`;
+
+      // 401 Unauthorized Retry with Silent Refresh
+      if (res.status === 401 && !isRetry && !path.startsWith('/auth/')) {
+        console.warn('Access token expired during request. Triggering silent refresh...');
+        const refreshedToken = await this.silentRefresh();
+        if (refreshedToken) {
+          return this.request<T>(path, options, true);
+        }
+      }
 
       // AOP Nonce Violation Self-Healing: Try 1-time re-handshake before terminating session
       if (
@@ -160,7 +268,7 @@ export class ApiClient implements IApiClient {
       method: 'POST',
       body: JSON.stringify({ username, authToken }),
     });
-    this.setToken(data.token);
+    this.setToken(data.accessToken || data.token || '', data.expiresIn || 60);
     return data;
   }
 
@@ -169,7 +277,7 @@ export class ApiClient implements IApiClient {
       method: 'POST',
       body: JSON.stringify({ username, authToken, totpCode }),
     });
-    this.setToken(data.token);
+    this.setToken(data.accessToken || data.token || '', data.expiresIn || 60);
     return data;
   }
 
@@ -178,13 +286,17 @@ export class ApiClient implements IApiClient {
       method: 'POST',
       body: JSON.stringify({ username, totpCode }),
     });
-    this.setToken(data.token);
+    this.setToken(data.accessToken || data.token || '', data.expiresIn || 60);
     return data;
   }
 
   async logout(): Promise<void> {
     try {
-      await this.request<{ message: string }>('/auth/logout', { method: 'POST' });
+      await fetch(`${this.baseUrl}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
     } catch (err) {
       console.warn('Failed to record logout on backend', err);
     } finally {
@@ -199,10 +311,10 @@ export class ApiClient implements IApiClient {
     });
   }
 
-  async enableTotp(code: string, secret: string): Promise<{ message: string }> {
+  async enableTotp(secret: string, code: string): Promise<{ message: string }> {
     return this.request<{ message: string }>('/auth/totp/enable', {
       method: 'POST',
-      body: JSON.stringify({ code, secret }),
+      body: JSON.stringify({ secret, code }),
     });
   }
 
@@ -214,51 +326,63 @@ export class ApiClient implements IApiClient {
   }
 
   async getAuditLogs(): Promise<AuditLogResponse[]> {
-    return this.request<AuditLogResponse[]>('/auth/audit-logs', { method: 'GET' });
-  }
-
-  async setupVaultOprf(vaultId: string, blindedPoint: string): Promise<{ evaluatedPoint: string }> {
-    return this.request<{ evaluatedPoint: string }>('/vault/oprf/setup', {
-      method: 'POST',
-      body: JSON.stringify({ vaultId, blindedPoint }),
+    return this.request<AuditLogResponse[]>('/auth/audit-logs', {
+      method: 'GET',
     });
   }
 
-  async evaluateVaultOprf(
-    vaultId: string,
-    blindedPoint: string
-  ): Promise<{
-    evaluatedPoint: string;
-    failCount: number;
-    lockedUntil: number;
-    remainingSeconds: number;
-    serverTime: number;
-  }> {
-    return this.request<{
-      evaluatedPoint: string;
-      failCount: number;
-      lockedUntil: number;
-      remainingSeconds: number;
-      serverTime: number;
-    }>('/vault/oprf/evaluate', {
+  async setupVaultOprf(vaultId: string, blindedElement: string): Promise<{ evaluatedPoint: string }> {
+    return this.request<{ evaluatedPoint: string }>(`/vaults/${vaultId}/oprf/setup`, {
       method: 'POST',
-      body: JSON.stringify({ vaultId, blindedPoint }),
+      body: JSON.stringify({ blindedElement }),
     });
   }
 
-  async reportVaultPinSuccess(vaultId: string): Promise<{ message: string }> {
-    return this.request<{ message: string }>('/vault/report-success', {
+  async evaluateVaultOprf(vaultId: string, blindedElement: string): Promise<{ evaluatedPoint: string }> {
+    return this.evaluateVaultPinOprf(vaultId, blindedElement);
+  }
+
+  async evaluateVaultPinOprf(vaultId: string, blindedElement: string): Promise<{ evaluatedPoint: string }> {
+    return this.request<{ evaluatedPoint: string }>(`/vaults/${vaultId}/oprf/evaluate-pin`, {
       method: 'POST',
-      body: JSON.stringify({ vaultId }),
+      body: JSON.stringify({ blindedElement }),
+    });
+  }
+
+  async evaluateVaultRecoveryOprf(vaultId: string, blindedElement: string): Promise<{ evaluatedPoint: string }> {
+    return this.request<{ evaluatedPoint: string }>(`/vaults/${vaultId}/oprf/evaluate-recovery`, {
+      method: 'POST',
+      body: JSON.stringify({ blindedElement }),
+    });
+  }
+
+  async reportVaultPinFailure(
+    vaultId: string
+  ): Promise<{ remainingAttempts: number; lockoutUntil: number; serverTime: number }> {
+    return this.request<{ remainingAttempts: number; lockoutUntil: number; serverTime: number }>(
+      `/vaults/${vaultId}/pin/fail`,
+      {
+        method: 'POST',
+      }
+    );
+  }
+
+  async reportVaultPinSuccess(vaultId: string): Promise<void> {
+    await this.request<void>(`/vaults/${vaultId}/pin/success`, {
+      method: 'POST',
     });
   }
 
   async getVaultTree(): Promise<VaultNodeResponse[]> {
-    return this.request<VaultNodeResponse[]>('/vault/tree', { method: 'GET' });
+    return this.request<VaultNodeResponse[]>('/vault/tree', {
+      method: 'GET',
+    });
   }
 
-  async createVaultNode(dto: {
+  async createVaultNode(node: {
+    id?: string;
     path: string;
+    parentPath?: string;
     name: string;
     isDirectory: boolean;
     encryptedDek: string;
@@ -266,10 +390,24 @@ export class ApiClient implements IApiClient {
     mimeType?: string;
     category?: FileCategory;
     contentBlob?: ArrayBuffer | Uint8Array | string;
+    activeManifestId?: string | null;
   }): Promise<VaultNodeResponse> {
+    const parentPath =
+      node.parentPath ?? (node.path.includes('/') ? node.path.substring(0, node.path.lastIndexOf('/')) : '');
     return this.request<VaultNodeResponse>('/vault/nodes', {
       method: 'POST',
-      body: JSON.stringify(dto),
+      body: JSON.stringify({
+        id: node.id || crypto.randomUUID(),
+        path: node.path,
+        parentPath,
+        name: node.name,
+        isDirectory: node.isDirectory,
+        encryptedDek: node.encryptedDek,
+        size: node.size || 0,
+        mimeType: node.mimeType || 'text/plain',
+        category: node.category || 'markdown',
+        activeManifestId: node.activeManifestId || null,
+      }),
     });
   }
 
@@ -287,83 +425,40 @@ export class ApiClient implements IApiClient {
     }
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch node content: ${res.status}`);
+      throw new Error(`Failed to download node content: ${res.status}`);
     }
 
-    const encryptedDek = res.headers.get('X-Encrypted-DEK') || '';
+    const encryptedDek = res.headers.get('X-Encrypted-Dek') || '';
     const contentDisposition = res.headers.get('Content-Disposition') || '';
-    let fileName = 'file';
-    const match = contentDisposition.match(/filename="?([^";]+)"?/);
+    let fileName = 'downloaded_file';
+    const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?([^;]+)/i);
     if (match && match[1]) {
-      fileName = decodeURIComponent(match[1]);
+      fileName = decodeURIComponent(match[1].replace(/["']/g, ''));
     }
 
-    const arrayBuffer = await res.arrayBuffer();
-    return { body: arrayBuffer, encryptedDek, fileName };
+    const body = await res.arrayBuffer();
+    return { body, encryptedDek, fileName };
   }
 
   async updateVaultNodeContent(
     id: string,
-    contentBlob: ArrayBuffer | Uint8Array | Blob | string,
-    mimeType = 'application/octet-stream',
+    contentBlob: ArrayBuffer | Uint8Array | Blob,
+    mimeType?: string,
     encryptedDek?: string
   ): Promise<VaultNodeResponse> {
     const defaultHeaders = await this.getHeaders('PUT', `/vault/nodes/${id}/content`);
-    const headers: Record<string, string> = {
-      ...defaultHeaders,
-      'Content-Type': mimeType,
-    };
+    if (mimeType) {
+      defaultHeaders['Content-Type'] = mimeType;
+    }
     if (encryptedDek) {
-      headers['X-Encrypted-DEK'] = encryptedDek;
+      defaultHeaders['X-Encrypted-Dek'] = encryptedDek;
     }
 
     const res = await fetch(`${this.baseUrl}/vault/nodes/${id}/content`, {
       method: 'PUT',
       credentials: 'include',
-      headers,
-      body: contentBlob as any,
-    });
-
-    const nextNonceHeader = res.headers.get('X-Next-Nonce');
-    if (nextNonceHeader) {
-      this.currentNonce = nextNonceHeader;
-    }
-
-    const json = await res.json().catch(() => null);
-    if (!res.ok || !json?.success) {
-      throw new Error(json?.error?.message || `Failed to update node: ${res.status}`);
-    }
-    return json.data as VaultNodeResponse;
-  }
-
-  async deleteVaultNode(id: string): Promise<void> {
-    await this.request<{ message: string }>(`/vault/nodes/${id}`, {
-      method: 'DELETE',
-    });
-  }
-
-  async moveVaultNode(nodeId: string, newPath: string): Promise<VaultNodeResponse> {
-    return this.request<VaultNodeResponse>('/vault/nodes/move', {
-      method: 'POST',
-      body: JSON.stringify({ nodeId, newPath }),
-    });
-  }
-
-  async getNodeHistory(id: string): Promise<NodeVersionResponse[]> {
-    return this.request<NodeVersionResponse[]>(`/vault/nodes/${id}/versions`, {
-      method: 'GET',
-    });
-  }
-
-  async getVersionContent(
-    id: string,
-    timestamp: number
-  ): Promise<{ body: ArrayBuffer; encryptedDek: string; commitHash: string }> {
-    const defaultHeaders = await this.getHeaders('GET', `/vault/nodes/${id}/versions/${timestamp}/content`);
-    const res = await fetch(`${this.baseUrl}/vault/nodes/${id}/versions/${timestamp}/content`, {
-      method: 'GET',
-      credentials: 'include',
       headers: defaultHeaders,
+      body: contentBlob as unknown as BodyInit,
     });
 
     const nextNonceHeader = res.headers.get('X-Next-Nonce');
@@ -372,67 +467,27 @@ export class ApiClient implements IApiClient {
     }
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch version content: ${res.status}`);
+      throw new Error(`Failed to update vault node: ${res.status}`);
     }
 
-    const encryptedDek = res.headers.get('X-Encrypted-DEK') || '';
-    const commitHash = res.headers.get('X-Commit-Hash') || '';
-    const arrayBuffer = await res.arrayBuffer();
-
-    return { body: arrayBuffer, encryptedDek, commitHash };
+    const json = (await res.json()) as { success: boolean; data: VaultNodeResponse };
+    return json.data;
   }
 
-  async revertNodeVersion(id: string, timestamp: number): Promise<VaultNodeResponse> {
-    return this.request<VaultNodeResponse>('/vault/nodes/revert', {
-      method: 'POST',
-      body: JSON.stringify({ nodeId: id, timestamp }),
+  async deleteVaultNode(id: string): Promise<void> {
+    await this.request<void>(`/vault/nodes/${id}`, {
+      method: 'DELETE',
     });
   }
 
-  async getNotesList(): Promise<NoteMetadataItem[]> {
-    return this.request<NoteMetadataItem[]>('/notes', { method: 'GET' });
-  }
-
-  async getNoteById(
-    id: string
-  ): Promise<{ id: string; encryptedTitle: string; encryptedPayload: string; encryptedDek: string; createdAt: number; updatedAt: number }> {
-    return this.request<{
-      id: string;
-      encryptedTitle: string;
-      encryptedPayload: string;
-      encryptedDek: string;
-      createdAt: number;
-      updatedAt: number;
-    }>(`/notes/${id}`, { method: 'GET' });
-  }
-
-  async createNote(encryptedTitle: string, encryptedPayload: string, encryptedDek: string): Promise<NoteItem> {
-    return this.request<NoteItem>('/notes', {
-      method: 'POST',
-      body: JSON.stringify({ encryptedTitle, encryptedPayload, encryptedDek }),
+  async moveVaultNode(nodeId: string, newPath: string): Promise<VaultNodeResponse> {
+    return this.request<VaultNodeResponse>(`/vault/nodes/${nodeId}/move`, {
+      method: 'PATCH',
+      body: JSON.stringify({ newPath }),
     });
   }
-
-  async updateNote(
-    id: string,
-    encryptedTitle?: string,
-    encryptedPayload?: string,
-    encryptedDek?: string
-  ): Promise<NoteItem> {
-    return this.request<NoteItem>(`/notes/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({ encryptedTitle, encryptedPayload, encryptedDek }),
-    });
-  }
-
-  async deleteNote(id: string): Promise<void> {
-    await this.request<{ message: string }>(`/notes/${id}`, { method: 'DELETE' });
-  }
-
-  // --- Content-Addressed Storage (CAS) Chunks & Merkle Manifests ---
 
   async checkMissingChunks(chunkIds: string[]): Promise<string[]> {
-    if (chunkIds.length === 0) return [];
     const res = await this.request<{ missingChunkIds: string[] }>('/vault/chunks/check-missing', {
       method: 'POST',
       body: JSON.stringify({ chunkIds }),
@@ -530,7 +585,6 @@ export class ApiClient implements IApiClient {
     missingChunkIds?: string[];
   }> {
     const headers = await this.getHeaders('POST', '/vault/sync/commit-bundle');
-    // Let browser automatically compute multipart boundary
     delete headers['Content-Type'];
 
     const res = await fetch(`${this.baseUrl}/vault/sync/commit-bundle`, {
@@ -549,25 +603,26 @@ export class ApiClient implements IApiClient {
       const data = (await res.json()) as {
         error?: { code?: string; missingChunkIds?: string[] };
       };
-      if (data.error?.code === 'CHUNKS_MISSING') {
-        return {
-          success: false,
-          missingChunkIds: data.error.missingChunkIds || [],
-        };
-      }
+      return {
+        success: false,
+        missingChunkIds: data?.error?.missingChunkIds || [],
+      };
     }
 
     if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Failed to commit sync bundle (${res.status}): ${errorText}`);
+      const json = await res.json().catch(() => null);
+      throw new Error(json?.error?.message || `Commit bundle failed: ${res.status}`);
     }
 
-    const data = (await res.json()) as { success: boolean; data: any };
+    const json = (await res.json()) as {
+      success: boolean;
+      data: { manifestId: string; nodeId: string; uploadedChunksCount: number };
+    };
     return {
       success: true,
-      manifestId: data.data?.manifestId,
-      nodeId: data.data?.nodeId,
-      uploadedChunksCount: data.data?.uploadedChunksCount,
+      manifestId: json.data?.manifestId,
+      nodeId: json.data?.nodeId,
+      uploadedChunksCount: json.data?.uploadedChunksCount,
     };
   }
 
@@ -592,6 +647,82 @@ export class ApiClient implements IApiClient {
   }
 
   async getManifestHistory(nodeId: string): Promise<any[]> {
-    return this.request<any[]>(`/vault/nodes/${nodeId}/manifests`, { method: 'GET' });
+    return this.request<any[]>(`/vault/manifests/${nodeId}/history`, {
+      method: 'GET',
+    });
+  }
+
+  async getNodeHistory(id: string): Promise<NodeVersionResponse[]> {
+    return this.request<NodeVersionResponse[]>(`/vault/nodes/${id}/history`, {
+      method: 'GET',
+    });
+  }
+
+  async getVersionContent(
+    id: string,
+    timestamp: number
+  ): Promise<{ body: ArrayBuffer; encryptedDek: string; commitHash: string }> {
+    const defaultHeaders = await this.getHeaders('GET', `/vault/nodes/${id}/history/${timestamp}/content`);
+    const res = await fetch(`${this.baseUrl}/vault/nodes/${id}/history/${timestamp}/content`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: defaultHeaders,
+    });
+
+    const nextNonceHeader = res.headers.get('X-Next-Nonce');
+    if (nextNonceHeader) {
+      this.currentNonce = nextNonceHeader;
+    }
+
+    if (!res.ok) {
+      throw new Error(`Failed to download historical version content: ${res.status}`);
+    }
+
+    const encryptedDek = res.headers.get('X-Encrypted-Dek') || '';
+    const commitHash = res.headers.get('X-Commit-Hash') || '';
+    const body = await res.arrayBuffer();
+
+    return { body, encryptedDek, commitHash };
+  }
+
+  async revertNodeVersion(id: string, timestamp: number): Promise<VaultNodeResponse> {
+    return this.request<VaultNodeResponse>(`/vault/nodes/${id}/history/${timestamp}/revert`, {
+      method: 'POST',
+    });
+  }
+
+  async getNotesList(): Promise<NoteMetadataItem[]> {
+    return this.request<NoteMetadataItem[]>('/notes', {
+      method: 'GET',
+    });
+  }
+
+  async getNoteById(
+    id: string
+  ): Promise<{ id: string; encryptedTitle: string; encryptedPayload: string; encryptedDek: string; createdAt: number; updatedAt: number }> {
+    return this.request<{ id: string; encryptedTitle: string; encryptedPayload: string; encryptedDek: string; createdAt: number; updatedAt: number }>(
+      `/notes/${id}`,
+      { method: 'GET' }
+    );
+  }
+
+  async createNote(encryptedTitle: string, encryptedPayload: string, encryptedDek: string): Promise<NoteItem> {
+    return this.request<NoteItem>('/notes', {
+      method: 'POST',
+      body: JSON.stringify({ encryptedTitle, encryptedPayload, encryptedDek }),
+    });
+  }
+
+  async updateNote(id: string, encryptedTitle?: string, encryptedPayload?: string, encryptedDek?: string): Promise<NoteItem> {
+    return this.request<NoteItem>(`/notes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ encryptedTitle, encryptedPayload, encryptedDek }),
+    });
+  }
+
+  async deleteNote(id: string): Promise<void> {
+    await this.request<void>(`/notes/${id}`, {
+      method: 'DELETE',
+    });
   }
 }
