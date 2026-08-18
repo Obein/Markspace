@@ -41,7 +41,7 @@ export const zhCN: typeof enUS = {
   dontHaveAccount: '还没有账号？立即注册',
   step1Title: '身份确认',
   step2Title: '安全凭证',
-  unlockVault: '解锁数据保险库',
+  unlockVault: '解锁数据库',
   unlocking: '正在解密...',
   unlock: '解锁',
   heroHeadline: '隐私原生 · 边缘极速',
@@ -93,7 +93,7 @@ export const zhCN: typeof enUS = {
   
   bentoMemoryTitle: '零磁盘泄露',
   bentoMemorySub: '非可导出密钥 · 内存即时擦除',
-  bentoMemoryDesc: '所有加密密钥均在 Web Crypto API 中使用 extractable: false 创建。在锁定保险库或登出账号时，内存缓冲区将立即强制清零，杜绝冷启动内存提取。',
+  bentoMemoryDesc: '所有加密密钥均在 Web Crypto API 中使用 extractable: false 创建。在锁定库或登出账号时，内存缓冲区将立即强制清零，杜绝冷启动内存提取。',
   bentoMemoryTag: 'RAM 内存隔离',
   
   bentoBufferTitle: '块级增量防抖同步',
@@ -149,7 +149,7 @@ export const zhCN: typeof enUS = {
   totpDisabledSuccess: '双重身份验证已关闭。',
   copied: '已复制',
   copy: '复制',
-  activeVault: '当前保险库',
+  activeVault: '当前库',
   createVault: '新建库',
   deleteVault: '删除库',
   confirmDeleteVault: '确定要删除此库及其中所有文件吗？',

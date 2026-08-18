@@ -41,7 +41,7 @@ export const zhTW: typeof enUS = {
   dontHaveAccount: '還沒有帳號？立即註冊',
   step1Title: '身份確認',
   step2Title: '安全憑證',
-  unlockVault: '解鎖資料保險庫',
+  unlockVault: '解鎖資料庫',
   unlocking: '正在解密...',
   unlock: '解鎖',
   heroHeadline: '隱私原生 · 邊緣極速',
@@ -93,7 +93,7 @@ export const zhTW: typeof enUS = {
   
   bentoMemoryTitle: '零磁碟洩漏',
   bentoMemorySub: '非可匯出金鑰 · 記憶體即時擦除',
-  bentoMemoryDesc: '所有加密金鑰均在 Web Crypto API 中使用 extractable: false 建立。在鎖定保險庫或登出帳號時，記憶體緩衝區將立即強制清零，杜絕冷啟動記憶體提取。',
+  bentoMemoryDesc: '所有加密金鑰均在 Web Crypto API 中使用 extractable: false 建立。在鎖定庫或登出帳號時，記憶體緩衝區將立即強制清零，杜絕冷啟動記憶體提取。',
   bentoMemoryTag: 'RAM 記憶體隔離',
   
   bentoBufferTitle: '塊級增量防抖同步',
@@ -149,7 +149,7 @@ export const zhTW: typeof enUS = {
   totpDisabledSuccess: '雙重身份驗證已停用。',
   copied: '已複製',
   copy: '複製',
-  activeVault: '目前保險庫',
+  activeVault: '目前庫',
   createVault: '新增庫',
   deleteVault: '刪除庫',
   confirmDeleteVault: '確定要刪除此庫及其中所有檔案嗎？',
