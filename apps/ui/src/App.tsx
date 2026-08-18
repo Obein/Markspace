@@ -19,6 +19,7 @@ export const AppContent: React.FC = () => {
   const {
     apiClient,
     isAuthenticated,
+    isInitializingAuth,
     isVaultUnlocked,
     username,
     role,
@@ -182,10 +183,10 @@ export const AppContent: React.FC = () => {
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       {/* Step 1: Account Login / Register Modal */}
-      {!isAuthenticated && <AuthModal />}
+      {!isAuthenticated && !isInitializingAuth && <AuthModal />}
 
       {/* Step 2: Data Vault Unlock Modal */}
-      {isAuthenticated && (!isVaultUnlocked || isUnlockModalOpen) && (
+      {(isAuthenticated || (isInitializingAuth && Boolean(username))) && (!isVaultUnlocked || isUnlockModalOpen) && (
         <UnlockModal
           vaults={vaults}
           activeVaultId={activeVaultId}

@@ -29,6 +29,7 @@ interface AppContextType {
   token: string | null;
   setToken: (token: string | null) => void;
   isAuthenticated: boolean;
+  isInitializingAuth: boolean;
   isVaultUnlocked: boolean;
   lockVault: (vaultId?: string) => void;
   logoutAccount: () => void;
@@ -53,23 +54,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [role, setRoleState] = useState<UserRole | null>(
     (localStorage.getItem('markspace_user_role') as UserRole) || null
   );
+  const [isInitializingAuth, setIsInitializingAuth] = useState<boolean>(() =>
+    Boolean(localStorage.getItem('markspace_username'))
+  );
   const [securityAlert, setSecurityAlert] = useState<string | null>(null);
 
   // Zero-Trust Session Initialization from HttpOnly Cookie
   useEffect(() => {
-    apiClient.initSession().then((session) => {
-      if (session) {
-        setTokenState(session.accessToken);
-        setUsernameState(session.user.username);
-        setRoleState(session.user.role);
-        if (session.user.username) {
-          localStorage.setItem('markspace_username', session.user.username);
+    apiClient
+      .initSession()
+      .then((session) => {
+        if (session) {
+          setTokenState(session.accessToken);
+          setUsernameState(session.user.username);
+          setRoleState(session.user.role);
+          if (session.user.username) {
+            localStorage.setItem('markspace_username', session.user.username);
+          }
+          if (session.user.role) {
+            localStorage.setItem('markspace_user_role', session.user.role);
+          }
+        } else {
+          setTokenState(null);
         }
-        if (session.user.role) {
-          localStorage.setItem('markspace_user_role', session.user.role);
-        }
-      }
-    });
+      })
+      .catch(() => {
+        setTokenState(null);
+      })
+      .finally(() => {
+        setIsInitializingAuth(false);
+      });
   }, []);
 
   // Wire ApiClient Nonce / Session Violation force logout handler
@@ -165,6 +179,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     token,
     setToken,
     isAuthenticated: Boolean(token),
+    isInitializingAuth,
     isVaultUnlocked: activeVmk !== null,
     lockVault,
     logoutAccount,
