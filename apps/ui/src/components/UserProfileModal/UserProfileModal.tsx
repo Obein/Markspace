@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ShieldCheck, LogOut, Globe, FileText, Loader2, ChevronRight, ChevronDown, Lock, Copy, Check } from 'lucide-react';
+import { X, ShieldCheck, LogOut, Globe, FileText, Loader2, ChevronRight, ChevronDown, Lock, Copy, Check, AlertTriangle } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { LANGUAGE_OPTIONS, Language, useI18n } from '../../i18n/i18nContext';
 import { AuditLogResponse } from '../../interfaces/IApiClient';
@@ -131,6 +131,16 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               </button>
             </div>
           )}
+        </div>
+
+        {/* Idle Account Lifecycle Destruction Policy Notice */}
+        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs font-mono flex items-start gap-2.5 mb-4">
+          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div className="text-left">
+            <span className="font-medium text-amber-300/90 block leading-relaxed text-[11px]">
+              {t('idleAccountNotice')}
+            </span>
+          </div>
         </div>
 
         {/* System Administration Console (Admin Only) */}

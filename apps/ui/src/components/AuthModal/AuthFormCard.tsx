@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   LogIn,
   UserPlus,
@@ -24,6 +24,7 @@ export interface AuthFormCardProps {
  */
 export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
   const { t, language, setLanguage } = useI18n();
+  const [isUsernameFocused, setIsUsernameFocused] = useState(false);
   const {
     isRegisterMode,
     loginStep,
@@ -173,24 +174,24 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-[11px] font-medium text-zinc-300">{t('username')}</label>
-                <span className="text-[10px] text-zinc-400 font-mono">Unix: 5-32 chars</span>
+                {isUsernameFocused && (
+                  <span className="text-[10px] text-zinc-400 font-mono animate-in fade-in duration-150">
+                    Unix: 5-32 chars
+                  </span>
+                )}
               </div>
               <input
                 type="text"
                 value={usernameInput}
                 onChange={(e) => setUsernameInput(e.target.value.toLowerCase())}
+                onFocus={() => setIsUsernameFocused(true)}
+                onBlur={() => setIsUsernameFocused(false)}
                 placeholder={isRegisterMode ? 'e.g. alice_01' : t('enterUsername')}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
                 required
                 autoFocus
               />
             </div>
-
-            {isRegisterMode && (
-              <p className="text-[10px] text-zinc-400 font-mono leading-tight">
-                {t('idleAccountNotice') || '⚠️ Inactive accounts (> 1 month) are automatically destroyed. Please backup your data.'}
-              </p>
-            )}
 
             <button
               type="submit"
