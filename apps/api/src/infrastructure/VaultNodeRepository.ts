@@ -124,6 +124,15 @@ export class VaultNodeRepository implements IVaultNodeRepository {
             `CREATE INDEX IF NOT EXISTS idx_vault_manifests_node_ts ON vault_manifests(user_id, node_id, created_at DESC)`
           )
           .run();
+
+        // 4. Ensure active_manifest_id column on vault_nodes
+        try {
+          await this.db
+            .prepare(`ALTER TABLE vault_nodes ADD COLUMN active_manifest_id TEXT`)
+            .run();
+        } catch (colErr: any) {
+          // Column already exists in SQLite/D1 - safe to ignore
+        }
       })();
     }
     return this.schemaInitPromise;
