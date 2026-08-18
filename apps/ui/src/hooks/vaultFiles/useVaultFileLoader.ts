@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
 import { VaultFileItem } from '../../interfaces/INoteModels';
+import { ChunkSyncService } from '../../services/ChunkSyncService';
 
 export interface UseVaultFileLoaderOptions {
   activeVaultId: string;
@@ -90,20 +91,35 @@ export function useVaultFileLoader({
           }
 
           try {
-            const { body, encryptedDek } = await apiClient.getVaultNodeContent(node.id);
-            const dek = await cryptoService.unwrapDEK(encryptedDek || node.encryptedDek, cmk);
-
             let contentText = '';
             let blobUrl = '';
 
-            if (body.byteLength === 0) {
-              contentText = '';
-            } else if (node.category === 'markdown') {
-              contentText = await cryptoService.decryptText(body, dek);
+            if (node.category === 'markdown' && node.activeManifestId) {
+              try {
+                const { contentText: docContent } = await ChunkSyncService.reconstructDocument(
+                  apiClient,
+                  node.activeManifestId,
+                  cmk
+                );
+                contentText = docContent;
+              } catch (casErr) {
+                console.warn(`Failed to reconstruct node ${node.id} from manifest, falling back to legacy blob:`, casErr);
+                const { body, encryptedDek } = await apiClient.getVaultNodeContent(node.id);
+                const dek = await cryptoService.unwrapDEK(encryptedDek || node.encryptedDek, cmk);
+                contentText = await cryptoService.decryptText(body, dek);
+              }
             } else {
-              const blob = new Blob([body], { type: node.mimeType });
-              blobUrl = URL.createObjectURL(blob);
-              contentText = blobUrl;
+              const { body, encryptedDek } = await apiClient.getVaultNodeContent(node.id);
+              if (body.byteLength === 0) {
+                contentText = '';
+              } else if (node.category === 'markdown') {
+                const dek = await cryptoService.unwrapDEK(encryptedDek || node.encryptedDek, cmk);
+                contentText = await cryptoService.decryptText(body, dek);
+              } else {
+                const blob = new Blob([body], { type: node.mimeType });
+                blobUrl = URL.createObjectURL(blob);
+                contentText = blobUrl;
+              }
             }
 
             const nodeFilename = node.path.split('/').pop() || node.name;
@@ -121,6 +137,7 @@ export function useVaultFileLoader({
               encryptedTitle: nodeFilename,
               encryptedPayload: '',
               encryptedDek: node.encryptedDek,
+              activeManifestId: node.activeManifestId,
               vaultId: activeVaultId || 'vault_default',
               createdAt: node.createdAt,
               updatedAt: node.updatedAt,

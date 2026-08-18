@@ -10,6 +10,7 @@ export interface VaultNodeEntity {
   category: 'markdown' | 'image' | 'audio' | 'video' | 'binary';
   encryptedDek: string;
   objectKey: string | null;
+  activeManifestId?: string | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -27,6 +28,17 @@ export interface VaultNodeVersionEntity {
   createdAt: number;
 }
 
+export interface VaultManifestEntity {
+  id: string;
+  nodeId: string;
+  userId: string;
+  parentManifestId: string | null;
+  plainSize: number;
+  cipherSize: number;
+  commitMessage: string | null;
+  createdAt: number;
+}
+
 export interface CreateVaultNodeDTO {
   id: string;
   userId: string;
@@ -39,6 +51,7 @@ export interface CreateVaultNodeDTO {
   category?: 'markdown' | 'image' | 'audio' | 'video' | 'binary';
   encryptedDek: string;
   objectKey?: string | null;
+  activeManifestId?: string | null;
 }
 
 export interface CreateVaultNodeVersionDTO {
@@ -53,12 +66,23 @@ export interface CreateVaultNodeVersionDTO {
   commitMessage?: string;
 }
 
+export interface CreateVaultManifestDTO {
+  id: string;
+  nodeId: string;
+  userId: string;
+  parentManifestId?: string | null;
+  plainSize: number;
+  cipherSize: number;
+  commitMessage?: string | null;
+}
+
 export interface UpdateVaultNodeDTO {
   name?: string;
   path?: string;
   parentPath?: string;
   size?: number;
   encryptedDek?: string;
+  activeManifestId?: string | null;
 }
 
 export interface IVaultNodeRepository {
@@ -71,8 +95,16 @@ export interface IVaultNodeRepository {
   deleteNode(userId: string, nodeId: string): Promise<boolean>;
   deleteDirectoryTree(userId: string, targetPath: string): Promise<VaultNodeEntity[]>;
 
-  // Version Control Methods
+  // Legacy Version Control Methods
   createVersion(dto: CreateVaultNodeVersionDTO): Promise<VaultNodeVersionEntity>;
   listVersionsByNode(userId: string, nodeId: string): Promise<VaultNodeVersionEntity[]>;
   getVersionByTimestamp(userId: string, nodeId: string, timestamp: number): Promise<VaultNodeVersionEntity | null>;
+
+  // Merkle DAG CAS & Manifest Methods
+  checkMissingChunks(userId: string, chunkIds: string[]): Promise<string[]>;
+  recordChunk(userId: string, chunkId: string, size: number): Promise<void>;
+  saveManifest(dto: CreateVaultManifestDTO): Promise<VaultManifestEntity>;
+  listManifestsByNode(userId: string, nodeId: string): Promise<VaultManifestEntity[]>;
+  getManifestById(userId: string, manifestId: string): Promise<VaultManifestEntity | null>;
+  updateNodeActiveManifest(userId: string, nodeId: string, manifestId: string, plainSize: number): Promise<void>;
 }

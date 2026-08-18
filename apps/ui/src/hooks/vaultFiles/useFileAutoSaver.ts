@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
 import { VaultFileItem } from '../../interfaces/INoteModels';
+import { ChunkSyncService } from '../../services/ChunkSyncService';
 import { normalizePath } from '../../utils/fileHelpers';
 
 export interface UseFileAutoSaverOptions {
@@ -112,36 +113,23 @@ export function useFileAutoSaver({
       setIsSaving(true);
 
       const updatedFilename = getUniqueFilename(currentTitle, '.md', fileId);
-
-      let currentWrappedDek = currentTarget.encryptedDek;
-      if (currentTarget.content !== currentContent || !currentTarget.encryptedPayload) {
-        let dek: CryptoKey | null = null;
-        if (currentTarget.encryptedDek) {
-          try {
-            dek = await cryptoService.unwrapDEK(currentTarget.encryptedDek, cmk);
-          } catch (unwrapErr) {
-            console.warn(`Rotating DEK for node ${fileId} due to unwrap failure:`, unwrapErr);
-            dek = null;
-          }
-        }
-
-        if (!dek) {
-          dek = await cryptoService.generateDEK();
-          currentWrappedDek = await cryptoService.wrapDEK(dek, cmk);
-        }
-
-        const encryptedPayload = await cryptoService.encryptText(currentContent, dek);
-        await apiClient.updateVaultNodeContent(
-          fileId,
-          encryptedPayload,
-          'application/octet-stream',
-          currentWrappedDek
-        );
-      }
-
       const lastSlash = currentTarget.path.lastIndexOf('/');
       const dirPrefix = lastSlash >= 0 ? currentTarget.path.substring(0, lastSlash) : '';
       const updatedPath = dirPrefix ? `${dirPrefix}/${updatedFilename}` : updatedFilename;
+
+      let newManifestId = currentTarget.activeManifestId;
+
+      if (currentTarget.content !== currentContent || !currentTarget.activeManifestId) {
+        const syncResult = await ChunkSyncService.syncDocument(
+          apiClient,
+          fileId,
+          updatedPath,
+          currentContent,
+          cmk,
+          currentTarget.activeManifestId || undefined
+        );
+        newManifestId = syncResult.manifest.manifestId;
+      }
 
       if (normalizePath(updatedPath) !== normalizePath(currentTarget.path)) {
         await apiClient.moveVaultNode(fileId, updatedPath);
@@ -157,8 +145,7 @@ export function useFileAutoSaver({
                 filename: updatedFilename,
                 path: updatedPath,
                 content: currentContent,
-                encryptedDek: currentWrappedDek,
-                size: currentContent.length,
+                activeManifestId: newManifestId,
                 updatedAt: Date.now(),
               }
             : f

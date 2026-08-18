@@ -304,7 +304,7 @@ export class ApiClient implements IApiClient {
 
   async updateVaultNodeContent(
     id: string,
-    contentBlob: ArrayBuffer | Uint8Array | string,
+    contentBlob: ArrayBuffer | Uint8Array | Blob | string,
     mimeType = 'application/octet-stream',
     encryptedDek?: string
   ): Promise<VaultNodeResponse> {
@@ -427,5 +427,122 @@ export class ApiClient implements IApiClient {
 
   async deleteNote(id: string): Promise<void> {
     await this.request<{ message: string }>(`/notes/${id}`, { method: 'DELETE' });
+  }
+
+  // --- Content-Addressed Storage (CAS) Chunks & Merkle Manifests ---
+
+  async checkMissingChunks(chunkIds: string[]): Promise<string[]> {
+    if (chunkIds.length === 0) return [];
+    const res = await this.request<{ missingChunkIds: string[] }>('/vault/chunks/check-missing', {
+      method: 'POST',
+      body: JSON.stringify({ chunkIds }),
+    });
+    return res.missingChunkIds || [];
+  }
+
+  async uploadChunk(chunkId: string, cipherData: Uint8Array): Promise<void> {
+    const defaultHeaders = await this.getHeaders('PUT', `/vault/chunks/${chunkId}`);
+    defaultHeaders['Content-Type'] = 'application/octet-stream';
+
+    const res = await fetch(`${this.baseUrl}/vault/chunks/${chunkId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: defaultHeaders,
+      body: cipherData as unknown as BodyInit,
+    });
+
+    const nextNonceHeader = res.headers.get('X-Next-Nonce');
+    if (nextNonceHeader) {
+      this.currentNonce = nextNonceHeader;
+    }
+
+    if (!res.ok) {
+      throw new Error(`Failed to upload chunk ${chunkId}: ${res.status}`);
+    }
+  }
+
+  async fetchChunk(chunkId: string): Promise<ArrayBuffer> {
+    const defaultHeaders = await this.getHeaders('GET', `/vault/chunks/${chunkId}`);
+    const res = await fetch(`${this.baseUrl}/vault/chunks/${chunkId}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: defaultHeaders,
+    });
+
+    const nextNonceHeader = res.headers.get('X-Next-Nonce');
+    if (nextNonceHeader) {
+      this.currentNonce = nextNonceHeader;
+    }
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch chunk ${chunkId}: ${res.status}`);
+    }
+
+    return res.arrayBuffer();
+  }
+
+  async commitManifest(
+    manifestId: string,
+    nodeId: string,
+    encryptedManifest: Uint8Array,
+    meta: {
+      parentManifestId?: string;
+      plainSize: number;
+      cipherSize: number;
+      commitMessage?: string;
+    }
+  ): Promise<void> {
+    const defaultHeaders = await this.getHeaders('POST', '/vault/manifests/commit');
+    defaultHeaders['Content-Type'] = 'application/octet-stream';
+    defaultHeaders['X-Manifest-Id'] = manifestId;
+    defaultHeaders['X-Node-Id'] = nodeId;
+    if (meta.parentManifestId) {
+      defaultHeaders['X-Parent-Manifest-Id'] = meta.parentManifestId;
+    }
+    defaultHeaders['X-Plain-Size'] = String(meta.plainSize);
+    defaultHeaders['X-Cipher-Size'] = String(meta.cipherSize);
+    if (meta.commitMessage) {
+      defaultHeaders['X-Commit-Message'] = encodeURIComponent(meta.commitMessage);
+    }
+
+    const res = await fetch(`${this.baseUrl}/vault/manifests/commit`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: defaultHeaders,
+      body: encryptedManifest as unknown as BodyInit,
+    });
+
+    const nextNonceHeader = res.headers.get('X-Next-Nonce');
+    if (nextNonceHeader) {
+      this.currentNonce = nextNonceHeader;
+    }
+
+    if (!res.ok) {
+      throw new Error(`Failed to commit manifest ${manifestId}: ${res.status}`);
+    }
+  }
+
+  async fetchManifest(manifestId: string): Promise<ArrayBuffer> {
+    const defaultHeaders = await this.getHeaders('GET', `/vault/manifests/${manifestId}`);
+    const res = await fetch(`${this.baseUrl}/vault/manifests/${manifestId}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: defaultHeaders,
+    });
+
+    const nextNonceHeader = res.headers.get('X-Next-Nonce');
+    if (nextNonceHeader) {
+      this.currentNonce = nextNonceHeader;
+    }
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch manifest ${manifestId}: ${res.status}`);
+    }
+
+    return res.arrayBuffer();
+  }
+
+  async getManifestHistory(nodeId: string): Promise<any[]> {
+    return this.request<any[]>(`/vault/nodes/${nodeId}/manifests`, { method: 'GET' });
   }
 }

@@ -113,7 +113,7 @@ export class Router {
       container.vaultController.reportPinSuccess(ctx)
     );
 
-    // 5. Version History Endpoints (Protected)
+    // 5. Version History & Merkle Manifest Endpoints (Protected)
     this.addRoute('GET', '/api/v1/vault/nodes/:id/versions', true, false, (container, ctx) =>
       container.vaultController.getNodeHistory(ctx)
     );
@@ -122,6 +122,26 @@ export class Router {
     );
     this.addRoute('POST', '/api/v1/vault/nodes/:id/versions/revert', true, false, (container, ctx) =>
       container.vaultController.revertNodeVersion(ctx)
+    );
+
+    // 5.1 Content-Addressed Chunks (CAS) & Merkle Manifest Routes (Protected)
+    this.addRoute('POST', '/api/v1/vault/chunks/check-missing', true, false, (container, ctx) =>
+      container.vaultController.checkMissingChunks(ctx)
+    );
+    this.addRoute('PUT', '/api/v1/vault/chunks/:id', true, false, (container, ctx) =>
+      container.vaultController.putChunk(ctx)
+    );
+    this.addRoute('GET', '/api/v1/vault/chunks/:id', true, false, (container, ctx) =>
+      container.vaultController.getChunk(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vault/manifests/commit', true, false, (container, ctx) =>
+      container.vaultController.commitManifest(ctx)
+    );
+    this.addRoute('GET', '/api/v1/vault/manifests/:id', true, false, (container, ctx) =>
+      container.vaultController.getManifest(ctx)
+    );
+    this.addRoute('GET', '/api/v1/vault/nodes/:id/manifests', true, false, (container, ctx) =>
+      container.vaultController.getManifestHistory(ctx)
     );
 
     // 6. RBAC Admin Endpoints (Admin Only)

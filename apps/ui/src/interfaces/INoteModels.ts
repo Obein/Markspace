@@ -22,6 +22,7 @@ export interface VaultFileItem {
   encryptedPayload?: string | Uint8Array;
   encryptedDek: string;
   vaultId: string;
+  activeManifestId?: string | null;
   createdAt: number;
   updatedAt: number;
   blobUrl?: string;

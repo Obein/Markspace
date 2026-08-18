@@ -429,6 +429,68 @@ export class VaultService {
     return updated;
   }
 
+  public async checkMissingChunks(userId: string, chunkIds: string[]): Promise<string[]> {
+    return this.nodeRepo.checkMissingChunks(userId, chunkIds);
+  }
+
+  public async putChunk(userId: string, chunkId: string, chunkData: ArrayBuffer): Promise<void> {
+    const objectKey = `vaults/${userId}/chunks/${chunkId}`;
+    await this.objectStorage.putObject(objectKey, chunkData, 'application/octet-stream');
+    await this.nodeRepo.recordChunk(userId, chunkId, chunkData.byteLength);
+  }
+
+  public async getChunk(userId: string, chunkId: string): Promise<ArrayBuffer> {
+    const objectKey = `vaults/${userId}/chunks/${chunkId}`;
+    const obj = await this.objectStorage.getObject(objectKey);
+    if (!obj) {
+      throw new Error(`NOT_FOUND: Chunk ${chunkId} missing in CAS Object Storage`);
+    }
+    return this.bodyToArrayBuffer(obj.body);
+  }
+
+  public async commitManifest(
+    userId: string,
+    nodeId: string,
+    manifestId: string,
+    encryptedManifest: ArrayBuffer,
+    meta: {
+      parentManifestId?: string;
+      plainSize: number;
+      cipherSize: number;
+      commitMessage?: string;
+    }
+  ): Promise<void> {
+    await this.getNode(userId, nodeId);
+    const objectKey = `vaults/${userId}/manifests/${manifestId}`;
+    await this.objectStorage.putObject(objectKey, encryptedManifest, 'application/octet-stream');
+
+    await this.nodeRepo.saveManifest({
+      id: manifestId,
+      nodeId,
+      userId,
+      parentManifestId: meta.parentManifestId,
+      plainSize: meta.plainSize,
+      cipherSize: meta.cipherSize,
+      commitMessage: meta.commitMessage,
+    });
+
+    await this.nodeRepo.updateNodeActiveManifest(userId, nodeId, manifestId, meta.plainSize);
+  }
+
+  public async getManifest(userId: string, manifestId: string): Promise<ArrayBuffer> {
+    const objectKey = `vaults/${userId}/manifests/${manifestId}`;
+    const obj = await this.objectStorage.getObject(objectKey);
+    if (!obj) {
+      throw new Error(`NOT_FOUND: Manifest ${manifestId} missing in Object Storage`);
+    }
+    return this.bodyToArrayBuffer(obj.body);
+  }
+
+  public async getNodeManifestHistory(userId: string, nodeId: string): Promise<any[]> {
+    await this.getNode(userId, nodeId);
+    return this.nodeRepo.listManifestsByNode(userId, nodeId);
+  }
+
   private normalizePath(pathStr: string): string {
     const cleaned = pathStr.replace(/\\/g, '/').replace(/\/+/g, '/');
     return cleaned.startsWith('/') ? cleaned : '/' + cleaned;

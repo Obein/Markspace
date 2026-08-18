@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
 import { NodeVersionResponse } from '../../interfaces/IApiClient';
 import { VaultFileItem } from '../../interfaces/INoteModels';
+import { ChunkSyncService } from '../../services/ChunkSyncService';
 import { VersionHistoryModalProps } from './VersionHistoryModal.types';
 
 export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
@@ -39,10 +40,28 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const list = await apiClient.getNodeHistory(file.id);
-      setVersions(list);
-      if (list.length > 0) {
-        handleSelectVersion(list[0]);
+      const manifestList = await apiClient.getManifestHistory(file.id);
+      if (manifestList && manifestList.length > 0) {
+        const formatted: NodeVersionResponse[] = manifestList.map((m: any) => ({
+          id: m.id,
+          nodeId: m.nodeId || m.node_id,
+          userId: m.userId || m.user_id || '',
+          timestamp: m.createdAt || m.created_at,
+          commitHash: m.id,
+          size: m.plainSize || m.plain_size || 0,
+          encryptedDek: '',
+          objectKey: `manifests/${m.id}`,
+          commitMessage: m.commitMessage || m.commit_message || 'Snapshot',
+          createdAt: m.createdAt || m.created_at,
+        }));
+        setVersions(formatted);
+        handleSelectVersion(formatted[0]);
+      } else {
+        const list = await apiClient.getNodeHistory(file.id);
+        setVersions(list);
+        if (list.length > 0) {
+          handleSelectVersion(list[0]);
+        }
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to fetch version history');
@@ -57,10 +76,16 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
 
     try {
       setLoadingPreview(true);
-      const { body, encryptedDek } = await apiClient.getVersionContent(file.id, version.timestamp);
-      const dek = await cryptoService.unwrapDEK(encryptedDek, cmk);
-      const decryptedText = await cryptoService.decryptText(body, dek);
-      setPreviewContent(decryptedText);
+      try {
+        const { contentText } = await ChunkSyncService.reconstructDocument(apiClient, version.commitHash, cmk);
+        setPreviewContent(contentText);
+      } catch (casErr) {
+        // Fallback for legacy git commits
+        const { body, encryptedDek } = await apiClient.getVersionContent(file.id, version.timestamp);
+        const dek = await cryptoService.unwrapDEK(encryptedDek, cmk);
+        const decryptedText = await cryptoService.decryptText(body, dek);
+        setPreviewContent(decryptedText);
+      }
     } catch (err) {
       console.error('Failed to decrypt historical version payload', err);
       setPreviewContent('Failed to decrypt historical content preview.');
@@ -74,22 +99,24 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
 
     try {
       setRevertingTimestamp(timestamp);
-      const updatedNode = await apiClient.revertNodeVersion(file.id, timestamp);
-
-      // Decrypt reverted content payload for local UI state
-      const { body, encryptedDek } = await apiClient.getVaultNodeContent(file.id);
-      const dek = await cryptoService.unwrapDEK(encryptedDek, cmk);
-      const newText = await cryptoService.decryptText(body, dek);
+      const syncResult = await ChunkSyncService.syncDocument(
+        apiClient,
+        file.id,
+        file.path,
+        previewContent,
+        cmk,
+        file.activeManifestId || undefined,
+        `Revert to ${selectedVersion?.commitHash.substring(0, 8) || 'snapshot'}`
+      );
 
       const revertedFileItem: VaultFileItem = {
         ...file,
-        size: updatedNode.size,
-        content: newText,
-        encryptedDek: updatedNode.encryptedDek,
-        updatedAt: updatedNode.updatedAt,
+        content: previewContent,
+        activeManifestId: syncResult.manifest.manifestId,
+        updatedAt: Date.now(),
       };
 
-      onRevertSuccess(revertedFileItem, newText);
+      onRevertSuccess(revertedFileItem, previewContent);
       onClose();
     } catch (err: unknown) {
       console.error('Failed to revert file version', err);

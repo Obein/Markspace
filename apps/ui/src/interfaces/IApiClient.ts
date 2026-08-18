@@ -61,6 +61,7 @@ export interface VaultNodeResponse {
   category: FileCategory;
   encryptedDek: string;
   objectKey: string | null;
+  activeManifestId?: string | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -103,16 +104,35 @@ export interface IApiClient {
     mimeType?: string;
     category?: FileCategory;
     contentBlob?: ArrayBuffer | Uint8Array | string;
+    activeManifestId?: string | null;
   }): Promise<VaultNodeResponse>;
   getVaultNodeContent(id: string): Promise<{ body: ArrayBuffer; encryptedDek: string; fileName: string }>;
   updateVaultNodeContent(
     id: string,
-    contentBlob: ArrayBuffer | Uint8Array | string,
+    contentBlob: ArrayBuffer | Uint8Array | Blob,
     mimeType?: string,
     encryptedDek?: string
   ): Promise<VaultNodeResponse>;
   deleteVaultNode(id: string): Promise<void>;
   moveVaultNode(nodeId: string, newPath: string): Promise<VaultNodeResponse>;
+
+  // Content-Addressed Chunks (CAS) & Merkle Manifests
+  checkMissingChunks(chunkIds: string[]): Promise<string[]>;
+  uploadChunk(chunkId: string, cipherData: Uint8Array): Promise<void>;
+  fetchChunk(chunkId: string): Promise<ArrayBuffer>;
+  commitManifest(
+    manifestId: string,
+    nodeId: string,
+    encryptedManifest: Uint8Array,
+    meta: {
+      parentManifestId?: string;
+      plainSize: number;
+      cipherSize: number;
+      commitMessage?: string;
+    }
+  ): Promise<void>;
+  fetchManifest(manifestId: string): Promise<ArrayBuffer>;
+  getManifestHistory(nodeId: string): Promise<any[]>;
 
   // Git Version Control API
   getNodeHistory(id: string): Promise<NodeVersionResponse[]>;

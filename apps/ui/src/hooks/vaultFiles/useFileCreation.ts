@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
 import { VaultFileItem } from '../../interfaces/INoteModels';
+import { ChunkSyncService } from '../../services/ChunkSyncService';
 
 export interface UseFileCreationOptions {
   activeVaultId: string;
@@ -61,8 +62,6 @@ export function useFileCreation({
       const filename = getUniqueFilename(defaultTitle, '.md');
       const defaultContent = '';
 
-      const encryptedPayload = await cryptoService.encryptText(defaultContent, dek);
-
       const createdNode = await apiClient.createVaultNode({
         path: filename,
         name: filename,
@@ -72,11 +71,14 @@ export function useFileCreation({
         category: 'markdown',
       });
 
-      await apiClient.updateVaultNodeContent(
+      const syncResult = await ChunkSyncService.syncDocument(
+        apiClient,
         createdNode.id,
-        encryptedPayload,
-        'application/octet-stream',
-        wrappedDek
+        filename,
+        defaultContent,
+        cmk,
+        undefined,
+        'Initial creation'
       );
 
       const newFile: VaultFileItem = {
@@ -86,11 +88,11 @@ export function useFileCreation({
         path: filename,
         category: 'markdown',
         mimeType: 'text/markdown',
-        size: defaultContent.length,
         content: defaultContent,
         encryptedTitle: filename,
         encryptedPayload: '',
         encryptedDek: wrappedDek,
+        activeManifestId: syncResult.manifest.manifestId,
         vaultId: activeVaultId,
         createdAt: createdNode.createdAt,
         updatedAt: createdNode.updatedAt,
