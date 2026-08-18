@@ -109,11 +109,26 @@ export class Router {
     this.addRoute('POST', '/api/v1/vault/oprf/setup', true, false, (container, ctx) =>
       container.vaultController.setupOprf(ctx)
     );
+    this.addRoute('POST', '/api/v1/vaults/:vaultId/oprf/setup', true, false, (container, ctx) =>
+      container.vaultController.setupOprf(ctx)
+    );
     this.addRoute('POST', '/api/v1/vault/oprf/evaluate', true, false, (container, ctx) =>
+      container.vaultController.evaluateOprf(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vaults/:vaultId/oprf/evaluate-pin', true, false, (container, ctx) =>
+      container.vaultController.evaluateOprf(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vaults/:vaultId/oprf/evaluate-recovery', true, false, (container, ctx) =>
       container.vaultController.evaluateOprf(ctx)
     );
     this.addRoute('POST', '/api/v1/vault/report-success', true, false, (container, ctx) =>
       container.vaultController.reportPinSuccess(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vaults/:vaultId/pin/success', true, false, (container, ctx) =>
+      container.vaultController.reportPinSuccess(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vaults/:vaultId/pin/fail', true, false, (container, ctx) =>
+      container.vaultController.evaluateOprf(ctx)
     );
 
     // 5. Version History & Merkle Manifest Endpoints (Protected)

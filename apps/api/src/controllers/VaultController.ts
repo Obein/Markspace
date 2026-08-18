@@ -24,15 +24,21 @@ export class VaultController {
 
   public async setupOprf(ctx: RequestContext): Promise<Response> {
     const userId = ctx.user!.userId;
-    const body = (await ctx.request.json()) as { vaultId?: string; blindedPoint?: string };
-    if (!body.vaultId || !body.blindedPoint) {
-      throw new Error('BAD_REQUEST: Missing required fields (vaultId, blindedPoint)');
+    const body = (await ctx.request.json().catch(() => ({}))) as {
+      vaultId?: string;
+      blindedPoint?: string;
+      blindedElement?: string;
+    };
+    const vaultId = ctx.params.vaultId || ctx.params.id || body.vaultId;
+    const blindedPoint = body.blindedPoint || body.blindedElement;
+    if (!vaultId || !blindedPoint) {
+      throw new Error('BAD_REQUEST: Missing required fields (vaultId, blindedPoint/blindedElement)');
     }
 
     const evaluatedPoint = await this.vaultSecurityService.setupVaultOprf(
       userId,
-      body.vaultId,
-      body.blindedPoint,
+      vaultId,
+      blindedPoint,
       ctx.env.MASTER_ENCRYPTION_KEY
     );
 
@@ -54,15 +60,21 @@ export class VaultController {
 
   public async evaluateOprf(ctx: RequestContext): Promise<Response> {
     const userId = ctx.user!.userId;
-    const body = (await ctx.request.json()) as { vaultId?: string; blindedPoint?: string };
-    if (!body.vaultId || !body.blindedPoint) {
-      throw new Error('BAD_REQUEST: Missing required fields (vaultId, blindedPoint)');
+    const body = (await ctx.request.json().catch(() => ({}))) as {
+      vaultId?: string;
+      blindedPoint?: string;
+      blindedElement?: string;
+    };
+    const vaultId = ctx.params.vaultId || ctx.params.id || body.vaultId;
+    const blindedPoint = body.blindedPoint || body.blindedElement;
+    if (!vaultId || !blindedPoint) {
+      throw new Error('BAD_REQUEST: Missing required fields (vaultId, blindedPoint/blindedElement)');
     }
 
     const result = await this.vaultSecurityService.evaluateOprf(
       userId,
-      body.vaultId,
-      body.blindedPoint,
+      vaultId,
+      blindedPoint,
       ctx.env.MASTER_ENCRYPTION_KEY
     );
 
@@ -95,12 +107,13 @@ export class VaultController {
 
   public async reportPinSuccess(ctx: RequestContext): Promise<Response> {
     const userId = ctx.user!.userId;
-    const body = (await ctx.request.json()) as { vaultId?: string };
-    if (!body.vaultId) {
+    const body = (await ctx.request.json().catch(() => ({}))) as { vaultId?: string };
+    const vaultId = ctx.params.vaultId || ctx.params.id || body.vaultId;
+    if (!vaultId) {
       throw new Error('BAD_REQUEST: Missing required vaultId');
     }
 
-    await this.vaultSecurityService.reportPinSuccess(userId, body.vaultId);
+    await this.vaultSecurityService.reportPinSuccess(userId, vaultId);
 
     await this.auditLogRepo.recordLog({
       userId,
