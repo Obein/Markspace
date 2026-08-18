@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, History, RotateCcw, Loader2, GitCommit, Clock, FileText } from 'lucide-react';
+import { X, History, RotateCcw, Loader2, Clock, FileText, Network } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
 import { NodeVersionResponse } from '../../interfaces/IApiClient';
@@ -13,7 +13,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
   file,
   onRevertSuccess,
 }) => {
-  const { apiClient, cryptoService, cmk } = useApp();
+  const { apiClient, cmk } = useApp();
   const { t, language } = useI18n();
 
   const [versions, setVersions] = useState<NodeVersionResponse[]>([]);
@@ -57,11 +57,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
         setVersions(formatted);
         handleSelectVersion(formatted[0]);
       } else {
-        const list = await apiClient.getNodeHistory(file.id);
-        setVersions(list);
-        if (list.length > 0) {
-          handleSelectVersion(list[0]);
-        }
+        setVersions([]);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to fetch version history');
@@ -76,19 +72,11 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
 
     try {
       setLoadingPreview(true);
-      try {
-        const { contentText } = await ChunkSyncService.reconstructDocument(apiClient, version.commitHash, cmk);
-        setPreviewContent(contentText);
-      } catch (casErr) {
-        // Fallback for legacy git commits
-        const { body, encryptedDek } = await apiClient.getVersionContent(file.id, version.timestamp);
-        const dek = await cryptoService.unwrapDEK(encryptedDek, cmk);
-        const decryptedText = await cryptoService.decryptText(body, dek);
-        setPreviewContent(decryptedText);
-      }
+      const { contentText } = await ChunkSyncService.reconstructDocument(apiClient, version.commitHash, cmk);
+      setPreviewContent(contentText);
     } catch (err) {
-      console.error('Failed to decrypt historical version payload', err);
-      setPreviewContent('Failed to decrypt historical content preview.');
+      console.error('Failed to reconstruct historical version payload', err);
+      setPreviewContent('Failed to reconstruct historical content preview.');
     } finally {
       setLoadingPreview(false);
     }
@@ -154,7 +142,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
                 <span>{t('versionHistory')}</span>
                 <span className="text-xs font-mono text-zinc-400 font-normal">({file.filename})</span>
               </h2>
-              <p className="text-xs text-zinc-400 mt-0.5">Git Commit Snapshot & Timeline</p>
+              <p className="text-xs text-zinc-400 mt-0.5">Merkle DAG Manifests & Version Tree</p>
             </div>
           </div>
 
@@ -173,7 +161,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
             {loading ? (
               <div className="p-12 text-center text-zinc-400 text-xs font-mono flex flex-col items-center justify-center gap-2">
                 <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
-                <span>Loading version commits...</span>
+                <span>Loading version snapshots...</span>
               </div>
             ) : error ? (
               <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-300 text-xs rounded-xl">
@@ -208,8 +196,8 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
 
                     <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 pt-0.5">
                       <span className="flex items-center gap-1 text-blue-300 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">
-                        <GitCommit className="w-3 h-3 text-blue-400" />
-                        <span>{ver.commitHash.substring(0, 7)}</span>
+                        <Network className="w-3 h-3 text-blue-400" />
+                        <span>{ver.commitHash.substring(0, 8)}</span>
                       </span>
                       <span className="text-zinc-500 truncate max-w-[120px]">{ver.commitMessage || 'Snapshot'}</span>
                     </div>

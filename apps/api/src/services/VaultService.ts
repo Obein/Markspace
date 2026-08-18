@@ -34,30 +34,6 @@ export class VaultService {
     return response.arrayBuffer();
   }
 
-  private isTextFile(mimeType?: string, category?: string, contentBlob?: any): boolean {
-    if (category === 'markdown') return true;
-    if (
-      mimeType &&
-      (mimeType.startsWith('text/') ||
-        mimeType.includes('json') ||
-        mimeType.includes('xml') ||
-        mimeType.includes('javascript') ||
-        mimeType.includes('typescript'))
-    ) {
-      return true;
-    }
-    if (typeof contentBlob === 'string') return true;
-    if (contentBlob instanceof Uint8Array || contentBlob instanceof ArrayBuffer) {
-      const bytes = contentBlob instanceof ArrayBuffer ? new Uint8Array(contentBlob) : contentBlob;
-      const sampleSize = Math.min(bytes.length, 512);
-      for (let i = 0; i < sampleSize; i++) {
-        if (bytes[i] === 0) return false;
-      }
-      return true;
-    }
-    return false;
-  }
-
   public async createNode(userId: string, req: CreateNodeRequest): Promise<VaultNodeEntity> {
     const normalizedPath = this.normalizePath(req.path);
     const parentPath = this.getParentPath(normalizedPath);
@@ -98,21 +74,7 @@ export class VaultService {
       objectKey,
     };
 
-    const createdNode = await this.nodeRepo.createNode(dto);
-
-    // Save initial Git version snapshot if it is a text file
-    if (!req.isDirectory && this.isTextFile(req.mimeType, req.category, req.contentBlob)) {
-      await this.recordVersionSnapshot(
-        userId,
-        createdNode,
-        req.contentBlob !== undefined ? req.contentBlob : '',
-        req.encryptedDek,
-        'Create',
-        true
-      );
-    }
-
-    return createdNode;
+    return this.nodeRepo.createNode(dto);
   }
 
   public async getNode(userId: string, nodeId: string): Promise<VaultNodeEntity> {
@@ -191,100 +153,7 @@ export class VaultService {
       throw new Error('INTERNAL_ERROR: Failed to update node metadata size');
     }
 
-    // Auto-record Git version snapshot if it is a text file
-    if (this.isTextFile(contentType, node.category, contentBlob)) {
-      await this.recordVersionSnapshot(
-        userId,
-        updated,
-        contentBlob,
-        updated.encryptedDek,
-        'Update'
-      );
-    }
-
     return updated;
-  }
-
-  private static readonly GIT_COMMIT_MIN_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes debounce window
-
-  private async recordVersionSnapshot(
-    userId: string,
-    node: VaultNodeEntity,
-    contentBlob: ArrayBuffer | Uint8Array | string,
-    encryptedDek: string,
-    commitMessage: string,
-    force: boolean = false
-  ): Promise<void> {
-    const timestamp = Date.now();
-    const versionId = `ver_${crypto.randomUUID()}`;
-
-    let dataUint8: Uint8Array;
-    if (typeof contentBlob === 'string') {
-      dataUint8 = new TextEncoder().encode(contentBlob);
-    } else if (contentBlob instanceof Uint8Array) {
-      dataUint8 = contentBlob;
-    } else if (contentBlob instanceof ArrayBuffer) {
-      dataUint8 = new Uint8Array(contentBlob);
-    } else {
-      dataUint8 = new Uint8Array(0);
-    }
-
-    const size = dataUint8.byteLength;
-
-    // Standard Git Object format: "blob <size>\0<data>"
-    const header = new TextEncoder().encode(`blob ${size}\0`);
-    const fullBuffer = new Uint8Array(header.byteLength + size);
-    fullBuffer.set(header, 0);
-    fullBuffer.set(dataUint8, header.byteLength);
-
-    // Compute cryptographic SHA-1 Git commit/blob hash
-    const hashBuffer = await crypto.subtle.digest('SHA-1', fullBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const commitHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-
-    // Standard Git Object Storage Key: vaults/{userId}/.git/objects/xx/xxxx...
-    const objectPrefix = commitHash.substring(0, 2);
-    const objectRest = commitHash.substring(2);
-    const gitObjectKey = `vaults/${userId}/.git/objects/${objectPrefix}/${objectRest}`;
-
-    // Check existing versions for clean tree and 10-minute debounce window
-    const existingVersions = await this.nodeRepo.listVersionsByNode(userId, node.id);
-    if (existingVersions.length > 0) {
-      // 1. Clean Working Tree Check: If the latest version commit hash matches, skip duplicate commit
-      if (existingVersions[0].commitHash === commitHash) {
-        return;
-      }
-
-      // 2. Minimum 10-minute Debounce Window for automatic updates (unless forced)
-      if (!force) {
-        const lastCommitTime = existingVersions[0].timestamp;
-        if (timestamp - lastCommitTime < VaultService.GIT_COMMIT_MIN_INTERVAL_MS) {
-          return;
-        }
-      }
-    }
-
-    // Save encrypted blob as standard Git Object in R2 Object Storage
-    await this.objectStorage.putObject(gitObjectKey, contentBlob, node.mimeType || 'text/markdown');
-
-    // Update Virtual Git Branch Ref (refs/heads/main) & HEAD in Object Storage
-    const gitRefKey = `vaults/${userId}/.git/refs/heads/main`;
-    const gitHeadKey = `vaults/${userId}/.git/HEAD`;
-    await this.objectStorage.putObject(gitRefKey, `${commitHash}\n`, 'text/plain');
-    await this.objectStorage.putObject(gitHeadKey, 'ref: refs/heads/main\n', 'text/plain');
-
-    // Record index entry in D1 DB pointing to the Git Object Key
-    await this.nodeRepo.createVersion({
-      id: versionId,
-      nodeId: node.id,
-      userId,
-      timestamp,
-      commitHash,
-      size,
-      encryptedDek,
-      objectKey: gitObjectKey,
-      commitMessage,
-    });
   }
 
   public async getNodeHistory(userId: string, nodeId: string): Promise<VaultNodeVersionEntity[]> {
@@ -302,13 +171,7 @@ export class VaultService {
       throw new Error(`NOT_FOUND: Version snapshot not found for timestamp ${timestamp}`);
     }
 
-    // Read payload from standard Git Object Key (with fallback for any legacy keys)
-    let obj = await this.objectStorage.getObject(version.objectKey);
-    if (!obj && version.commitHash) {
-      const fallbackGitKey = `vaults/${userId}/.git/objects/${version.commitHash.substring(0, 2)}/${version.commitHash.substring(2)}`;
-      obj = await this.objectStorage.getObject(fallbackGitKey);
-    }
-
+    const obj = await this.objectStorage.getObject(version.objectKey);
     if (!obj) {
       throw new Error(`NOT_FOUND: Version object payload missing in Object Storage for key ${version.objectKey}`);
     }
@@ -350,16 +213,6 @@ export class VaultService {
     if (!updatedNode) {
       throw new Error('INTERNAL_ERROR: Failed to revert node metadata');
     }
-
-    // Record a new revert commit snapshot
-    await this.recordVersionSnapshot(
-      userId,
-      updatedNode,
-      arrayBuf,
-      version.encryptedDek,
-      `Revert to ${version.commitHash.substring(0, 7)}`,
-      true
-    );
 
     return updatedNode;
   }

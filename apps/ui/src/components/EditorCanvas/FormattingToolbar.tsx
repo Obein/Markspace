@@ -13,7 +13,7 @@ import {
   Table as TableIcon,
   Link as LinkIcon,
   Sigma,
-  GitBranch,
+  Workflow,
   Search,
 } from 'lucide-react';
 
@@ -150,7 +150,7 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
         className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition flex items-center justify-center gap-1 text-[11px] font-editor-mono font-mono cursor-pointer shrink-0"
         title="Mermaid Diagram (```mermaid)"
       >
-        <GitBranch className="w-3.5 h-3.5" />
+        <Workflow className="w-3.5 h-3.5" />
         <span>Mermaid</span>
       </button>
 

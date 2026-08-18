@@ -119,7 +119,7 @@ export const zhCN: typeof enUS = {
   revert: '恢复此版本',
   reverting: '恢复中...',
   noHistory: '暂无版本历史记录',
-  commitHash: 'Git 提交 Hash',
+  commitHash: 'Manifest 快照 Hash',
   unixTimestamp: 'Unix 时间戳',
 
   // Settings & Profile & Audit Logs
