@@ -105,13 +105,15 @@ export function useVaults({
       };
 
       setVaults((prev) => [...prev, newVault]);
-      setActiveVaultId(newVault.id);
+      if (!activeVaultId) {
+        setActiveVaultId(newVault.id);
+      }
       // Note: Do not setVaultKey here immediately so user can view & backup the recovery key card
       showToast(t('createVault'), 'success');
 
       return { vault: newVault, recoveryKey, vmk };
     },
-    [apiClient, cryptoService, setActiveVaultId, showToast, t]
+    [activeVaultId, apiClient, cryptoService, setActiveVaultId, showToast, t]
   );
 
   const handleResetVaultPin = useCallback(

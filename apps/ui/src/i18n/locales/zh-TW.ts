@@ -69,10 +69,10 @@ export const zhTW: typeof enUS = {
   bentoOprfTag: 'Zero-Knowledge',
   
   bentoVersionControlTitle: '版本控制',
-  bentoVersionControlSub: 'Merkle DAG · 不可篡改提交鏈',
-  bentoHistoryTitle: '版本時光機與可信回溯',
-  bentoHistoryDesc: '基於加密雜湊的內容定址提交鏈。每次文檔修改均通過 SHA-256 計算唯一指紋，支援任意時間點的無損歷史回滾與防篡改驗證。',
-  bentoHistoryTag: 'SHA-256 雜湊提交',
+  bentoVersionControlSub: 'FastCDC 動態分塊 · Merkle DAG',
+  bentoHistoryTitle: '塊級增量同步與版本樹',
+  bentoHistoryDesc: '基於 FastCDC 動態切分與確定性盲加密的 Merkle DAG 塊級版本樹。每次保存僅同步變動的資料塊與加密清單，搭配 IndexedDB 毫秒級重組與無損歷史回滾。',
+  bentoHistoryTag: 'FastCDC & Merkle DAG',
   
   bentoKaTeXTitle: 'KaTeX + Mermaid',
   bentoKaTeXSub: '科學排版與 AST 動態圖表',
@@ -81,7 +81,7 @@ export const zhTW: typeof enUS = {
   bentoMarkdownTag: 'KaTeX & Mermaid',
   
   bentoTableTitle: '視覺化表格編輯',
-  bentoTableSub: '所見即所得表格與公式計算',
+  bentoTableSub: '所见即所得表格與公式計算',
   bentoTableDetailTitle: '互動式視覺化表格編輯器',
   bentoTableDesc: '直接在 Markdown 筆記中嵌入完整的互動式試算表。支援儲存格即時編輯、行列增刪與對齊，並內建即時函數公式計算引擎（SUM, AVG, COUNT, IF 等）。',
   bentoTableTag: '試算表 & fx 計算',
@@ -96,10 +96,10 @@ export const zhTW: typeof enUS = {
   bentoMemoryDesc: '所有加密金鑰均在 Web Crypto API 中使用 extractable: false 建立。在鎖定保險庫或登出帳號時，記憶體緩衝區將立即強制清零，杜絕冷啟動記憶體提取。',
   bentoMemoryTag: 'RAM 記憶體隔離',
   
-  bentoBufferTitle: '自適應防抖保存',
-  bentoBufferSub: '自適應即時加密同步',
-  bentoBufferDesc: '2s 動態防抖加密保存與差異化 DEK 金鑰輪換，杜絕資料遺失。',
-  bentoBufferTag: '2s 防抖',
+  bentoBufferTitle: '塊級增量防抖同步',
+  bentoBufferSub: 'FastCDC 差異化塊級同步',
+  bentoBufferDesc: '2s 動態防抖分塊增量同步，僅上傳差異密文塊並提交加密 Manifest 清單，極大節省網路頻寬。',
+  bentoBufferTag: '2s 增量防抖',
   
   bentoTypographyTitle: '專業排版與暗黑',
   bentoTypographySub: 'OLED 純黑暗黑排版',

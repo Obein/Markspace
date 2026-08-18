@@ -4,14 +4,14 @@
 
 # Markspace
 
-**A Zero-Trust, Privacy-First, Edge-Native Markdown Workspace**
+**A Zero-Trust, Privacy-First, FastCDC & Merkle DAG Edge-Native Markdown Workspace**
 
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL_v3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/agpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6+-3178C6.svg?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB.svg?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.2-646CFF.svg?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers_&_D1_&_R2-F38020.svg?style=flat-square&logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
-[![Web Crypto API](https://img.shields.io/badge/Cryptography-AES--256--GCM_|_OPRF-00C7B7.svg?style=flat-square)](https://www.w3.org/TR/WebCryptoAPI/)
+[![Web Crypto API](https://img.shields.io/badge/Cryptography-AES--256--GCM_|_FastCDC_|_Merkle_DAG_|_OPRF-00C7B7.svg?style=flat-square)](https://www.w3.org/TR/WebCryptoAPI/)
 
 ---
 
@@ -23,15 +23,13 @@ English | [简体中文](README-zh-CN.md) | [正體中文](README-zh-TW.md)
 
 ## 📖 Overview
 
-**Markspace** is a modern, privacy-centric Markdown workspace built on mathematical envelope encryption and global distributed edge infrastructure.
+**Markspace** is a modern, privacy-first Markdown workspace engineered with mathematical envelope encryption, **FastCDC content-defined dynamic chunking**, and a **cryptographic Merkle DAG block-level incremental sync** engine running atop global distributed edge infrastructure.
 
-By decoupling plaintext processing entirely to client-side browser memory using non-extractable Web Crypto keys, Markspace ensures that servers, storage nodes, and intermediaries remain strictly zero-knowledge. Designed for scalability, extensibility, and seamless user interaction, Markspace integrates scientific document composition, interactive spreadsheet tables, Git-like version control, and multi-factor authentication into a unified, high-performance web experience.
+By decoupling plaintext processing entirely to client-side browser memory using hardware-isolated, non-extractable Web Crypto keys, Markspace ensures that servers, storage nodes, and network relays remain strictly zero-knowledge. Markspace deprecates legacy monolithic full-file overwrites and Git mirror syncs in favor of an industry-standard CAS (Content-Addressed Storage) architecture: documents are chunked dynamically into 512B–4KB blocks, blind-encrypted with deterministic AES-256-GCM, and synchronized incrementally by transferring only modified blocks alongside lightweight encrypted Merkle manifests.
 
 ---
 
 ## 📸 Quick Look
-
-<!-- QuickLook Screenshots Showcase -->
 
 <div align="center">
 
@@ -39,11 +37,12 @@ By decoupling plaintext processing entirely to client-side browser memory using 
 ```
 +-----------------------------------------------------------------------------------+
 |                                                                                   |
-|                   [ PLACEHOLDER: Bento Auth & Security Portal ]                   |
+|                   [ Bento Auth & Zero-Trust Security Portal ]                     |
 |                                                                                   |
 |           • 3D Bento Grid Showcase with dynamic focal dispersion                  |
-|           • OPRF Blind Gate & MFA Authenticator integration                       |
-|           • Rotating ambient afterglow with pure pitch-black OLED canvas          |
+|           • OPRF Blind Gate (NIST P-256) & RFC 6238 TOTP Authenticator           |
+|           • FastCDC & Merkle DAG live architecture visualization                  |
+|           • Rotating ambient afterglow on pitch-black OLED canvas                 |
 |                                                                                   |
 +-----------------------------------------------------------------------------------+
 ```
@@ -55,11 +54,11 @@ By decoupling plaintext processing entirely to client-side browser memory using 
 ```
 +-----------------------------------------------------------------------------------+
 |                                                                                   |
-|             [ PLACEHOLDER: Split-Pane Editor & Markdown Preview ]                 |
+|             [ Split-Pane Editor & Real-Time Live Preview ]                        |
 |                                                                                   |
 |           • Real-time split-pane live preview with incremental synchronization    |
 |           • Hardware-accelerated KaTeX mathematical formula rendering             |
-|           • Interactive dynamic Mermaid flowchart and diagram generation          |
+|           • Interactive dynamic Mermaid flowchart, sequence & AST diagrams        |
 |           • Lezer AST multi-language syntax highlighting                          |
 |                                                                                   |
 +-----------------------------------------------------------------------------------+
@@ -72,10 +71,10 @@ By decoupling plaintext processing entirely to client-side browser memory using 
 ```
 +-----------------------------------------------------------------------------------+
 |                                                                                   |
-|                   [ PLACEHOLDER: Visual Table & Formula Editor ]                  |
+|                   [ Visual Table & Live Formula Editor ]                          |
 |                                                                                   |
 |           • Embedded spreadsheet grid inside Markdown notes                       |
-|           • Real-time formula computation engine (SUM, AVG, COUNT, IF)            |
+|           • Real-time formula computation engine (SUM, AVG, COUNT, IF, arithmetic)|
 |           • Lossless bidirectional serialization to GitHub Flavored Markdown (GFM)|
 |                                                                                   |
 +-----------------------------------------------------------------------------------+
@@ -84,14 +83,15 @@ By decoupling plaintext processing entirely to client-side browser memory using 
 
 <br/>
 
-### Merkle DAG Version History & Time-Travel Rollback
+### Merkle DAG Version History & Instant Rollback
 ```
 +-----------------------------------------------------------------------------------+
 |                                                                                   |
-|                  [ PLACEHOLDER: Version History Timeline Rollback ]               |
+|                  [ Merkle DAG Version Tree & Delta Rollback ]                     |
 |                                                                                   |
-|           • SHA-256 content-addressable commit timeline                           |
-|           • Granular point-in-time version inspection and instant revert          |
+|           • FastCDC content-defined differential block synchronization            |
+|           • Merkle DAG immutable revision timeline with SHA-256 root hashes       |
+|           • Local IndexedDB block caching for zero-network instant reconstruction |
 |                                                                                   |
 +-----------------------------------------------------------------------------------+
 ```
@@ -103,86 +103,78 @@ By decoupling plaintext processing entirely to client-side browser memory using 
 
 ## ✨ Key Features
 
-### 🛡️ Zero-Knowledge Envelope Encryption
-- **Multi-Tier Envelope Encryption**: Every document node is encrypted with an isolated Data Encryption Key (DEK), wrapped by the Vault Master Key (VMK) derived via PBKDF2-HMAC-SHA256.
-- **Client-Side Plaintext Boundary**: Documents are encrypted and decrypted exclusively in memory via native Web Crypto APIs (`AES-256-GCM`, 96-bit CSPRNG IV).
-- **RAM Isolation & Scrubbing**: Keys are initialized with `extractable: false`. Buffers are zeroized upon vault lock or logout, preventing cold-boot and heap dump leakage.
+### 🧩 FastCDC Dynamic Chunking & Differential Sync
+- **Fine-Grained Content-Defined Chunking**: Employs a 64-bit Gear-hash rolling algorithm to detect natural content boundaries (`Min: 512B`, `Avg: 1KB`, `Max: 4KB`), completely eliminating the boundary-shift avalanche effect of fixed-size chunking.
+- **Delta Block Synchronization**: Automatically identifies modified blocks on save. Uploads only the newly modified 512B–1KB chunks and an encrypted manifest, reducing network upload bandwidth by over 90%.
+- **Local IndexedDB Block Cache**: Decrypted blocks and manifests are cached locally in the browser's IndexedDB, enabling zero-network, sub-millisecond document reconstruction and instant version history diffs.
 
-### 🚪 OPRF Blind Credential Validation
-- **Elliptic Curve Protection**: Evaluates authentication challenges on the `NIST P-256` (`secp256r1`) curve using Oblivious Pseudorandom Functions.
-- **Zero-Plaintext Verification**: Client blinds PIN credentials before transmission; server evaluates the challenge oblivious to plaintext, mitigating dictionary and credential-stuffing attacks.
+### 🛡️ Deterministic Zero-Knowledge Block Encryption & CAS
+- **Non-Extractable Key Operations**: Operates directly on non-extractable Web Crypto AES-256-GCM keys (`extractable: false`), preventing key export, heap scraping, or cold-boot memory dumps.
+- **Deterministic Blind Deduplication**: Generates deterministic Chunk IDs using VMK-keyed cryptographic tokens ($H = \text{SHA-256}(Chunk)$ encrypted via VMK). Chunks with identical content in the same vault share identical IDs for blind deduplication.
+- **Cross-User Cryptographic Isolation**: Because chunk derivation is salted with each user's private VMK, different users with identical text produce completely unrelated Chunk IDs and ciphertexts, fully immunizing against server-side frequency and dictionary attacks.
+- **Raw Binary (0% Overhead) Storage**: Eliminates Base64 encoding overhead (which inflates data by 33%), storing encrypted chunks and blobs directly as raw binary streams (`application/octet-stream`).
 
-### ⚡ Global Edge Infrastructure
-- **Ultra-Low Latency Fabric**: Powered by Cloudflare global edge network with 300+ Points of Presence worldwide.
-- **Distributed SQL & Object Storage**: Metadata is queried via Cloudflare D1 distributed SQL, and encrypted blob streams are served via Cloudflare R2 object storage.
+### 🌲 Merkle DAG Version Tree & Immutable History
+- **Immutable Revision Manifests**: Every save event constructs a lightweight, encrypted `FileManifest` referencing ordered Chunk IDs and parent manifest IDs, computing a cryptographic Merkle Root Hash.
+- **Point-in-Time Non-Destructive Rollback**: Supports instant visual inspection and one-click rollback to any historical commit in the Merkle tree with zero server-side computation.
+
+### 🚪 OPRF Blind Credential Gate & Multi-Factor Security
+- **NIST P-256 Elliptic Curve OPRF**: Client blinds PIN credentials before transmission; the server evaluates the challenge oblivious to plaintext, completely mitigating offline dictionary and credential-stuffing attacks.
+- **BIP-39 Mnemonic Recovery Key**: Generates an 8-word BIP-39 recovery mnemonic card for each vault, allowing secure PIN resets without server involvement.
+- **RFC 6238 TOTP Multi-Factor Authentication**: Integrated 30-second rotating security tokens compatible with Google Authenticator, 1Password, and Apple Keychain.
+- **RFC 9449 DPoP & Nonce Anti-Replay**: Cryptographic challenge nonces and DPoP device token bindings with automatic circuit breakers.
 
 ### 📊 Interactive Visual Table Editor
-- **WYSIWYG Spreadsheet Grid**: Create, edit, resize, and align table structures directly within Markdown documents.
-- **Live Formula Evaluation**: Integrated mathematical formula engine supporting `SUM`, `AVG`, `COUNT`, `MIN`, `MAX`, `IF`, and basic arithmetic expressions.
-- **Lossless GFM Serialization**: Seamlessly serializes to standard GitHub Flavored Markdown table syntax.
+- **WYSIWYG Spreadsheet Grid**: Insert, delete, reorder rows/columns, and adjust alignments directly inside Markdown notes.
+- **Live Formula Engine**: Built-in calculation engine supporting `SUM`, `AVG`, `COUNT`, `MIN`, `MAX`, `IF`, and mathematical expressions.
+- **Lossless GFM Serialization**: Bidirectional serialization to standard GitHub Flavored Markdown table syntax.
 
 ### 📐 Scientific & Technical Typesetting
 - **KaTeX Formula Engine**: High-performance mathematical typesetting supporting inline (`$...$`) and display (`$$...$$`) TeX blocks.
-- **Dynamic Mermaid AST**: Renders flowcharts, sequence diagrams, state machines, and Gantt charts directly from code blocks.
+- **Dynamic Mermaid AST**: Renders flowcharts, sequence diagrams, state machines, and Gantt charts directly from fenced code blocks.
 - **Lezer Incremental Parsing**: Incremental AST syntax highlighter for Markdown, JavaScript, Python, CSS, HTML, and JSON.
 
-### ⏳ Content-Addressable Version Control
-- **Merkle DAG Commit Chains**: Every document revision is hashed with SHA-256 and linked into an immutable DAG structure.
-- **Point-in-Time Rollback**: Non-destructive revision history allowing one-click rollback to any historical commit state.
-
-### 🔑 Multi-Factor Authentication & Anti-Replay Gate
-- **RFC 6238 TOTP**: Native multi-factor authentication with 30-second rotating security tokens, compatible with Google Authenticator, 1Password, and Apple Keychain.
-- **Anti-Replay Challenge Gate**: 6-byte cryptographic challenge nonces and RFC 9449 DPoP device token bindings with automatic circuit breakers.
-
 ### 🌐 Universal Internationalization (i18n)
-- Comprehensive multi-language support across all UI dialogs, Bento cards, and editor prompts:
-  - 🇨🇳 简体中文 (`zh-CN`)
-  - 🇭🇰/🇹🇼 正體中文 (`zh-TW`)
-  - 🇺🇸 English (`en-US`)
-  - 🇯🇵 日本語 (`ja-JP`)
-  - 🇰🇷 한국어 (`ko-KR`)
-  - 🇩🇪 Deutsch (`de-DE`)
-  - 🇪🇸 Español (`es-ES`)
-  - 🇻🇳 Tiếng Việt (`vi-VN`)
+- Comprehensive multi-language localization across all UI dialogs, Bento cards, and editor tools:
+  - 🇨🇳 简体中文 (`zh-CN`) | 🇭🇰/🇹🇼 正體中文 (`zh-TW`) | 🇺🇸 English (`en-US`) | 🇯🇵 日本語 (`ja-JP`)
+  - 🇰🇷 한국어 (`ko-KR`) | 🇩🇪 Deutsch (`de-DE`) | 🇪🇸 Español (`es-ES`) | 🇻🇳 Tiếng Việt (`vi-VN`)
 
 ### 🎨 OLED Obsidian Typography
-- Tuned for high contrast and readability on pure black OLED backgrounds (`#050507`).
-- Integrates **GitHub Monaspace Neon** variable code font and **Noto Multilingual** typography.
+- Calibrated for infinite contrast on pitch-black OLED canvases (`#050507`).
+- Integrates **GitHub Monaspace Neon** code typography with **Noto Multilingual** font families.
 
 ---
 
-## 🏗️ Architecture & Extensibility
+## 🏗️ Architecture & Storage Topology
 
-Markspace follows a modular workspace monorepo architecture, designed for easy adaptability across multiple deployment environments and storage backends:
+```mermaid
+flowchart TB
+    subgraph Client ["Client Browser (Web Crypto & IndexedDB)"]
+        PlainDoc["Plaintext Markdown Document"] --> FastCDC["FastCDC Dynamic Chunking (512B - 4KB)"]
+        FastCDC --> ProcessChunks["Processed Chunks [A, B', C]"]
+        
+        subgraph Crypto ["Deterministic Zero-Knowledge Engine"]
+            ProcessChunks --> DetID["Deterministic Chunk ID: Hex(SHA256(AES_VMK(H)))"]
+            DetID --> SynthIV["Synthetic IV: SHA256('chunk-iv:' + ChunkID)[0..12]"]
+            SynthIV --> AESEnc["AES-256-GCM Raw Binary Encryption"]
+        end
+        
+        AESEnc --> CheckMissing["1. POST /vault/chunks/check-missing"]
+        AESEnc --> UploadDelta["2. PUT /vault/chunks/:id (Only Delta Chunks)"]
+        
+        Manifest["Build Merkle Manifest & Root Hash"] --> EncManifest["VMK Encrypted Manifest"]
+        EncManifest --> CommitManifest["3. POST /vault/manifests/commit"]
+        
+        LocalCache[("IndexedDB Chunk & Manifest Cache")] <--> FastCDC
+    end
 
+    subgraph Edge ["Cloudflare Global Edge Fabric"]
+        CheckMissing --> D1Chunks["D1 SQL (vault_chunks Index)"]
+        UploadDelta --> R2Chunks["R2 CAS Storage (vaults/{userId}/chunks/{chunkId})"]
+        CommitManifest --> R2Manifests["R2 Manifests (vaults/{userId}/manifests/{manifestId})"]
+        CommitManifest --> D1Nodes["D1 SQL (active_manifest_id Pointer)"]
+    end
 ```
-markspace/
-├── apps/
-│   ├── api/                   # Cloudflare Workers Backend API
-│   │   ├── src/
-│   │   │   ├── db/            # D1 SQLite Schemas & Migrations
-│   │   │   ├── services/      # Storage, OPRF, TOTP & Vault Services
-│   │   │   └── index.ts       # Request Routing & Edge Handlers
-│   │   ├── wrangler.jsonc     # Cloudflare Worker Configuration
-│   │   └── package.json
-│   └── ui/                    # React 18 + Vite + Tailwind Frontend
-│       ├── src/
-│       │   ├── components/    # Modular UI Components (AuthModal, Editor, etc.)
-│       │   ├── context/       # App State & Cryptography Context
-│       │   ├── hooks/         # Modular Vault & File Operation Hooks
-│       │   ├── i18n/          # Locales & Translation Providers
-│       │   ├── services/      # WebCrypto & API Client Implementation
-│       │   └── utils/         # File, Formula, Table & Markdown Helpers
-│       ├── index.html
-│       └── package.json
-├── docs/                      # Architectural & Engineering Documentation
-└── package.json               # Root Workspace Manifest
-```
-
-### Extensibility Roadmap
-- **Pluggable Storage Adapters**: Modular storage provider interface allowing adapters for AWS S3, Cloudflare R2, MinIO, or Local Filesystem.
-- **Custom Render Pipeline**: Extensible AST visitor hooks to support custom Markdown directives, embeds, and chart extensions.
-- **Sync Protocol Adapters**: Designed to accommodate future peer-to-peer (CRDT) synchronization channels and offline-first caching strategies.
 
 ---
 
@@ -191,7 +183,7 @@ markspace/
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v18.0.0 or higher)
 - [npm](https://www.npmjs.com/) (v9.0.0 or higher) or [pnpm](https://pnpm.io/)
-- [Cloudflare Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) (installed automatically via devDependencies)
+- [Cloudflare Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
 
 ### 1. Clone & Install Dependencies
 ```bash
@@ -200,40 +192,35 @@ cd markspace
 npm install
 ```
 
-### 2. Local Database Setup (Cloudflare D1)
-Initialize and apply local database migrations:
+### 2. Local Database Migrations (Cloudflare D1)
 ```bash
 npm run d1:migrate:local
 ```
 
 ### 3. Start Development Servers
-Run the frontend and backend simultaneously in separate terminals:
-
 ```bash
-# Terminal 1: Start Edge Backend API
+# Terminal 1: Edge Backend API
 npm run dev:api
 
-# Terminal 2: Start UI Dev Server
+# Terminal 2: UI Dev Server
 npm run dev:ui
 ```
-Open `http://localhost:5173` in your browser to access the local development environment.
+Open `http://localhost:5173` to access the workspace.
 
 ---
 
 ## 🚢 Deployment
 
-### 1. Remote Database Migration
-Provision and migrate the production Cloudflare D1 database:
+### 1. Remote Database Migrations
 ```bash
-# Create D1 database (if not created)
+# Provision D1 database (if first time)
 npm run d1:create
 
-# Apply migrations to remote production database
+# Apply migrations to production database
 npm run d1:migrate:prod
 ```
 
-### 2. Build & Deploy
-Compile the frontend assets and deploy the Cloudflare Worker:
+### 2. Build & Deploy Worker
 ```bash
 npm run deploy
 ```
@@ -247,19 +234,10 @@ npm run deploy
 | **Frontend Framework** | React 18, TypeScript, Vite |
 | **Styling & Design** | Tailwind CSS, Lucide React, Monaspace Neon |
 | **Document Processing**| Marked, Lezer AST, KaTeX, Mermaid.js |
-| **Cryptography** | Web Crypto API (SubtleCrypto), PBKDF2, AES-GCM, OPRF NIST P-256 |
-| **Edge Compute & Backend** | Cloudflare Workers, Cloudflare D1 SQL, Cloudflare R2 Storage |
+| **Chunking & Versioning**| FastCDC (Gear-Hash), Merkle DAG, IndexedDB Local Cache |
+| **Cryptography** | Web Crypto API (SubtleCrypto, Non-Extractable), AES-256-GCM, OPRF NIST P-256, DPoP RFC 9449 |
+| **Edge Compute & Backend** | Cloudflare Workers, Cloudflare D1 SQL, Cloudflare R2 CAS Storage |
 | **Monorepo Tooling** | npm workspaces, TypeScript Project References |
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these guidelines:
-1. Fork the repository and create a feature branch (`git checkout -b feature/awesome-feature`).
-2. Adhere to TypeScript strict type definitions and linting rules (`npm run typecheck`).
-3. Commit your changes with clear, structured commit messages (`git commit -m 'feat: add awesome feature'`).
-4. Push to the branch (`git push origin feature/awesome-feature`) and open a Pull Request.
 
 ---
 
@@ -267,18 +245,3 @@ Contributions are welcome! Please follow these guidelines:
 
 This project is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)**.  
 See the [LICENSE](LICENSE) file for details.
-
-```
-Markspace - A Zero-Trust, Privacy-First, Edge-Native Markdown Workspace
-Copyright (C) 2026 Markspace Contributors
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-```

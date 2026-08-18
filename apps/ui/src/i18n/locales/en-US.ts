@@ -67,10 +67,10 @@ export const enUS = {
   bentoOprfTag: 'Zero-Knowledge',
   
   bentoVersionControlTitle: 'Version Control',
-  bentoVersionControlSub: 'Merkle DAG · Immutable Commits',
-  bentoHistoryTitle: 'Immutable Time-Travel',
-  bentoHistoryDesc: 'Content-addressable commit chain. Every document revision is hashed with SHA-256, allowing instant point-in-time timeline rollback and tamper-proof verification.',
-  bentoHistoryTag: 'SHA-256 Commits',
+  bentoVersionControlSub: 'FastCDC Dynamic · Merkle DAG',
+  bentoHistoryTitle: 'Differential Sync & Merkle Tree',
+  bentoHistoryDesc: 'Block-level differential sync via FastCDC chunking and deterministic zero-knowledge encryption. Commits only modified blocks with IndexedDB caching and instant rollback.',
+  bentoHistoryTag: 'FastCDC & Merkle DAG',
   
   bentoKaTeXTitle: 'KaTeX + Mermaid',
   bentoKaTeXSub: 'Scientific Typesetting & AST Diagrams',
@@ -94,10 +94,10 @@ export const enUS = {
   bentoMemoryDesc: 'All cryptographic keys are created with extractable: false in Web Crypto API. On vault lock or sign out, memory buffers are completely scrubbed to prevent cold-boot dumps.',
   bentoMemoryTag: 'RAM Isolation',
   
-  bentoBufferTitle: 'Adaptive Auto-Save',
-  bentoBufferSub: 'Adaptive Auto-Save Sync',
-  bentoBufferDesc: '2s dynamic debounce encrypted saving with differential DEK key rotation.',
-  bentoBufferTag: '2s Debounce',
+  bentoBufferTitle: 'Differential Block Save',
+  bentoBufferSub: 'FastCDC Incremental Sync',
+  bentoBufferDesc: '2s dynamic debounce block-level differential sync, uploading only delta ciphertext chunks and encrypted manifests.',
+  bentoBufferTag: '2s Delta Sync',
   
   bentoTypographyTitle: 'Noto & Monaspace',
   bentoTypographySub: 'OLED Pure Obsidian Typography',

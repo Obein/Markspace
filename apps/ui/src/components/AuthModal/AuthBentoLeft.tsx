@@ -46,9 +46,9 @@ export const AuthBentoLeft: React.FC<AuthBentoLeftProps> = ({ isFormFocused }) =
         detailTitle={t('bentoHistoryTitle')}
         detailText={t('bentoHistoryDesc')}
         detailSpecs={[
-          { label: 'Integrity Digest', value: 'SHA-256 Hashes' },
-          { label: 'Graph Model', value: 'Merkle DAG Tree' },
-          { label: 'History Rollback', value: 'Point-in-Time' },
+          { label: 'Chunking Engine', value: 'FastCDC (512B-4KB)' },
+          { label: 'Storage & Graph', value: 'CAS & Merkle DAG' },
+          { label: 'Differential Sync', value: 'Delta Block Cache' },
         ]}
       />
     </div>

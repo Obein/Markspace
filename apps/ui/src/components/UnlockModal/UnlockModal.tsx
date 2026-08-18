@@ -25,6 +25,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
 }) => {
   const {
     setVaultKey,
+    setActiveVaultId,
     isAuthenticated,
     isVaultUnlocked,
     username,
@@ -60,6 +61,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
   };
 
   const handleUnlockSuccess = (vaultId: string, vmk: CryptoKey) => {
+    setActiveVaultId(vaultId);
     setVaultKey(vaultId, vmk);
     setErrorMsg(null);
   };

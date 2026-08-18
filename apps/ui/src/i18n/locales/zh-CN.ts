@@ -69,10 +69,10 @@ export const zhCN: typeof enUS = {
   bentoOprfTag: 'Zero-Knowledge',
   
   bentoVersionControlTitle: '版本控制',
-  bentoVersionControlSub: 'Merkle DAG · 不可篡改提交链',
-  bentoHistoryTitle: '版本时光机与可信回溯',
-  bentoHistoryDesc: '基于加密哈希的内容寻址提交链。每次文档修改均通过 SHA-256 计算唯一指纹，支持任意时间点的无损历史回滚与防篡改验证。',
-  bentoHistoryTag: 'SHA-256 哈希提交',
+  bentoVersionControlSub: 'FastCDC 动态分块 · Merkle DAG',
+  bentoHistoryTitle: '块级增量同步与版本树',
+  bentoHistoryDesc: '基于 FastCDC 动态切分与确定性盲加密的 Merkle DAG 块级版本树。每次保存仅同步变动的数据块与加密清单，搭配 IndexedDB 毫秒级重组与无损历史回滚。',
+  bentoHistoryTag: 'FastCDC & Merkle DAG',
   
   bentoKaTeXTitle: 'KaTeX + Mermaid',
   bentoKaTeXSub: '科学排版与 AST 动态图表',
@@ -96,10 +96,10 @@ export const zhCN: typeof enUS = {
   bentoMemoryDesc: '所有加密密钥均在 Web Crypto API 中使用 extractable: false 创建。在锁定保险库或登出账号时，内存缓冲区将立即强制清零，杜绝冷启动内存提取。',
   bentoMemoryTag: 'RAM 内存隔离',
   
-  bentoBufferTitle: '自适应防抖保存',
-  bentoBufferSub: '自适应实时加密同步',
-  bentoBufferDesc: '2s 动态防抖加密保存与差异化 DEK 密钥轮换，杜绝数据丢失。',
-  bentoBufferTag: '2s 防抖',
+  bentoBufferTitle: '块级增量防抖同步',
+  bentoBufferSub: 'FastCDC 差异化块级同步',
+  bentoBufferDesc: '2s 动态防抖分块增量同步，仅上传差异密文块并提交加密 Manifest 清单，极大节省网络带宽。',
+  bentoBufferTag: '2s 增量防抖',
   
   bentoTypographyTitle: '专业排版与暗黑',
   bentoTypographySub: 'OLED 纯黑暗黑排版',

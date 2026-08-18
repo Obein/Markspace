@@ -30,7 +30,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
   onCreateVault,
 }) => {
   const { t } = useI18n();
-  const { setVaultKey } = useApp();
+  const { setVaultKey, setActiveVaultId } = useApp();
 
   const [step, setStep] = useState<'form' | 'recovery'>('form');
   const [name, setName] = useState('');
@@ -88,6 +88,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
 
   const handleFinish = () => {
     if (createdVault && createdVaultVmk) {
+      setActiveVaultId(createdVault.id);
       setVaultKey(createdVault.id, createdVaultVmk);
     }
     onClose();
