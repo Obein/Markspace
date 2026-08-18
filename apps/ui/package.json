@@ -1,6 +1,7 @@
 {
   "name": "@markspace/ui",
   "version": "1.0.0",
+  "license": "AGPL-3.0",
   "private": true,
   "type": "module",
   "scripts": {
