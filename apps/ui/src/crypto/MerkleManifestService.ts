@@ -49,9 +49,9 @@ export class MerkleManifestService {
     const iv = crypto.getRandomValues(new Uint8Array(12));
 
     const cipherBuffer = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: iv as unknown as BufferSource },
       vmk,
-      plainBuffer
+      plainBuffer as unknown as BufferSource
     );
 
     const combined = new Uint8Array(iv.length + cipherBuffer.byteLength);
@@ -76,9 +76,9 @@ export class MerkleManifestService {
     const cipherData = combined.slice(12);
 
     const plainBuffer = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: iv as unknown as BufferSource },
       vmk,
-      cipherData
+      cipherData as unknown as BufferSource
     );
 
     const jsonStr = new TextDecoder().decode(plainBuffer);

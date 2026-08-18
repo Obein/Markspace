@@ -170,7 +170,7 @@ export const PinUnlockView: React.FC<PinUnlockViewProps> = ({
 
           <div className="flex items-center gap-2">
             <select
-              value={activeVaultId}
+              value={activeVault?.id || activeVaultId}
               onChange={(e) => handleSelectDifferentVault(e.target.value)}
               className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-zinc-900 border border-white/10 text-xs font-mono text-white focus:outline-none focus:border-blue-500/50 transition cursor-pointer"
             >

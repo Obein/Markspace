@@ -16,18 +16,9 @@ function loadVaultsFromStorage(uname: string | null): VaultInfo[] {
   if (!uname) return [];
   try {
     const userSpecific = localStorage.getItem(`markspace_vaults_${uname}`);
-    if (userSpecific) {
+    if (userSpecific !== null) {
       const parsed = JSON.parse(userSpecific);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
-    }
-    // Fallback migration from legacy global key if exists
-    const legacy = localStorage.getItem('markspace_vaults');
-    if (legacy) {
-      const parsed = JSON.parse(legacy);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        localStorage.setItem(`markspace_vaults_${uname}`, JSON.stringify(parsed));
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }
@@ -68,7 +59,7 @@ export function useVaults({
 
   // Keep vaults persisted in localStorage ONLY when active user matches loaded data
   useEffect(() => {
-    if (username && activeUserRef.current === username && vaults.length > 0) {
+    if (username && activeUserRef.current === username) {
       try {
         localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(vaults));
       } catch (_) {}
@@ -187,6 +178,12 @@ export function useVaults({
       const updatedVaults = vaults.filter((v) => v.id !== vaultId);
       setVaults(updatedVaults);
 
+      if (username) {
+        try {
+          localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(updatedVaults));
+        } catch (_) {}
+      }
+
       const nextVaultId = updatedVaults.length > 0 ? (activeVaultId === vaultId ? updatedVaults[0].id : activeVaultId) : '';
       setActiveVaultId(nextVaultId);
       setVaultKey(vaultId, null);
@@ -196,7 +193,7 @@ export function useVaults({
       }
       showToast(t('deleteVault'), 'success');
     },
-    [vaults, activeVaultId, onDeleteVaultNodes, onVaultDeleted, setActiveVaultId, setVaultKey, showToast, t]
+    [vaults, username, activeVaultId, onDeleteVaultNodes, onVaultDeleted, setActiveVaultId, setVaultKey, showToast, t]
   );
 
   return {
