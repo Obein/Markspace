@@ -182,7 +182,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           category={category}
           isFullWidth={isFullWidth}
           onToggleFullWidth={() => setIsFullWidth(!isFullWidth)}
-          showFullWidthToggle={category === 'markdown' && !isSplitView}
+          showFullWidthToggle={category === 'markdown'}
         />
 
         {hasFormattingToolbar && (
@@ -238,7 +238,11 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
         {/* Markdown Dual-Column Split View */}
         {category === 'markdown' && isSplitView && (
-          <div className="flex-1 flex w-full h-full overflow-hidden divide-x divide-black/10 dark:divide-white/10">
+          <div
+            className={`flex-1 flex h-full overflow-hidden divide-x divide-black/10 dark:divide-white/10 transition-all duration-300 ${
+              isFullWidth ? 'w-full px-2 sm:px-4' : 'w-full max-w-7xl mx-auto px-2 sm:px-4'
+            }`}
+          >
             {/* Left Column: Code Editor */}
             <div
               ref={scrollContainerRef}

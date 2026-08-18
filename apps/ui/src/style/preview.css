@@ -270,3 +270,35 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
+
+/* Mermaid Diagrams Typography - Unified Noto Sans across sequenceDiagram, graph TD, flowchart, and all SVG nodes */
+.mermaid,
+.mermaid svg,
+.mermaid-diagram-code,
+.mermaid-diagram-code svg,
+.mermaid-container,
+.mermaid-container svg,
+.mermaid-container svg text,
+.mermaid-container svg tspan,
+.mermaid-container svg foreignObject,
+.mermaid-container svg foreignObject div,
+.mermaid-container svg foreignObject span,
+.mermaid-container .actor,
+.mermaid-container text.actor,
+.mermaid-container .actor-top text,
+.mermaid-container .actor-bottom text,
+.mermaid-container .messageText,
+.mermaid-container text.messageText,
+.mermaid-container .noteText,
+.mermaid-container text.noteText,
+.mermaid-container .labelText,
+.mermaid-container text.labelText,
+.mermaid-container .loopText,
+.mermaid-container text.loopText,
+.mermaid-container .nodeLabel,
+.mermaid-container .edgeLabel,
+.mermaid-container .label,
+.mermaid-container .cluster-label,
+.mermaid-container text {
+  font-family: var(--font-preview-body), 'Noto Sans SC', 'Noto Sans TC', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}

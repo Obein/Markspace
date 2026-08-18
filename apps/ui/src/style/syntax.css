@@ -23,8 +23,15 @@
 .tok-url { color: #93c5fd; }
 .tok-quote { color: #94a3b8; font-style: italic; }
 .tok-monospace { color: #bfdbfe; background: rgba(255, 255, 255, 0.08); border-radius: 0.25rem; }
-.tok-processingInstruction { color: #71717a; }
-.tok-processingInstructionMark { color: #60a5fa; }
+.tok-processingInstruction { color: #60a5fa; font-weight: 700; }
+.tok-processingInstructionMark { color: #60a5fa; font-weight: 700; }
+
+/* Table Delimiter & Header Shared Accent Style */
+.tok-tableDelimiter,
+.tok-tableDelimiter * {
+  color: #60a5fa !important;
+  font-weight: 700 !important;
+}
 
 /* Light Theme Syntax Overrides */
 :root:not(.dark) .tok-keyword, .light .tok-keyword { color: #2563eb; }
@@ -53,3 +60,15 @@
 :root:not(.dark) .tok-url, .light .tok-url { color: #0369a1; }
 :root:not(.dark) .tok-quote, .light .tok-quote { color: #6b7280; font-style: italic; }
 :root:not(.dark) .tok-monospace, .light .tok-monospace { color: #0369a1; background: rgba(0, 0, 0, 0.06); }
+:root:not(.dark) .tok-processingInstruction,
+:root:not(.dark) .tok-processingInstructionMark,
+.light .tok-processingInstruction,
+.light .tok-processingInstructionMark { color: #1d4ed8; font-weight: 700; }
+
+:root:not(.dark) .tok-tableDelimiter,
+:root:not(.dark) .tok-tableDelimiter *,
+.light .tok-tableDelimiter,
+.light .tok-tableDelimiter * {
+  color: #1d4ed8 !important;
+  font-weight: 700 !important;
+}

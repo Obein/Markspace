@@ -7,6 +7,7 @@ import { parser as htmlParser } from '@lezer/html';
 import { parser as cssParser } from '@lezer/css';
 import { Parser } from '@lezer/common';
 import { IHighlightService } from '../interfaces/IHighlightService';
+import { isMarkdownTableSeparator } from '../utils/TableConverter';
 
 export class HighlightService implements IHighlightService {
   private parsers: Record<string, Parser>;
@@ -77,6 +78,10 @@ export class HighlightService implements IHighlightService {
         html += escapeHtml(code.slice(pos));
       }
 
+      if (langKey === 'markdown' || langKey === 'md') {
+        html = enhanceTableSeparatorStyling(html);
+      }
+
       return html;
     } catch (err) {
       console.warn('Syntax highlight failed, falling back to escaped text', err);
@@ -107,12 +112,30 @@ export class HighlightService implements IHighlightService {
       }
 
       const highlightedLines = fullHtml.split('\n');
-      return highlightedLines.map((line) => line || '\u200B');
+      return highlightedLines.map((line) => {
+        const enhanced = enhanceTableSeparatorStyling(line);
+        return enhanced || '\u200B';
+      });
     } catch (err) {
       console.warn('Editor line highlight failed, falling back to raw lines', err);
       return lines.map((l) => escapeHtml(l) || '\u200B');
     }
   }
+}
+
+/**
+ * Ensures table separator rows (|---|---|) in the editor share the exact same styling as table headers.
+ */
+function enhanceTableSeparatorStyling(html: string): string {
+  const lines = html.split('\n');
+  const processed = lines.map((line) => {
+    const textOnly = line.replace(/<[^>]*>/g, '').trim();
+    if (textOnly.length > 0 && textOnly.includes('-') && isMarkdownTableSeparator(textOnly)) {
+      return `<span class="tok-tableDelimiter tok-heading tok-strong">${line}</span>`;
+    }
+    return line;
+  });
+  return processed.join('\n');
 }
 
 function escapeHtml(str: string): string {

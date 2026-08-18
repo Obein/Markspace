@@ -15,13 +15,31 @@ export const VisualTableEditor: React.FC<VisualTableEditorProps> = ({
   const { t } = useI18n();
   const { sheetEngine } = useApp();
 
-  const [headers, setHeaders] = useState<string[]>(initialData.headers || ['Col 1', 'Col 2']);
+  const [headers, setHeaders] = useState<string[]>(
+    initialData.headers && initialData.headers.length > 0
+      ? initialData.headers
+      : ['Header 1', 'Header 2']
+  );
   const [alignments, setAlignments] = useState<TableAlignment[]>(
-    initialData.alignments || ['left', 'left']
+    initialData.alignments && initialData.alignments.length > 0
+      ? initialData.alignments
+      : ['left', 'left']
   );
   const [rows, setRows] = useState<string[][]>(
-    initialData.rows.length > 0 ? initialData.rows : [['', '']]
+    initialData.rows && initialData.rows.length > 0 ? initialData.rows : [['', '']]
   );
+
+  useEffect(() => {
+    if (initialData.headers && initialData.headers.length > 0) {
+      setHeaders(initialData.headers);
+    }
+    if (initialData.alignments && initialData.alignments.length > 0) {
+      setAlignments(initialData.alignments);
+    }
+    if (initialData.rows && initialData.rows.length > 0) {
+      setRows(initialData.rows);
+    }
+  }, [initialData]);
 
   const [selectedCell, setSelectedCell] = useState<SelectedCellCoord | null>({
     r: 0,
