@@ -154,12 +154,17 @@ export const enUS = {
   vaultName: 'Vault Name',
   securityAudit: 'Security Audit Logs',
   auditLogTitle: 'User Activity & Zero-Trust Security Audit Logs',
+  auditLogLimitNotice: 'Auto-pruned to latest 100 entries',
   noAuditLogs: 'No security audit logs recorded yet.',
   authMethod: 'Auth Method',
   ipAddress: 'IP Address',
   timestamp: 'Timestamp',
   status: 'Status',
   action: 'Action',
+  invalidUsernameUnix: 'Username must follow Unix format (5-32 characters, lowercase letters, numbers, _, -, starting with letter or _)',
+  invalidPasswordUnix: 'Password must be between 12 and 128 characters (Unix format, no complexity requirements)',
+  unixPasswordHint: 'Unix format (12-128 chars, no complexity requirements)',
+  idleAccountNotice: '⚠️ Idle Policy: Inactive non-admin accounts (> 1 month) are automatically destroyed. Please backup your data.',
 
   // Status Capsule & Editor
   words: 'Words',

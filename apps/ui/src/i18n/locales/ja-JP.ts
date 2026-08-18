@@ -156,12 +156,17 @@ export const jaJP: typeof enUS = {
   vaultName: '保管庫名',
   securityAudit: 'セキュリティ監査ログ',
   auditLogTitle: 'アクティビティとゼロトラストセキュリティ監査ログ',
+  auditLogLimitNotice: '最新100件まで保持',
   noAuditLogs: '監査ログはまだ記録されていません',
   authMethod: '認証方式',
   ipAddress: 'IPアドレス',
   timestamp: '日時',
   status: 'ステータス',
   action: '操作',
+  invalidUsernameUnix: 'ユーザー名はUnix形式（5-32文字、英小文字、数字、_、-、先頭は英小文字または_）である必要があります',
+  invalidPasswordUnix: 'パスワードは12〜128文字である必要があります（Unix形式、文字種の制限なし）',
+  unixPasswordHint: 'Unix形式（12〜128文字、文字種の強制なし）',
+  idleAccountNotice: '⚠️ アイドル破棄ポリシー：非管理者アカウントが1ヶ月以上アクティブでない場合、自動破棄されます。バックアップをご確認ください。',
 
   // Status Capsule & Editor
   words: '単語数',

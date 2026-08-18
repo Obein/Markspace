@@ -156,12 +156,17 @@ export const zhTW: typeof enUS = {
   vaultName: '庫名稱',
   securityAudit: '安全審計日誌',
   auditLogTitle: '使用者活動與零信任安全審計日誌',
+  auditLogLimitNotice: '最多保留最新 100 條操作記錄',
   noAuditLogs: '暫無安全審計日誌記錄',
   authMethod: '認證方式',
   ipAddress: 'IP 地址',
   timestamp: '時間',
   status: '狀態',
   action: '操作事件',
+  invalidUsernameUnix: '使用者名稱須符合 Unix 規範：5-32 字元，僅限小寫字母、數字、底線與連字號，須以字母或底線開頭',
+  invalidPasswordUnix: '密碼須在 12 到 128 字元之間 (Unix 格式，不限字元成分複雜度)',
+  unixPasswordHint: 'Unix 格式 (12-128 字元，不要求特殊字元複雜度)',
+  idleAccountNotice: '⚠️ 閒置銷毀政策：非管理員帳戶超過 1 個月未在線將自動銷毀清理，請注意備份或自行部署。',
 
   // Status Capsule & Editor
   words: '字數',

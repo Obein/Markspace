@@ -156,12 +156,17 @@ export const deDE: typeof enUS = {
   vaultName: 'Tresorname',
   securityAudit: 'Sicherheits-Audit-Protokolle',
   auditLogTitle: 'Benutzeraktivitäten & Zero-Trust Sicherheits-Audit',
+  auditLogLimitNotice: 'Automatische Begrenzung auf die letzten 100 Einträge',
   noAuditLogs: 'Noch keine Audit-Protokolle aufgezeichnet.',
   authMethod: 'Auth-Methode',
   ipAddress: 'IP-Adresse',
   timestamp: 'Zeitstempel',
   status: 'Status',
   action: 'Aktion',
+  invalidUsernameUnix: 'Benutzername muss dem Unix-Format entsprechen (5-32 Zeichen, Kleinbuchstaben, Zahlen, _, -, beginnend mit Buchstabe oder _)',
+  invalidPasswordUnix: 'Passwort muss zwischen 12 und 128 Zeichen lang sein (Unix-Format, keine Zeichenbeschränkung)',
+  unixPasswordHint: 'Unix-Format (12-128 Zeichen, keine Komplexitätsanforderungen)',
+  idleAccountNotice: '⚠️ Inaktivitätsrichtlinie: Nicht-Admin-Konten (> 1 Monat inaktiv) werden automatisch gelöscht. Bitte Daten sichern.',
 
   // Status Capsule & Editor
   words: 'Wörter',

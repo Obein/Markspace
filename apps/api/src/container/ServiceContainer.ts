@@ -51,7 +51,7 @@ export class ServiceContainer {
     const authService = new AuthService(userRepository, passwordHasher, this.tokenService, this.totpService);
     const noteService = new NoteService(noteRepository, mediaRepository, storageService);
     const mediaService = new MediaService(mediaRepository, storageService);
-    const vaultService = new VaultService(vaultNodeRepository, objectStorageService);
+    const vaultService = new VaultService(vaultNodeRepository, objectStorageService, userRepository);
 
     this.authController = new AuthController(authService, this.nonceService, this.auditLogRepository);
     this.noteController = new NoteController(noteService);
@@ -61,6 +61,6 @@ export class ServiceContainer {
       this.vaultSecurityService,
       this.auditLogRepository
     );
-    this.adminController = new AdminController(userRepository);
+    this.adminController = new AdminController(userRepository, this.auditLogRepository);
   }
 }

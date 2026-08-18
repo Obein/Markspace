@@ -1,8 +1,8 @@
 export type UserRole = 'admin' | 'user';
 
 export interface User {
-  id: string;
-  username: string;
+  id: string; // User UUID
+  username: string; // Unix format
   authTokenHash: string;
   salt: string;
   role: UserRole;
@@ -10,6 +10,26 @@ export interface User {
   isTotpEnabled?: boolean;
   createdAt: number;
   updatedAt: number;
+  lastActiveAt: number;
+  storageQuotaBytes?: number | null;
+}
+
+export interface SystemConfig {
+  defaultStorageQuotaBytes: number;
+  idleDestructionPeriodMs: number;
+  maxAuditLogsPerUser: number;
+}
+
+export interface UserAdminSummary {
+  id: string;
+  username: string;
+  role: UserRole;
+  createdAt: number;
+  updatedAt: number;
+  lastActiveAt: number;
+  usedStorageBytes: number;
+  storageQuotaBytes: number;
+  isCustomQuota: boolean;
 }
 
 export interface AuditLogEntity {
@@ -30,7 +50,12 @@ export interface AuditLogEntity {
     | 'TOTP_ENABLE'
     | 'TOTP_DISABLE'
     | 'SECURITY_NONCE_VIOLATION'
-    | 'DPOP_HANDSHAKE';
+    | 'DPOP_HANDSHAKE'
+    | 'ADMIN_DELETE_USER'
+    | 'ADMIN_UPDATE_ROLE'
+    | 'ADMIN_UPDATE_QUOTA'
+    | 'ADMIN_UPDATE_POLICY'
+    | 'USER_IDLE_DESTROYED';
   authMethod: string;
   ipAddress: string;
   userAgent: string;
@@ -142,4 +167,13 @@ export interface UploadMediaDTO {
 
 export interface UpdateUserRoleDTO {
   role: UserRole;
+}
+
+export interface UpdateUserQuotaDTO {
+  storageQuotaBytes: number | null; // in bytes, null means reset to default
+}
+
+export interface UpdateSystemConfigDTO {
+  defaultStorageQuotaBytes?: number;
+  idleDestructionPeriodMs?: number;
 }

@@ -22,6 +22,8 @@ interface AppContextType {
   setVaultKey: (vaultId: string, key: CryptoKey | null) => void;
   activeVaultId: string;
   setActiveVaultId: (vaultId: string | ((prev: string) => string)) => void;
+  userId: string | null;
+  setUserId: (id: string | null) => void;
   username: string | null;
   setUsername: (name: string | null) => void;
   role: UserRole | null;
@@ -50,6 +52,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeVaultId, setActiveVaultId] = useState<string>('');
   // Zero-Trust: In-memory token only (0 localStorage persistence)
   const [token, setTokenState] = useState<string | null>(null);
+  const [userId, setUserIdState] = useState<string | null>(localStorage.getItem('markspace_user_id'));
   const [username, setUsernameState] = useState<string | null>(localStorage.getItem('markspace_username'));
   const [role, setRoleState] = useState<UserRole | null>(
     (localStorage.getItem('markspace_user_role') as UserRole) || null
@@ -66,8 +69,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .then((session) => {
         if (session) {
           setTokenState(session.accessToken);
+          setUserIdState(session.user.id);
           setUsernameState(session.user.username);
           setRoleState(session.user.role);
+          if (session.user.id) {
+            localStorage.setItem('markspace_user_id', session.user.id);
+          }
           if (session.user.username) {
             localStorage.setItem('markspace_username', session.user.username);
           }
@@ -92,8 +99,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setUnlockedVaultKeys({});
       setActiveVaultId('');
       setTokenState(null);
+      setUserIdState(null);
       setUsernameState(null);
       setRoleState(null);
+      localStorage.removeItem('markspace_user_id');
       localStorage.removeItem('markspace_username');
       localStorage.removeItem('markspace_user_role');
       setSecurityAlert(reason);
@@ -103,6 +112,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const setToken = (newToken: string | null) => {
     setTokenState(newToken);
     apiClient.setToken(newToken || '');
+  };
+
+  const setUserId = (id: string | null) => {
+    setUserIdState(id);
+    if (id) {
+      localStorage.setItem('markspace_user_id', id);
+    } else {
+      localStorage.removeItem('markspace_user_id');
+    }
   };
 
   const setUsername = (name: string | null) => {
@@ -154,6 +172,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUnlockedVaultKeys({});
     setActiveVaultId('');
     setToken(null);
+    setUserId(null);
     setUsername(null);
     setRole(null);
   };
@@ -172,6 +191,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setVaultKey,
     activeVaultId,
     setActiveVaultId,
+    userId,
+    setUserId,
     username,
     setUsername,
     role,

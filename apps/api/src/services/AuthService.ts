@@ -33,8 +33,24 @@ export class AuthService {
     private readonly totpService: TotpService
   ) {}
 
+  /**
+   * Enforces Unix username policy:
+   * 5 to 32 characters, lowercase letters, numbers, underscores, and hyphens, starting with a letter or underscore.
+   */
+  public validateUsername(username: string): string {
+    const trimmed = (username || '').trim().toLowerCase();
+    const unixRegex = /^[a-z_][a-z0-9_-]{4,31}$/;
+    if (!unixRegex.test(trimmed)) {
+      throw new Error(
+        'INVALID_USERNAME: Username must follow Unix format (5-32 chars, lowercase letters, numbers, _, -, starting with letter or _)'
+      );
+    }
+    return trimmed;
+  }
+
   async prelogin(username: string): Promise<PreloginResponseDTO> {
-    const user = await this.userRepository.findByUsername(username);
+    const normalized = (username || '').trim().toLowerCase();
+    const user = await this.userRepository.findByUsername(normalized);
     return {
       exists: Boolean(user),
       isTotpEnabled: Boolean(user?.isTotpEnabled),
@@ -48,15 +64,13 @@ export class AuthService {
     jwtSecret: string,
     dpopJkt?: string
   ): Promise<AuthResult> {
-    if (!dto.username || dto.username.trim().length === 0) {
-      throw new Error('USERNAME_REQUIRED: Username cannot be empty');
-    }
+    const username = this.validateUsername(dto.username);
 
     if (!dto.authToken || dto.authToken.trim().length === 0) {
       throw new Error('AUTH_TOKEN_REQUIRED: Authentication token cannot be empty');
     }
 
-    const exists = await this.userRepository.existsByUsername(dto.username);
+    const exists = await this.userRepository.existsByUsername(username);
     if (exists) {
       throw new Error('USER_EXISTS: Username is already registered');
     }
@@ -71,13 +85,15 @@ export class AuthService {
 
     const user: User = {
       id: userId,
-      username: dto.username,
+      username,
       authTokenHash,
       salt,
       role,
       isTotpEnabled: false,
       createdAt: now,
       updatedAt: now,
+      lastActiveAt: now,
+      storageQuotaBytes: null,
     };
 
     await this.userRepository.create(user);
@@ -113,7 +129,8 @@ export class AuthService {
       throw new Error('INVALID_CREDENTIALS: Username and Auth Token are required');
     }
 
-    const user = await this.userRepository.findByUsername(dto.username);
+    const username = (dto.username || '').trim().toLowerCase();
+    const user = await this.userRepository.findByUsername(username);
     if (!user) {
       throw new Error('INVALID_CREDENTIALS: Invalid username or password');
     }
@@ -135,6 +152,9 @@ export class AuthService {
         throw new Error('INVALID_TOTP: Invalid or expired TOTP code');
       }
     }
+
+    // Update last active timestamp
+    await this.userRepository.updateLastActive(user.id);
 
     const tokenPair = await this.tokenService.issueInitialTokenPair(
       db,
@@ -167,7 +187,8 @@ export class AuthService {
       throw new Error('INVALID_CREDENTIALS: Username and TOTP code are required');
     }
 
-    const user = await this.userRepository.findByUsername(dto.username);
+    const username = (dto.username || '').trim().toLowerCase();
+    const user = await this.userRepository.findByUsername(username);
     if (!user) {
       throw new Error('INVALID_CREDENTIALS: Invalid username or TOTP code');
     }
@@ -181,6 +202,9 @@ export class AuthService {
     if (!isValid) {
       throw new Error('INVALID_TOTP: Invalid or expired TOTP verification code');
     }
+
+    // Update last active timestamp
+    await this.userRepository.updateLastActive(user.id);
 
     const tokenPair = await this.tokenService.issueInitialTokenPair(
       db,
@@ -209,6 +233,10 @@ export class AuthService {
     dpopJkt?: string
   ): Promise<AuthResult> {
     const rotated = await this.tokenService.rotateRefreshToken(db, rawRefreshToken, jwtSecret, dpopJkt);
+
+    // Update last active timestamp
+    await this.userRepository.updateLastActive(rotated.userPayload.userId);
+
     return {
       accessToken: rotated.accessToken,
       refreshToken: rotated.rawRefreshToken,

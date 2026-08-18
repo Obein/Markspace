@@ -77,9 +77,19 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
   // Step 1: Username prelogin check for both Login and Register
   const handleStep1Submit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanUsername = usernameInput.trim();
+    const cleanUsername = usernameInput.trim().toLowerCase();
+    const unixUserRegex = /^[a-z_][a-z0-9_-]{4,31}$/;
+
     if (!cleanUsername) {
       setErrorMsg(t('chooseUsername'));
+      return;
+    }
+
+    if (!unixUserRegex.test(cleanUsername)) {
+      setErrorMsg(
+        t('invalidUsernameUnix') ||
+          'Username must follow Unix format (5-32 characters, lowercase letters, numbers, _, -, starting with letter or _)'
+      );
       return;
     }
 
@@ -132,7 +142,7 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
           setErrorMsg(t('enterTotpCode'));
           return;
         }
-        res = await apiClient.loginPasswordlessTotp(usernameInput.trim(), totpCode.trim());
+        res = await apiClient.loginPasswordlessTotp(usernameInput.trim().toLowerCase(), totpCode.trim());
       } else {
         if (!accountPassword) {
           setErrorMsg(t('enterPassword'));
@@ -143,7 +153,7 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
           'markspace-account-auth-salt'
         );
         res = await apiClient.login(
-          usernameInput.trim(),
+          usernameInput.trim().toLowerCase(),
           authToken,
           isTotpEnabledForUser ? totpCode.trim() : undefined
         );
@@ -162,8 +172,11 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
   // Step 2 Register Submit
   const handleRegisterSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accountPassword) {
-      setErrorMsg(t('enterPassword'));
+    if (!accountPassword || accountPassword.length < 12 || accountPassword.length > 128) {
+      setErrorMsg(
+        t('invalidPasswordUnix') ||
+          'Password must be between 12 and 128 characters (Unix format, no character restrictions)'
+      );
       return;
     }
     if (accountPassword !== confirmPassword) {
@@ -176,11 +189,12 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
       setErrorMsg(null);
       clearSecurityAlert();
 
+      const cleanUsername = usernameInput.trim().toLowerCase();
       const authToken = await cryptoService.deriveAuthToken(
         accountPassword,
         'markspace-account-auth-salt'
       );
-      const res = await apiClient.register(usernameInput.trim(), authToken);
+      const res = await apiClient.register(cleanUsername, authToken);
       setToken(res.accessToken || res.token || '');
       setUsername(res.user.username);
       setRole(res.user.role);

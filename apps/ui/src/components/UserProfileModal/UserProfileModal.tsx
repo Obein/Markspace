@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { X, ShieldCheck, LogOut, Globe, FileText, Loader2, ChevronRight, ChevronDown, Lock } from 'lucide-react';
+import { X, ShieldCheck, LogOut, Globe, FileText, Loader2, ChevronRight, ChevronDown, Lock, Copy, Check } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { LANGUAGE_OPTIONS, Language, useI18n } from '../../i18n/i18nContext';
 import { AuditLogResponse } from '../../interfaces/IApiClient';
 import { TotpSetupSection } from './TotpSetupSection';
+import { AdminManagementSection } from './AdminManagementSection';
 import { UserProfileModalProps } from './UserProfileModal.types';
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
@@ -14,15 +15,23 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   autoLockMinutes = 15,
   onChangeAutoLockMinutes,
 }) => {
-  const { username, role, logoutAccount, apiClient } = useApp();
+  const { userId, username, role, logoutAccount, apiClient } = useApp();
   const { language, setLanguage, t } = useI18n();
 
   const [showAuditLogs, setShowAuditLogs] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLogResponse[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [logsError, setLogsError] = useState<string | null>(null);
+  const [copiedUuid, setCopiedUuid] = useState(false);
 
   if (!isOpen) return null;
+
+  const copyUuid = () => {
+    if (!userId) return;
+    navigator.clipboard.writeText(userId);
+    setCopiedUuid(true);
+    setTimeout(() => setCopiedUuid(false), 2000);
+  };
 
   const handleToggleAuditLogs = async () => {
     const nextState = !showAuditLogs;
@@ -90,21 +99,42 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </button>
 
         {/* User Header */}
-        <div className="mb-6 pb-6 border-b border-white/10">
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-xl font-bold text-white">{username || 'Anonymous'}</h2>
-            {role === 'admin' ? (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center gap-1">
-                <span>SYSTEM ADMIN</span>
-              </span>
-            ) : (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/5 text-zinc-400 border border-white/10">
-                STANDARD USER
-              </span>
-            )}
+        <div className="mb-6 pb-4 border-b border-white/10 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-xl font-bold text-white">{username || 'Anonymous'}</h2>
+              {role === 'admin' ? (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center gap-1">
+                  <span>SYSTEM ADMIN</span>
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/5 text-zinc-400 border border-white/10">
+                  STANDARD USER
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-zinc-400">{t('userProfile')}</p>
           </div>
-          <p className="text-xs text-zinc-400 mt-0.5">{t('userProfile')}</p>
+
+          {/* User UUID Bar */}
+          {userId && (
+            <div className="flex items-center justify-between text-[11px] font-mono bg-black/40 px-3 py-1.5 rounded-xl border border-white/5 text-zinc-400">
+              <span className="truncate max-w-[320px]">UUID: {userId}</span>
+              <button
+                type="button"
+                onClick={copyUuid}
+                className="text-zinc-400 hover:text-white transition cursor-pointer flex items-center gap-1 shrink-0 ml-2"
+                title="Copy User UUID"
+              >
+                {copiedUuid ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                <span className="text-[10px]">{copiedUuid ? 'Copied' : 'Copy'}</span>
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* System Administration Console (Admin Only) */}
+        {role === 'admin' && <AdminManagementSection />}
 
         {/* TOTP Multi-Factor Authentication Management */}
         <div className="mb-4">
@@ -215,7 +245,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           >
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-blue-400" />
-              <span>{t('securityAudit')}</span>
+              <div className="text-left">
+                <span className="block">{t('securityAudit')}</span>
+                <span className="text-[10px] text-zinc-400 font-mono block">
+                  {t('auditLogLimitNotice') || 'Auto-pruned to latest 100 entries'}
+                </span>
+              </div>
             </div>
             <div className="flex items-center gap-1 text-[11px] text-zinc-400 font-mono">
               {showAuditLogs ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}

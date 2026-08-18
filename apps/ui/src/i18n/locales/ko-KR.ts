@@ -156,12 +156,17 @@ export const koKR: typeof enUS = {
   vaultName: '금고 이름',
   securityAudit: '보안 감사 로그',
   auditLogTitle: '사용자 활동 및 제로 트러스트 보안 감사 로그',
+  auditLogLimitNotice: '최신 100개 기록 자동 유지',
   noAuditLogs: '감사 로그 기록이 없습니다',
   authMethod: '인증 방식',
   ipAddress: 'IP 주소',
   timestamp: '시간',
   status: '상태',
   action: '작업',
+  invalidUsernameUnix: '사용자 이름은 Unix 형식(5-32자, 소문자, 숫자, _, -, 첫 글자는 문자 또는 _)이어야 합니다',
+  invalidPasswordUnix: '비밀번호는 12자에서 128자 사이여야 합니다 (Unix 형식, 문자 제한 없음)',
+  unixPasswordHint: 'Unix 형식 (12-128자, 특수문자 복잡도 제한 없음)',
+  idleAccountNotice: '⚠️ 휴면 계정 정책: 1개월 이상 비활성 비관리자 계정은 자동 파기됩니다. 백업을 확인하세요.',
 
   // Status Capsule & Editor
   words: '단어 수',

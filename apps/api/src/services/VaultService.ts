@@ -1,4 +1,5 @@
 import { IObjectStorageService } from '../interfaces/IObjectStorageService';
+import { IUserRepository } from '../interfaces/IUserRepository';
 import {
   CreateVaultNodeDTO,
   IVaultNodeRepository,
@@ -21,10 +22,35 @@ export interface CreateNodeRequest {
 export class VaultService {
   constructor(
     private readonly nodeRepo: IVaultNodeRepository,
-    private readonly objectStorage: IObjectStorageService
+    private readonly objectStorage: IObjectStorageService,
+    private readonly userRepository?: IUserRepository
   ) {}
 
+  private async ensureStorageQuota(userId: string, incomingBytes: number): Promise<void> {
+    if (!this.userRepository || incomingBytes <= 0) return;
+    const user = await this.userRepository.findById(userId);
+    if (user?.role === 'admin') return; // Admins are exempt from default quota
+
+    const systemConfig = await this.userRepository.getSystemConfig();
+    const quota = user?.storageQuotaBytes ?? systemConfig.defaultStorageQuotaBytes;
+    const currentUsage = await this.userRepository.getUserStorageUsage(userId);
+
+    if (currentUsage + incomingBytes > quota) {
+      const quotaMb = (quota / (1024 * 1024)).toFixed(1);
+      const usedMb = (currentUsage / (1024 * 1024)).toFixed(1);
+      const error: any = new Error(
+        `STORAGE_QUOTA_EXCEEDED: Storage quota exceeded (${usedMb}MB / ${quotaMb}MB). Please clean up data or ask an administrator to expand your quota.`
+      );
+      error.status = 413;
+      error.code = 'STORAGE_QUOTA_EXCEEDED';
+      throw error;
+    }
+  }
+
   public async getTree(userId: string): Promise<VaultNodeEntity[]> {
+    if (this.userRepository) {
+      await this.userRepository.updateLastActive(userId);
+    }
     return this.nodeRepo.listNodesByUser(userId);
   }
 
@@ -57,6 +83,7 @@ export class VaultService {
         size = blob.byteLength;
       }
 
+      await this.ensureStorageQuota(userId, size);
       await this.objectStorage.putObject(objectKey, blob, req.mimeType || 'application/octet-stream');
     }
 
@@ -74,7 +101,11 @@ export class VaultService {
       objectKey,
     };
 
-    return this.nodeRepo.createNode(dto);
+    const node = await this.nodeRepo.createNode(dto);
+    if (this.userRepository) {
+      await this.userRepository.updateLastActive(userId);
+    }
+    return node;
   }
 
   public async getNode(userId: string, nodeId: string): Promise<VaultNodeEntity> {
@@ -116,6 +147,10 @@ export class VaultService {
 
     const arrayBuf = await this.bodyToArrayBuffer(obj.body);
 
+    if (this.userRepository) {
+      await this.userRepository.updateLastActive(userId);
+    }
+
     return {
       node,
       body: arrayBuf,
@@ -142,6 +177,10 @@ export class VaultService {
       size = contentBlob.byteLength;
     }
 
+    // Delta size quota check
+    const deltaBytes = Math.max(0, size - node.size);
+    await this.ensureStorageQuota(userId, deltaBytes);
+
     const contentType = mimeType || node.mimeType;
     await this.objectStorage.putObject(node.objectKey, contentBlob, contentType);
 
@@ -151,6 +190,10 @@ export class VaultService {
     });
     if (!updated) {
       throw new Error('INTERNAL_ERROR: Failed to update node metadata size');
+    }
+
+    if (this.userRepository) {
+      await this.userRepository.updateLastActive(userId);
     }
 
     return updated;
@@ -223,8 +266,8 @@ export class VaultService {
     if (node.isDirectory) {
       const deletedNodes = await this.nodeRepo.deleteDirectoryTree(userId, node.path);
       const objectKeysToDelete = deletedNodes
-        .map((n) => n.objectKey)
-        .filter((k): k is string => Boolean(k));
+        .filter((n) => !n.isDirectory && n.objectKey)
+        .map((n) => n.objectKey as string);
 
       if (objectKeysToDelete.length > 0) {
         await this.objectStorage.deleteObjects(objectKeysToDelete);
@@ -238,19 +281,18 @@ export class VaultService {
   }
 
   public async moveNode(userId: string, nodeId: string, newPath: string): Promise<VaultNodeEntity> {
-    const currentNode = await this.getNode(userId, nodeId);
     const normalizedNewPath = this.normalizePath(newPath);
     const newParentPath = this.getParentPath(normalizedNewPath);
-    const newName = this.getFileName(normalizedNewPath);
+    const newName = this.getNodeName(normalizedNewPath);
 
-    if (currentNode.path === normalizedNewPath) {
-      return currentNode;
+    const existingTarget = await this.nodeRepo.getNodeByPath(userId, normalizedNewPath);
+    if (existingTarget && existingTarget.id !== nodeId) {
+      throw new Error(`CONFLICT: Target path ${normalizedNewPath} already exists`);
     }
 
-    const existing = await this.nodeRepo.getNodeByPath(userId, normalizedNewPath);
-    if (existing && existing.id !== nodeId) {
-      throw new Error(`CONFLICT: Node already exists at path ${normalizedNewPath}`);
-    }
+    const node = await this.getNode(userId, nodeId);
+    const oldDirPath = node.path;
+    const wasDirectory = node.isDirectory;
 
     const updated = await this.nodeRepo.updateNode(userId, nodeId, {
       path: normalizedNewPath,
@@ -259,13 +301,11 @@ export class VaultService {
     });
 
     if (!updated) {
-      throw new Error('INTERNAL_ERROR: Failed to move node path');
+      throw new Error('INTERNAL_ERROR: Failed to move node');
     }
 
-    if (currentNode.isDirectory) {
-      const oldDirPath = currentNode.path;
+    if (wasDirectory) {
       const allUserNodes = await this.nodeRepo.listNodesByUser(userId);
-
       for (const child of allUserNodes) {
         if (child.path.startsWith(`${oldDirPath}/`)) {
           const childSuffix = child.path.substring(oldDirPath.length);
@@ -288,6 +328,7 @@ export class VaultService {
   }
 
   public async putChunk(userId: string, chunkId: string, chunkData: ArrayBuffer): Promise<void> {
+    await this.ensureStorageQuota(userId, chunkData.byteLength);
     const objectKey = `vaults/${userId}/chunks/${chunkId}`;
     await this.objectStorage.putObject(objectKey, chunkData, 'application/octet-stream');
     await this.nodeRepo.recordChunk(userId, chunkId, chunkData.byteLength);
@@ -349,7 +390,12 @@ export class VaultService {
     missingChunkIds?: string[];
     manifest?: VaultManifestEntity;
   }> {
-    await this.getNode(userId, nodeId);
+    const node = await this.getNode(userId, nodeId);
+
+    // Calculate total incoming byte payload for quota enforcement
+    const incomingChunksBytes = incomingChunks.reduce((acc, c) => acc + c.data.byteLength, 0);
+    const deltaBytes = Math.max(0, meta.plainSize - node.size) + incomingChunksBytes;
+    await this.ensureStorageQuota(userId, deltaBytes);
 
     // 1. First, persist all incoming delta chunk binary blobs into R2
     await Promise.all(
@@ -380,6 +426,10 @@ export class VaultService {
       allRequiredChunkIds: meta.chunkIds,
     });
 
+    if (this.userRepository) {
+      await this.userRepository.updateLastActive(userId);
+    }
+
     return commitResult;
   }
 
@@ -392,25 +442,28 @@ export class VaultService {
     return this.bodyToArrayBuffer(obj.body);
   }
 
-  public async getNodeManifestHistory(userId: string, nodeId: string): Promise<any[]> {
+  public async getNodeManifestHistory(
+    userId: string,
+    nodeId: string
+  ): Promise<VaultManifestEntity[]> {
     await this.getNode(userId, nodeId);
     return this.nodeRepo.listManifestsByNode(userId, nodeId);
   }
 
-  private normalizePath(pathStr: string): string {
-    const cleaned = pathStr.replace(/\\/g, '/').replace(/\/+/g, '/');
-    return cleaned.startsWith('/') ? cleaned : '/' + cleaned;
+  private normalizePath(path: string): string {
+    const trimmed = path.trim().replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
+    return trimmed;
   }
 
-  private getParentPath(pathStr: string): string {
-    const lastSlash = pathStr.lastIndexOf('/');
-    if (lastSlash <= 0) return '/';
-    return pathStr.substring(0, lastSlash);
+  private getParentPath(normalizedPath: string): string {
+    const lastSlashIndex = normalizedPath.lastIndexOf('/');
+    if (lastSlashIndex === -1) return '';
+    return normalizedPath.substring(0, lastSlashIndex);
   }
 
-  private getFileName(pathStr: string): string {
-    const lastSlash = pathStr.lastIndexOf('/');
-    if (lastSlash < 0) return pathStr;
-    return pathStr.substring(lastSlash + 1);
+  private getNodeName(normalizedPath: string): string {
+    const lastSlashIndex = normalizedPath.lastIndexOf('/');
+    if (lastSlashIndex === -1) return normalizedPath;
+    return normalizedPath.substring(lastSlashIndex + 1);
   }
 }

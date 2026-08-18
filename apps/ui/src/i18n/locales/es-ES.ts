@@ -156,12 +156,17 @@ export const esES: typeof enUS = {
   vaultName: 'Nombre de la Bóveda',
   securityAudit: 'Auditoría de Seguridad',
   auditLogTitle: 'Registro de Auditoría de Seguridad y Zero-Trust',
+  auditLogLimitNotice: 'Limitado automáticamente a las últimas 100 entradas',
   noAuditLogs: 'Aún no hay registros de auditoría.',
   authMethod: 'Método de Autenticación',
   ipAddress: 'Dirección IP',
   timestamp: 'Fecha y Hora',
   status: 'Estado',
   action: 'Acción',
+  invalidUsernameUnix: 'El nombre de usuario debe seguir el formato Unix (5-32 caracteres, minúsculas, números, _, -, comenzando con letra o _)',
+  invalidPasswordUnix: 'La contraseña debe tener entre 12 y 128 caracteres (formato Unix, sin restricción de tipo de caracteres)',
+  unixPasswordHint: 'Formato Unix (12-128 caracteres, sin requisitos de complejidad)',
+  idleAccountNotice: '⚠️ Política de inactividad: Cuentas no administradoras inactivas (> 1 mes) se eliminan automáticamente. Respalde sus datos.',
 
   // Status Capsule & Editor
   words: 'Palabras',

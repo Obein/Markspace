@@ -169,8 +169,23 @@ export class Router {
     this.addRoute('GET', '/api/v1/admin/users', true, true, (container, ctx) =>
       container.adminController.listUsers(ctx)
     );
+    this.addRoute('DELETE', '/api/v1/admin/users/:id', true, true, (container, ctx) =>
+      container.adminController.deleteUser(ctx)
+    );
     this.addRoute('PUT', '/api/v1/admin/users/:id/role', true, true, (container, ctx) =>
       container.adminController.updateUserRole(ctx)
+    );
+    this.addRoute('PUT', '/api/v1/admin/users/:id/quota', true, true, (container, ctx) =>
+      container.adminController.updateUserQuota(ctx)
+    );
+    this.addRoute('GET', '/api/v1/admin/settings', true, true, (container, ctx) =>
+      container.adminController.getSystemSettings(ctx)
+    );
+    this.addRoute('PUT', '/api/v1/admin/settings', true, true, (container, ctx) =>
+      container.adminController.updateSystemSettings(ctx)
+    );
+    this.addRoute('POST', '/api/v1/admin/maintenance/cleanup-idle-users', true, true, (container, ctx) =>
+      container.adminController.cleanupIdleUsers(ctx)
     );
   }
 

@@ -6,11 +6,29 @@ export interface AuthResponse {
   accessToken: string;
   expiresIn: number;
   user: {
-    id: string;
-    username: string;
+    id: string; // User UUID
+    username: string; // Unix format
     role: UserRole;
   };
   token?: string; // Backward compatibility alias
+}
+
+export interface UserAdminSummary {
+  id: string;
+  username: string;
+  role: UserRole;
+  createdAt: number;
+  updatedAt: number;
+  lastActiveAt: number;
+  usedStorageBytes: number;
+  storageQuotaBytes: number;
+  isCustomQuota: boolean;
+}
+
+export interface SystemConfig {
+  defaultStorageQuotaBytes: number;
+  idleDestructionPeriodMs: number;
+  maxAuditLogsPerUser: number;
 }
 
 export interface AuditLogResponse {
@@ -31,7 +49,12 @@ export interface AuditLogResponse {
     | 'TOTP_ENABLE'
     | 'TOTP_DISABLE'
     | 'SECURITY_NONCE_VIOLATION'
-    | 'DPOP_HANDSHAKE';
+    | 'DPOP_HANDSHAKE'
+    | 'ADMIN_DELETE_USER'
+    | 'ADMIN_UPDATE_ROLE'
+    | 'ADMIN_UPDATE_QUOTA'
+    | 'ADMIN_UPDATE_POLICY'
+    | 'USER_IDLE_DESTROYED';
   authMethod: string;
   ipAddress: string;
   userAgent: string;
@@ -151,10 +174,19 @@ export interface IApiClient {
   fetchManifest(manifestId: string): Promise<ArrayBuffer>;
   getManifestHistory(nodeId: string): Promise<any[]>;
 
-  // Git Version Control API
+  // Version Control API
   getNodeHistory(id: string): Promise<NodeVersionResponse[]>;
   getVersionContent(id: string, timestamp: number): Promise<{ body: ArrayBuffer; encryptedDek: string; commitHash: string }>;
   revertNodeVersion(id: string, timestamp: number): Promise<VaultNodeResponse>;
+
+  // Admin Management Endpoints
+  adminListUsers(): Promise<UserAdminSummary[]>;
+  adminDeleteUser(id: string): Promise<{ message: string }>;
+  adminUpdateUserRole(id: string, role: UserRole): Promise<{ message: string }>;
+  adminUpdateUserQuota(id: string, quotaBytes: number | null): Promise<{ message: string; storageQuotaBytes: number | null }>;
+  adminGetSystemSettings(): Promise<SystemConfig>;
+  adminUpdateSystemSettings(settings: Partial<SystemConfig>): Promise<SystemConfig>;
+  adminCleanupIdleUsers(): Promise<{ destroyedCount: number; destroyedUsernames: string[]; message: string }>;
 
   // Legacy Notes API
   getNotesList(): Promise<NoteMetadataItem[]>;

@@ -156,12 +156,17 @@ export const viVN: typeof enUS = {
   vaultName: 'Tên Kho',
   securityAudit: 'Nhật Ký Kiểm Toán An Ninh',
   auditLogTitle: 'Nhật Ký Hoạt Động & Kiểm Toán An Ninh Zero-Trust',
+  auditLogLimitNotice: 'Tự động lưu tối đa 100 bản ghi mới nhất',
   noAuditLogs: 'Chưa có nhật ký kiểm toán nào.',
   authMethod: 'Phương Thức Xác Thực',
   ipAddress: 'Địa Chỉ IP',
   timestamp: 'Thời Gian',
   status: 'Trạng Thái',
   action: 'Hành Động',
+  invalidUsernameUnix: 'Tên người dùng phải theo định dạng Unix (5-32 ký tự, chữ thường, số, _, -, bắt đầu bằng chữ cái hoặc _)',
+  invalidPasswordUnix: 'Mật khẩu phải từ 12 đến 128 ký tự (định dạng Unix, không giới hạn loại ký tự)',
+  unixPasswordHint: 'Định dạng Unix (12-128 ký tự, không bắt buộc độ phức tạp)',
+  idleAccountNotice: '⚠️ Chính sách tài khoản không hoạt động: Tài khoản người dùng (> 1 tháng không online) sẽ tự động bị hủy. Vui lòng sao lưu dữ liệu.',
 
   // Status Capsule & Editor
   words: 'Số Từ',

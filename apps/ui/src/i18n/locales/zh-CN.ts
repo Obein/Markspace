@@ -156,12 +156,17 @@ export const zhCN: typeof enUS = {
   vaultName: '库名称',
   securityAudit: '安全审计日志',
   auditLogTitle: '用户活动与零信任安全审计日志',
+  auditLogLimitNotice: '最多保留最新 100 条操作记录',
   noAuditLogs: '暂无安全审计日志记录',
   authMethod: '认证方式',
   ipAddress: 'IP 地址',
   timestamp: '时间',
   status: '状态',
   action: '操作事件',
+  invalidUsernameUnix: '用户名须符合 Unix 规范：5-32 字符，仅限小写字母、数字、下划线与短横线，须以字母或下划线开头',
+  invalidPasswordUnix: '密码须在 12 到 128 字符之间 (Unix 格式，不限字符成分复杂度)',
+  unixPasswordHint: 'Unix 格式 (12-128 字符，不要求特殊字符复杂度)',
+  idleAccountNotice: '⚠️ 闲置销毁政策：非管理员账户超过 1 个月未在线将自动销毁清理，请注意备份或自行部署。',
 
   // Status Capsule & Editor
   words: '字数',
