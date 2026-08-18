@@ -106,7 +106,8 @@ export class VaultService {
         createdNode,
         req.contentBlob !== undefined ? req.contentBlob : '',
         req.encryptedDek,
-        'Create'
+        'Create',
+        true
       );
     }
 
@@ -203,12 +204,15 @@ export class VaultService {
     return updated;
   }
 
+  private static readonly GIT_COMMIT_MIN_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes debounce window
+
   private async recordVersionSnapshot(
     userId: string,
     node: VaultNodeEntity,
     contentBlob: ArrayBuffer | Uint8Array | string,
     encryptedDek: string,
-    commitMessage: string
+    commitMessage: string,
+    force: boolean = false
   ): Promise<void> {
     const timestamp = Date.now();
     const versionId = `ver_${crypto.randomUUID()}`;
@@ -242,10 +246,21 @@ export class VaultService {
     const objectRest = commitHash.substring(2);
     const gitObjectKey = `vaults/${userId}/.git/objects/${objectPrefix}/${objectRest}`;
 
-    // Git Clean Working Tree Check: If the latest version commit hash matches, skip duplicate commit
+    // Check existing versions for clean tree and 10-minute debounce window
     const existingVersions = await this.nodeRepo.listVersionsByNode(userId, node.id);
-    if (existingVersions.length > 0 && existingVersions[0].commitHash === commitHash) {
-      return;
+    if (existingVersions.length > 0) {
+      // 1. Clean Working Tree Check: If the latest version commit hash matches, skip duplicate commit
+      if (existingVersions[0].commitHash === commitHash) {
+        return;
+      }
+
+      // 2. Minimum 10-minute Debounce Window for automatic updates (unless forced)
+      if (!force) {
+        const lastCommitTime = existingVersions[0].timestamp;
+        if (timestamp - lastCommitTime < VaultService.GIT_COMMIT_MIN_INTERVAL_MS) {
+          return;
+        }
+      }
     }
 
     // Save encrypted blob as standard Git Object in R2 Object Storage
@@ -341,7 +356,8 @@ export class VaultService {
       updatedNode,
       arrayBuf,
       version.encryptedDek,
-      `Revert to ${version.commitHash.substring(0, 7)}`
+      `Revert to ${version.commitHash.substring(0, 7)}`,
+      true
     );
 
     return updatedNode;
