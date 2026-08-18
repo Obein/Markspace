@@ -97,4 +97,31 @@ export class ChunkLocalCache {
     );
     return results;
   }
+
+  // --- Fast In-Memory Presence Tracking for 1-Step Bundle Sync ---
+  private static knownUploadedChunkIds = new Set<string>();
+
+  public static isChunkUploaded(chunkId: string): boolean {
+    return this.knownUploadedChunkIds.has(chunkId);
+  }
+
+  public static markChunkUploaded(chunkId: string): void {
+    this.knownUploadedChunkIds.add(chunkId);
+  }
+
+  public static markChunksUploaded(chunkIds: string[]): void {
+    for (const id of chunkIds) {
+      this.knownUploadedChunkIds.add(id);
+    }
+  }
+
+  public static clearUploadedChunk(chunkId: string): void {
+    this.knownUploadedChunkIds.delete(chunkId);
+  }
+
+  public static clearUploadedChunks(chunkIds: string[]): void {
+    for (const id of chunkIds) {
+      this.knownUploadedChunkIds.delete(id);
+    }
+  }
 }

@@ -434,6 +434,97 @@ export class VaultController {
     );
   }
 
+  public async commitSyncBundle(ctx: RequestContext): Promise<Response> {
+    const userId = ctx.user!.userId;
+    const contentType = ctx.request.headers.get('content-type') || '';
+    if (!contentType.includes('multipart/form-data')) {
+      throw new Error('BAD_REQUEST: Expected multipart/form-data content-type');
+    }
+
+    const formData = await ctx.request.formData();
+    const metaStr = formData.get('meta');
+    if (!metaStr || typeof metaStr !== 'string') {
+      throw new Error('BAD_REQUEST: Missing meta JSON field in form-data');
+    }
+
+    const meta = JSON.parse(metaStr);
+    const { nodeId, manifestId, parentManifestId, plainSize, cipherSize, commitMessage, chunkIds } = meta;
+
+    if (!nodeId || !manifestId || !Array.isArray(chunkIds)) {
+      throw new Error('BAD_REQUEST: Invalid bundle metadata: missing nodeId, manifestId, or chunkIds');
+    }
+
+    const manifestEntry = formData.get('manifest');
+    if (!manifestEntry || typeof manifestEntry === 'string' || !('arrayBuffer' in manifestEntry)) {
+      throw new Error('BAD_REQUEST: Missing encrypted manifest file in form-data');
+    }
+
+    const encryptedManifest = await (manifestEntry as Blob).arrayBuffer();
+
+    // Extract all delta chunks from formData (keys matching `chunk_<chunkId>`)
+    const incomingChunks: { id: string; data: ArrayBuffer }[] = [];
+    for (const [key, value] of formData.entries()) {
+      if (key.startsWith('chunk_') && typeof value !== 'string' && 'arrayBuffer' in value) {
+        const chunkId = key.substring('chunk_'.length);
+        const chunkBuffer = await (value as Blob).arrayBuffer();
+        incomingChunks.push({
+          id: chunkId,
+          data: chunkBuffer,
+        });
+      }
+    }
+
+    const result = await this.vaultService.commitSyncBundle(
+      userId,
+      nodeId,
+      manifestId,
+      encryptedManifest,
+      {
+        parentManifestId,
+        plainSize: Number(plainSize) || 0,
+        cipherSize: Number(cipherSize) || encryptedManifest.byteLength,
+        commitMessage,
+        chunkIds,
+      },
+      incomingChunks
+    );
+
+    if (!result.success && result.missingChunkIds && result.missingChunkIds.length > 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: {
+            code: 'CHUNKS_MISSING',
+            message: 'Integrity barrier: Missing referenced chunks in storage',
+            missingChunkIds: result.missingChunkIds,
+          },
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 409,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        data: {
+          manifestId,
+          nodeId,
+          uploadedChunksCount: incomingChunks.length,
+          manifest: result.manifest,
+        },
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+
   public async getManifest(ctx: RequestContext): Promise<Response> {
     const userId = ctx.user!.userId;
     const manifestId = ctx.params.id;

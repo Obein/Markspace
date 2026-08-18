@@ -131,6 +131,13 @@ export interface IApiClient {
       commitMessage?: string;
     }
   ): Promise<void>;
+  commitSyncBundle(formData: FormData): Promise<{
+    success: boolean;
+    manifestId?: string;
+    nodeId?: string;
+    uploadedChunksCount?: number;
+    missingChunkIds?: string[];
+  }>;
   fetchManifest(manifestId: string): Promise<ArrayBuffer>;
   getManifestHistory(nodeId: string): Promise<any[]>;
 

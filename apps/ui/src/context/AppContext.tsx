@@ -21,7 +21,7 @@ interface AppContextType {
   unlockedVaultKeys: Record<string, CryptoKey>;
   setVaultKey: (vaultId: string, key: CryptoKey | null) => void;
   activeVaultId: string;
-  setActiveVaultId: (vaultId: string) => void;
+  setActiveVaultId: (vaultId: string | ((prev: string) => string)) => void;
   username: string | null;
   setUsername: (name: string | null) => void;
   role: UserRole | null;

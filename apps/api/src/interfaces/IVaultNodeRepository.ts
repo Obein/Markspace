@@ -107,4 +107,15 @@ export interface IVaultNodeRepository {
   listManifestsByNode(userId: string, nodeId: string): Promise<VaultManifestEntity[]>;
   getManifestById(userId: string, manifestId: string): Promise<VaultManifestEntity | null>;
   updateNodeActiveManifest(userId: string, nodeId: string, manifestId: string, plainSize: number): Promise<void>;
+  commitBundle(params: {
+    userId: string;
+    nodeId: string;
+    manifestDto: CreateVaultManifestDTO;
+    incomingChunks: { id: string; size: number }[];
+    allRequiredChunkIds: string[];
+  }): Promise<{
+    missingChunkIds: string[];
+    success: boolean;
+    manifest?: VaultManifestEntity;
+  }>;
 }

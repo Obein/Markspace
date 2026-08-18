@@ -137,6 +137,9 @@ export class Router {
     this.addRoute('POST', '/api/v1/vault/manifests/commit', true, false, (container, ctx) =>
       container.vaultController.commitManifest(ctx)
     );
+    this.addRoute('POST', '/api/v1/vault/sync/commit-bundle', true, false, (container, ctx) =>
+      container.vaultController.commitSyncBundle(ctx)
+    );
     this.addRoute('GET', '/api/v1/vault/manifests/:id', true, false, (container, ctx) =>
       container.vaultController.getManifest(ctx)
     );

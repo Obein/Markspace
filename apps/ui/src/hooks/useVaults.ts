@@ -49,13 +49,16 @@ export function useVaults({
     const loaded = loadVaultsFromStorage(username);
     setVaults(loaded);
     if (loaded.length > 0) {
-      if (!activeVaultId || !loaded.some((v) => v.id === activeVaultId)) {
-        setActiveVaultId(loaded[0].id);
-      }
+      setActiveVaultId((prevActive: string) => {
+        if (!prevActive || !loaded.some((v) => v.id === prevActive)) {
+          return loaded[0].id;
+        }
+        return prevActive;
+      });
     } else {
       setActiveVaultId('');
     }
-  }, [username, activeVaultId, setActiveVaultId]);
+  }, [username, setActiveVaultId]);
 
   // Keep vaults persisted in localStorage ONLY when active user matches loaded data
   useEffect(() => {
@@ -104,7 +107,16 @@ export function useVaults({
         createdAt: Date.now(),
       };
 
-      setVaults((prev) => [...prev, newVault]);
+      setVaults((prev) => {
+        const next = [...prev, newVault];
+        if (username) {
+          try {
+            localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(next));
+          } catch (_) {}
+        }
+        return next;
+      });
+
       if (!activeVaultId) {
         setActiveVaultId(newVault.id);
       }
@@ -113,7 +125,7 @@ export function useVaults({
 
       return { vault: newVault, recoveryKey, vmk };
     },
-    [activeVaultId, apiClient, cryptoService, setActiveVaultId, showToast, t]
+    [activeVaultId, apiClient, cryptoService, setActiveVaultId, showToast, t, username]
   );
 
   const handleResetVaultPin = useCallback(
@@ -183,6 +195,7 @@ export function useVaults({
       if (username) {
         try {
           localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(updatedVaults));
+          localStorage.removeItem(`markspace_lockout_${username}_${vaultId}`);
         } catch (_) {}
       }
 

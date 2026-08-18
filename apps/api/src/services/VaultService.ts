@@ -4,6 +4,7 @@ import {
   IVaultNodeRepository,
   VaultNodeEntity,
   VaultNodeVersionEntity,
+  VaultManifestEntity,
 } from '../interfaces/IVaultNodeRepository';
 
 export interface CreateNodeRequest {
@@ -475,6 +476,58 @@ export class VaultService {
     });
 
     await this.nodeRepo.updateNodeActiveManifest(userId, nodeId, manifestId, meta.plainSize);
+  }
+
+  public async commitSyncBundle(
+    userId: string,
+    nodeId: string,
+    manifestId: string,
+    encryptedManifest: ArrayBuffer,
+    meta: {
+      parentManifestId?: string;
+      plainSize: number;
+      cipherSize: number;
+      commitMessage?: string;
+      chunkIds: string[];
+    },
+    incomingChunks: { id: string; data: ArrayBuffer }[]
+  ): Promise<{
+    success: boolean;
+    missingChunkIds?: string[];
+    manifest?: VaultManifestEntity;
+  }> {
+    await this.getNode(userId, nodeId);
+
+    // 1. First, persist all incoming delta chunk binary blobs into R2
+    await Promise.all(
+      incomingChunks.map(async (chunk) => {
+        const objectKey = `vaults/${userId}/chunks/${chunk.id}`;
+        await this.objectStorage.putObject(objectKey, chunk.data, 'application/octet-stream');
+      })
+    );
+
+    // 2. Persist encrypted manifest binary into R2
+    const manifestObjectKey = `vaults/${userId}/manifests/${manifestId}`;
+    await this.objectStorage.putObject(manifestObjectKey, encryptedManifest, 'application/octet-stream');
+
+    // 3. Execute DB atomic transaction and integrity barrier
+    const commitResult = await this.nodeRepo.commitBundle({
+      userId,
+      nodeId,
+      manifestDto: {
+        id: manifestId,
+        nodeId,
+        userId,
+        parentManifestId: meta.parentManifestId,
+        plainSize: meta.plainSize,
+        cipherSize: meta.cipherSize,
+        commitMessage: meta.commitMessage,
+      },
+      incomingChunks: incomingChunks.map((c) => ({ id: c.id, size: c.data.byteLength })),
+      allRequiredChunkIds: meta.chunkIds,
+    });
+
+    return commitResult;
   }
 
   public async getManifest(userId: string, manifestId: string): Promise<ArrayBuffer> {

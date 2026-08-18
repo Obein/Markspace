@@ -64,26 +64,7 @@ export class ChunkSyncService {
       await ChunkLocalCache.setChunk(pc.chunkId, slices[i].data);
     }
 
-    // 3. Differential detection: query server for missing chunks
-    const missingChunkIds = await apiClient.checkMissingChunks(chunkIds);
-    let uploadedBytes = 0;
-
-    // 4. Concurrently upload only missing chunks (max 6 concurrent)
-    const concurrency = 6;
-    for (let i = 0; i < missingChunkIds.length; i += concurrency) {
-      const batch = missingChunkIds.slice(i, i + concurrency);
-      await Promise.all(
-        batch.map(async (missingId) => {
-          const chunk = chunkMap.get(missingId);
-          if (chunk) {
-            await apiClient.uploadChunk(missingId, chunk.cipherData);
-            uploadedBytes += chunk.cipherSize;
-          }
-        })
-      );
-    }
-
-    // 5. Construct Merkle Manifest
+    // 3. Construct Merkle Manifest
     const chunkRefs: FileManifestChunkRef[] = processedChunks.map((c) => ({
       chunkId: c.chunkId,
       plainSize: c.plainSize,
@@ -111,22 +92,83 @@ export class ChunkSyncService {
       commitMessage,
     };
 
-    // 6. Encrypt and commit Manifest to backend
+    // 4. Encrypt Manifest
     const encryptedManifest = await MerkleManifestService.encryptManifest(manifest, vmk);
-    await apiClient.commitManifest(manifestId, nodeId, encryptedManifest, {
-      parentManifestId,
-      plainSize: totalPlainSize,
-      cipherSize: totalCipherSize,
-      commitMessage,
-    });
+
+    // 5. Assemble Atomic 1-Step Commit Bundle (Only 1 HTTP Request during save)
+    const buildBundleFormData = (
+      forceIncludeChunkIds?: Set<string>
+    ): { formData: FormData; deltaBytes: number; deltaCount: number } => {
+      const formData = new FormData();
+      const meta = {
+        nodeId,
+        manifestId,
+        parentManifestId,
+        plainSize: totalPlainSize,
+        cipherSize: totalCipherSize,
+        commitMessage,
+        chunkIds,
+      };
+
+      formData.append('meta', JSON.stringify(meta));
+      formData.append(
+        'manifest',
+        new Blob([encryptedManifest as BlobPart], { type: 'application/octet-stream' }),
+        manifestId
+      );
+
+      let deltaBytes = 0;
+      let deltaCount = 0;
+
+      for (const pc of processedChunks) {
+        const isUnknown = !ChunkLocalCache.isChunkUploaded(pc.chunkId);
+        const isForced = forceIncludeChunkIds?.has(pc.chunkId);
+
+        if (isUnknown || isForced) {
+          formData.append(
+            `chunk_${pc.chunkId}`,
+            new Blob([pc.cipherData as BlobPart], { type: 'application/octet-stream' }),
+            pc.chunkId
+          );
+          deltaBytes += pc.cipherSize;
+          deltaCount++;
+        }
+      }
+
+      return { formData, deltaBytes, deltaCount };
+    };
+
+    // 6. Send Atomic 1-Step Bundle (1 Request)
+    let bundle = buildBundleFormData();
+    let commitRes = await apiClient.commitSyncBundle(bundle.formData);
+
+    // 7. Self-Healing Loop: In case server integrity barrier detected missing chunks
+    if (!commitRes.success && commitRes.missingChunkIds && commitRes.missingChunkIds.length > 0) {
+      ChunkLocalCache.clearUploadedChunks(commitRes.missingChunkIds);
+      const forcedSet = new Set(commitRes.missingChunkIds);
+
+      bundle = buildBundleFormData(forcedSet);
+      commitRes = await apiClient.commitSyncBundle(bundle.formData);
+
+      if (!commitRes.success) {
+        throw new Error(
+          'Differential sync failed after self-healing retry: missing chunks could not be reconciled'
+        );
+      }
+    }
+
+    // 8. On success: Mark all chunks as confirmed uploaded in presence cache
+    ChunkLocalCache.markChunksUploaded(chunkIds);
+
+    const uploadedCount = commitRes.uploadedChunksCount ?? bundle.deltaCount;
 
     return {
       manifest,
-      uploadedChunksCount: missingChunkIds.length,
-      reusedChunksCount: chunkIds.length - missingChunkIds.length,
+      uploadedChunksCount: uploadedCount,
+      reusedChunksCount: chunkIds.length - uploadedCount,
       totalChunksCount: chunkIds.length,
       totalPlainSize,
-      uploadedBytes,
+      uploadedBytes: bundle.deltaBytes,
     };
   }
 

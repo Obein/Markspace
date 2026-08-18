@@ -528,6 +528,100 @@ export class VaultNodeRepository implements IVaultNodeRepository {
       .run();
   }
 
+  public async commitBundle(params: {
+    userId: string;
+    nodeId: string;
+    manifestDto: CreateVaultManifestDTO;
+    incomingChunks: { id: string; size: number }[];
+    allRequiredChunkIds: string[];
+  }): Promise<{
+    missingChunkIds: string[];
+    success: boolean;
+    manifest?: VaultManifestEntity;
+  }> {
+    await this.ensureSchema();
+    const { userId, nodeId, manifestDto, incomingChunks, allRequiredChunkIds } = params;
+
+    // 1. CAS Integrity Barrier: Check if any required chunk is missing from DB and not supplied in incomingChunks
+    const incomingChunkIds = new Set(incomingChunks.map((c) => c.id));
+    const chunksToCheck = allRequiredChunkIds.filter((id) => !incomingChunkIds.has(id));
+
+    if (chunksToCheck.length > 0) {
+      const missingFromDb = await this.checkMissingChunks(userId, chunksToCheck);
+      if (missingFromDb.length > 0) {
+        return {
+          missingChunkIds: missingFromDb,
+          success: false,
+        };
+      }
+    }
+
+    // 2. Prepare Atomic Batch Transaction in D1
+    const now = Date.now();
+    const statements: any[] = [];
+
+    // Insert incoming delta chunks
+    for (const chunk of incomingChunks) {
+      statements.push(
+        this.db
+          .prepare(
+            `INSERT OR IGNORE INTO vault_chunks (id, user_id, size, created_at)
+             VALUES (?, ?, ?, ?)`
+          )
+          .bind(chunk.id, userId, chunk.size, now)
+      );
+    }
+
+    // Insert manifest
+    statements.push(
+      this.db
+        .prepare(
+          `INSERT OR REPLACE INTO vault_manifests
+           (id, node_id, user_id, parent_manifest_id, plain_size, cipher_size, commit_message, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          manifestDto.id,
+          manifestDto.nodeId,
+          manifestDto.userId,
+          manifestDto.parentManifestId || null,
+          manifestDto.plainSize,
+          manifestDto.cipherSize,
+          manifestDto.commitMessage || null,
+          now
+        )
+    );
+
+    // Update active manifest pointer and size on vault_nodes
+    statements.push(
+      this.db
+        .prepare(
+          `UPDATE vault_nodes 
+           SET size = ?, active_manifest_id = ?, updated_at = ? 
+           WHERE id = ? AND user_id = ?`
+        )
+        .bind(manifestDto.plainSize, manifestDto.id, now, nodeId, userId)
+    );
+
+    // Execute atomic batch
+    await this.db.batch(statements);
+
+    return {
+      missingChunkIds: [],
+      success: true,
+      manifest: {
+        id: manifestDto.id,
+        nodeId: manifestDto.nodeId,
+        userId: manifestDto.userId,
+        parentManifestId: manifestDto.parentManifestId || null,
+        plainSize: manifestDto.plainSize,
+        cipherSize: manifestDto.cipherSize,
+        commitMessage: manifestDto.commitMessage || null,
+        createdAt: now,
+      },
+    };
+  }
+
   private mapRow(row: D1VaultNodeRow): VaultNodeEntity {
     return {
       id: row.id,

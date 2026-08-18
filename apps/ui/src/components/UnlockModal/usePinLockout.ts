@@ -27,10 +27,26 @@ export function usePinLockout(vaultId: string, username: string | null) {
 
   const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
 
-  // Sync state to localStorage
+  // Reload state when storageKey changes
   useEffect(() => {
     try {
-      localStorage.setItem(storageKey, JSON.stringify(state));
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        setState(JSON.parse(stored));
+        return;
+      }
+    } catch (_) {}
+    setState({ failCount: 0, lockoutUntil: 0 });
+  }, [storageKey]);
+
+  // Sync state to localStorage ONLY when active lockout or failures exist
+  useEffect(() => {
+    try {
+      if (state.failCount > 0 || state.lockoutUntil > Date.now()) {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+      } else {
+        localStorage.removeItem(storageKey);
+      }
     } catch (_) {}
   }, [state, storageKey]);
 

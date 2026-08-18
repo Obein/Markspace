@@ -522,6 +522,55 @@ export class ApiClient implements IApiClient {
     }
   }
 
+  async commitSyncBundle(formData: FormData): Promise<{
+    success: boolean;
+    manifestId?: string;
+    nodeId?: string;
+    uploadedChunksCount?: number;
+    missingChunkIds?: string[];
+  }> {
+    const headers = await this.getHeaders('POST', '/vault/sync/commit-bundle');
+    // Let browser automatically compute multipart boundary
+    delete headers['Content-Type'];
+
+    const res = await fetch(`${this.baseUrl}/vault/sync/commit-bundle`, {
+      method: 'POST',
+      credentials: 'include',
+      headers,
+      body: formData,
+    });
+
+    const nextNonceHeader = res.headers.get('X-Next-Nonce');
+    if (nextNonceHeader) {
+      this.currentNonce = nextNonceHeader;
+    }
+
+    if (res.status === 409) {
+      const data = (await res.json()) as {
+        error?: { code?: string; missingChunkIds?: string[] };
+      };
+      if (data.error?.code === 'CHUNKS_MISSING') {
+        return {
+          success: false,
+          missingChunkIds: data.error.missingChunkIds || [],
+        };
+      }
+    }
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Failed to commit sync bundle (${res.status}): ${errorText}`);
+    }
+
+    const data = (await res.json()) as { success: boolean; data: any };
+    return {
+      success: true,
+      manifestId: data.data?.manifestId,
+      nodeId: data.data?.nodeId,
+      uploadedChunksCount: data.data?.uploadedChunksCount,
+    };
+  }
+
   async fetchManifest(manifestId: string): Promise<ArrayBuffer> {
     const defaultHeaders = await this.getHeaders('GET', `/vault/manifests/${manifestId}`);
     const res = await fetch(`${this.baseUrl}/vault/manifests/${manifestId}`, {
