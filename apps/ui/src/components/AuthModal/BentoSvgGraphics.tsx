@@ -194,7 +194,7 @@ export const SvgDebounceBuffer: React.FC = () => (
     {/* Oscilloscope Waveform */}
     <path d="M30 32 H65 L75 16 L85 46 L95 24 L105 38 L115 32 H170" stroke="#10b981" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
     <circle cx="115" cy="32" r="3" fill="#10b981" />
-    <text x="100" y="50" textAnchor="middle" fill="#6ee7b7" fontSize="8" fontFamily="monospace">800ms STABILIZED</text>
+    <text x="100" y="50" textAnchor="middle" fill="#6ee7b7" fontSize="8" fontFamily="monospace">2s STABILIZED</text>
   </svg>
 );
 

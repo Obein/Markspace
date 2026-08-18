@@ -98,8 +98,8 @@ export const zhTW: typeof enUS = {
   
   bentoBufferTitle: '自適應防抖保存',
   bentoBufferSub: '自適應即時加密同步',
-  bentoBufferDesc: '800ms 動態防抖加密保存與差異化 DEK 金鑰輪換，杜絕資料遺失。',
-  bentoBufferTag: '800ms 防抖',
+  bentoBufferDesc: '2s 動態防抖加密保存與差異化 DEK 金鑰輪換，杜絕資料遺失。',
+  bentoBufferTag: '2s 防抖',
   
   bentoTypographyTitle: '專業排版與暗黑',
   bentoTypographySub: 'OLED 純黑暗黑排版',

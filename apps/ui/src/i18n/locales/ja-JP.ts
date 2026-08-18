@@ -98,8 +98,8 @@ export const jaJP: typeof enUS = {
   
   bentoBufferTitle: 'アダプティブ自動保存',
   bentoBufferSub: 'リアルタイム暗号化同期',
-  bentoBufferDesc: '800ms の動的デバウンス暗号化保存と差分 DEK ローテーションにより、データ消失を完全に防止。',
-  bentoBufferTag: '800ms デバウンス',
+  bentoBufferDesc: '2s の動的デバウンス暗号化保存と差分 DEK ローテーションにより、データ消失を完全に防止。',
+  bentoBufferTag: '2s デバウンス',
   
   bentoTypographyTitle: 'タイポグラフィとダークモード',
   bentoTypographySub: 'OLED ピュアブラック美学',

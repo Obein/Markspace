@@ -98,8 +98,8 @@ export const viVN: typeof enUS = {
   
   bentoBufferTitle: 'Tự Động Lưu Thích Ứng',
   bentoBufferSub: 'Đồng Bộ Mã Hóa Thời Gian Thực',
-  bentoBufferDesc: 'Lưu mã hóa chống rung 800ms với cơ chế xoay vòng khóa DEK vi sai đảm bảo không mất dữ liệu.',
-  bentoBufferTag: '800ms Debounce',
+  bentoBufferDesc: 'Lưu mã hóa chống rung 2s với cơ chế xoay vòng khóa DEK vi sai đảm bảo không mất dữ liệu.',
+  bentoBufferTag: '2s Debounce',
   
   bentoTypographyTitle: 'Kiểu Chữ & Chế Độ Tối',
   bentoTypographySub: 'Nghệ Thuật Kiểu Chữ OLED Đen Thuần',

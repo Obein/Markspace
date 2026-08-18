@@ -216,7 +216,7 @@ export function useFileAutoSaver({
 
     const timer = setTimeout(() => {
       executeSave();
-    }, 800);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [activeTitle, activeContent, activeFileId, cmk, isVaultUnlocked, executeSave]);

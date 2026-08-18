@@ -96,8 +96,8 @@ export const enUS = {
   
   bentoBufferTitle: 'Adaptive Auto-Save',
   bentoBufferSub: 'Adaptive Auto-Save Sync',
-  bentoBufferDesc: '800ms dynamic debounce encrypted saving with differential DEK key rotation.',
-  bentoBufferTag: '800ms Debounce',
+  bentoBufferDesc: '2s dynamic debounce encrypted saving with differential DEK key rotation.',
+  bentoBufferTag: '2s Debounce',
   
   bentoTypographyTitle: 'Noto & Monaspace',
   bentoTypographySub: 'OLED Pure Obsidian Typography',

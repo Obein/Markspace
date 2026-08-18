@@ -98,8 +98,8 @@ export const koKR: typeof enUS = {
   
   bentoBufferTitle: '적응형 자동 저장',
   bentoBufferSub: '적응형 실시간 암호화 동기화',
-  bentoBufferDesc: '800ms 동적 디바운스 암호화 저장 및 차등 DEK 키 로테이션으로 데이터 손실 방지.',
-  bentoBufferTag: '800ms 디바운스',
+  bentoBufferDesc: '2s 동적 디바운스 암호화 저장 및 차등 DEK 키 로테이션으로 데이터 손실 방지.',
+  bentoBufferTag: '2s 디바운스',
   
   bentoTypographyTitle: '타이포그래피 및 다크 테마',
   bentoTypographySub: 'OLED 퓨어 블랙 타이포그래피',

@@ -98,8 +98,8 @@ export const esES: typeof enUS = {
   
   bentoBufferTitle: 'Autoguardado Adaptativo',
   bentoBufferSub: 'Sincronización Cifrada en Tiempo Real',
-  bentoBufferDesc: 'Guardado con retardo dinámico de 800ms y rotación diferencial de claves DEK para cero pérdida de datos.',
-  bentoBufferTag: '800ms Debounce',
+  bentoBufferDesc: 'Guardado con retardo dinámico de 2s y rotación diferencial de claves DEK para cero pérdida de datos.',
+  bentoBufferTag: '2s Debounce',
   
   bentoTypographyTitle: 'Tipografía y Modo Oscuro',
   bentoTypographySub: 'Tipografía OLED Pure Obsidian',

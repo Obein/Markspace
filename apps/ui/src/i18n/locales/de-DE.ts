@@ -98,8 +98,8 @@ export const deDE: typeof enUS = {
   
   bentoBufferTitle: 'Adaptive Autospeicherung',
   bentoBufferSub: 'Adaptive Echtzeit-Verschlüsselungssynchronisation',
-  bentoBufferDesc: '800ms dynamische Debounce-Verschlüsselung mit differenzieller DEK-Schlüsselrotation.',
-  bentoBufferTag: '800ms Debounce',
+  bentoBufferDesc: '2s dynamische Debounce-Verschlüsselung mit differenzieller DEK-Schlüsselrotation.',
+  bentoBufferTag: '2s Debounce',
   
   bentoTypographyTitle: 'Typografie & Dark Mode',
   bentoTypographySub: 'OLED Pure Obsidian Typografie',
