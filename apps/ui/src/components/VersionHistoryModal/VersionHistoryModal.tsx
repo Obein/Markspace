@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, History, RotateCcw, Loader2, Clock, FileText, Network } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
@@ -238,17 +238,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-primaryColor-400" />
                 <span>Version Preview</span>
-                {selectedVersion && (
-                  <span className="text-primaryColor-300 bg-primaryColor-500/10 px-2 py-0.5 rounded border border-primaryColor-500/20">
-                    {formatTimestamp(selectedVersion.timestamp)}
-                  </span>
-                )}
               </div>
-              {selectedVersion && (
-                <span className="text-[11px] text-zinc-500">
-                  Commit: {selectedVersion.commitHash}
-                </span>
-              )}
             </div>
 
             <div className="flex-1 p-4 overflow-y-auto font-mono text-xs text-zinc-200 leading-relaxed whitespace-pre-wrap select-text">
