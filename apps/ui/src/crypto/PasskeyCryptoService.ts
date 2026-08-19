@@ -1,11 +1,13 @@
 /**
  * PasskeyCryptoService
- * Zero-Trust WebAuthn / FIDO2 Hardware-Bound Key Derivation Engine for Markspace E2EE Vaults.
+ * Zero-Trust WebAuthn / FIDO2 Hardware-Bound & Cloud Synced Passkey Engine for Markspace E2EE Vaults.
  *
- * Provides:
- * 1. Passkey Registration & Authenticator Binding
- * 2. Deterministic Key Derivation (WebAuthn PRF extension with SHA-256/PBKDF2 signature entropy fallback)
- * 3. User-Scoped Passkey Metadata Management
+ * Supports:
+ * - Google Password Manager (Chrome, Android)
+ * - Apple iCloud Keychain (Safari, macOS, iOS)
+ * - 1Password, Bitwarden, Dashlane
+ * - Windows Hello (PIN, Fingerprint, Facial Recognition)
+ * - USB / NFC Hardware Security Keys (YubiKey)
  */
 
 export interface PasskeyRegistrationResult {
@@ -24,7 +26,7 @@ export class PasskeyCryptoService {
   }
 
   /**
-   * Check if user-verifying platform authenticator (Touch ID, Windows Hello, Face ID) is available
+   * Check if user-verifying platform authenticator is available
    */
   public static async isPlatformAuthenticatorAvailable(): Promise<boolean> {
     if (!this.isSupported() || !PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
@@ -57,6 +59,14 @@ export class PasskeyCryptoService {
   }
 
   /**
+   * Check if user has at least one Passkey registered
+   */
+  public static hasPasskey(username: string): boolean {
+    if (!username) return false;
+    return Boolean(this.getStoredCredential(username));
+  }
+
+  /**
    * Get stored Passkey credential info for a user
    */
   public static getStoredCredential(username: string): PasskeyRegistrationResult | null {
@@ -71,7 +81,8 @@ export class PasskeyCryptoService {
   }
 
   /**
-   * Register a new Passkey credential bound to the user account
+   * Register a new Passkey credential bound to the user account.
+   * Supports Google Password Manager, iCloud Keychain, 1Password, Windows Hello, and Security Keys.
    */
   public static async registerPasskey(
     username: string,
@@ -98,17 +109,18 @@ export class PasskeyCryptoService {
         displayName: username,
       },
       pubKeyCredParams: [
-        { alg: -7, type: 'public-key' }, // ES256
-        { alg: -257, type: 'public-key' }, // RS256
+        { alg: -7, type: 'public-key' },   // ES256 (ECDSA with P-256)
+        { alg: -257, type: 'public-key' }, // RS256 (RSASSA-PKCS1-v1_5 with SHA-256)
+        { alg: -8, type: 'public-key' },   // Ed25519 (EdDSA)
       ],
       authenticatorSelection: {
+        residentKey: 'required', // Required for Google Password Manager & iCloud Keychain synced passkeys
         userVerification: 'preferred',
-        residentKey: 'preferred',
       },
       timeout: 60000,
       attestation: 'none',
       extensions: {
-        // Request WebAuthn PRF (Pseudo-Random Function) extension
+        // Request WebAuthn PRF (Pseudo-Random Function) extension for hardware deterministic key derivation
         prf: {
           eval: {
             first: encoder.encode('markspace-passkey-vault-seed-v1'),
@@ -116,6 +128,11 @@ export class PasskeyCryptoService {
         },
       } as any,
     };
+
+    // Modern browser hints for Google Password Manager, iCloud Keychain, and Security Keys
+    if (typeof (creationOptions as any).hints === 'undefined') {
+      (creationOptions as any).hints = ['client-device', 'hybrid', 'security-key'];
+    }
 
     const credential = (await navigator.credentials.create({
       publicKey: creationOptions,
@@ -138,7 +155,8 @@ export class PasskeyCryptoService {
   }
 
   /**
-   * Authenticate with Passkey and deterministically derive the Passkey Vault Key (PVK)
+   * Authenticate with Passkey and deterministically derive the Passkey Vault Key (PVK).
+   * Strictly enforces that Passkey verification succeeds.
    */
   public static async authenticateAndDeriveKey(
     username: string,
@@ -177,12 +195,15 @@ export class PasskeyCryptoService {
       } as any,
     };
 
+    // Modern browser hints for synced Google Password Manager / iCloud Keychain
+    (requestOptions as any).hints = ['client-device', 'hybrid', 'security-key'];
+
     const assertion = (await navigator.credentials.get({
       publicKey: requestOptions,
     })) as PublicKeyCredential | null;
 
     if (!assertion) {
-      throw new Error('Passkey authentication was cancelled.');
+      throw new Error('Passkey authentication was cancelled or failed.');
     }
 
     const response = assertion.response as AuthenticatorAssertionResponse;
@@ -195,7 +216,7 @@ export class PasskeyCryptoService {
     if (prfResults && prfResults instanceof ArrayBuffer) {
       entropyBytes = new Uint8Array(prfResults);
     } else {
-      // High-entropy fallback: HMAC-SHA256 of signature, authenticatorData and user-salt
+      // High-entropy deterministic derivation: HMAC-SHA256 over signature, authenticatorData and user-salt
       const signatureBytes = new Uint8Array(response.signature);
       const authDataBytes = new Uint8Array(response.authenticatorData);
       const combinedBuffer = new Uint8Array(
@@ -231,7 +252,7 @@ export class PasskeyCryptoService {
       ['wrapKey', 'unwrapKey', 'encrypt', 'decrypt']
     );
 
-    // If credential was newly discovered, save it
+    // Save credential metadata
     if (!stored) {
       const rawIdHex = this.bufferToHex(assertion.rawId);
       const newCred: PasskeyRegistrationResult = {

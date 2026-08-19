@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Lock,
   Fingerprint,
   ShieldCheck,
   KeyRound,
@@ -47,10 +48,10 @@ export const PasskeyUnlockView: React.FC<PasskeyUnlockViewProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Vault Identity Badge */}
+      {/* Vault Identity Badge - Locked State Icon */}
       <div className="text-center space-y-1.5">
         <div className="inline-flex p-3.5 rounded-2xl bg-primaryColor-500/15 border border-black/10 dark:border-white/15 backdrop-blur-md text-primaryColor-500 shadow-lg shadow-primaryColor-500/10 mb-2">
-          <Fingerprint className="w-8 h-8 animate-pulse" />
+          <Lock className="w-8 h-8" />
         </div>
         <h2 className="text-base font-bold text-white tracking-wide">
           {activeVault.name || t('encryptedVault')}
@@ -77,7 +78,7 @@ export const PasskeyUnlockView: React.FC<PasskeyUnlockViewProps> = ({
             ) : (
               <>
                 <Fingerprint className="w-4 h-4" />
-                <span>{t('unlockWithPasskey') || 'Unlock with Passkey (Touch ID / Hello)'}</span>
+                <span>{t('unlockWithPasskey') || 'Unlock with Passkey'}</span>
               </>
             )}
           </button>

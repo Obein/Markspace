@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Sparkles, KeyRound, Loader2, ShieldCheck } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
 import { VaultInfo } from '../../interfaces/INoteModels';
-import { PasskeyCryptoService } from '../../crypto/PasskeyCryptoService';
+import { MnemonicService } from '../../crypto/MnemonicService';
 
 export interface RecoveryUnlockViewProps {
   activeVault: VaultInfo | undefined;
@@ -11,18 +10,19 @@ export interface RecoveryUnlockViewProps {
   onBackToPasskey: () => void;
   onError: (msg: string | null) => void;
   onSuccess: (vaultId: string, vmk: CryptoKey) => void;
+  onUnlockWithRecovery: (vaultId: string, mnemonic: string) => Promise<CryptoKey>;
   triggerShake: () => void;
 }
 
 export const RecoveryUnlockView: React.FC<RecoveryUnlockViewProps> = ({
   activeVault,
-  username,
+  username: _username,
   onBackToPasskey,
   onError,
   onSuccess,
+  onUnlockWithRecovery,
   triggerShake,
 }) => {
-  const { cryptoService, apiClient, setVaultKey } = useApp();
   const { t } = useI18n();
 
   const [recoveryMnemonic, setRecoveryMnemonic] = useState('');
@@ -32,8 +32,8 @@ export const RecoveryUnlockView: React.FC<RecoveryUnlockViewProps> = ({
     e.preventDefault();
     if (!activeVault) return;
 
-    const trimmed = recoveryMnemonic.trim().toLowerCase();
-    const words = trimmed.split(/\s+/);
+    const normalized = MnemonicService.normalizeMnemonic(recoveryMnemonic);
+    const words = normalized.split('-').filter(Boolean);
     if (words.length !== 8) {
       onError(t('recoveryKeyInvalid') || 'Recovery phrase must be exactly 8 words');
       triggerShake();
@@ -44,44 +44,7 @@ export const RecoveryUnlockView: React.FC<RecoveryUnlockViewProps> = ({
       setLoading(true);
       onError(null);
 
-      if (!activeVault.wrappedVmkByRecovery || !activeVault.salt) {
-        throw new Error('This vault does not contain a recovery key envelope');
-      }
-
-      // 1. Blind Recovery Key on client
-      const blindPoint = await cryptoService.computeOprfBlindPoint(trimmed, activeVault.salt);
-
-      // 2. Evaluate with Server
-      const oprfResult = await apiClient.evaluateVaultOprf(activeVault.id, blindPoint);
-
-      const recoveryKey = await cryptoService.deriveKeyFromRecoveryKey(
-        trimmed,
-        activeVault.salt,
-        oprfResult.evaluatedPoint
-      );
-      const vmk = await cryptoService.unwrapVMK(activeVault.wrappedVmkByRecovery, recoveryKey);
-
-      // 3. If Passkey is supported, attempt to bind Passkey for future one-click unlocks
-      if (username && PasskeyCryptoService.isSupported()) {
-        try {
-          const { key: pvk } = await PasskeyCryptoService.authenticateAndDeriveKey(
-            username,
-            activeVault.salt
-          );
-          const wrappedVmkByPasskey = await cryptoService.wrapVMK(vmk, pvk);
-          activeVault.wrappedVmkByPasskey = wrappedVmkByPasskey;
-          const stored = localStorage.getItem(`markspace_vaults_${username}`);
-          if (stored) {
-            const parsed: VaultInfo[] = JSON.parse(stored);
-            const updated = parsed.map((v: VaultInfo) =>
-              v.id === activeVault.id ? { ...v, wrappedVmkByPasskey } : v
-            );
-            localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(updated));
-          }
-        } catch (_) {}
-      }
-
-      setVaultKey(activeVault.id, vmk);
+      const vmk = await onUnlockWithRecovery(activeVault.id, normalized);
       onSuccess(activeVault.id, vmk);
     } catch (err: unknown) {
       onError(err instanceof Error ? err.message : 'Invalid recovery phrase for this vault');
@@ -130,7 +93,7 @@ export const RecoveryUnlockView: React.FC<RecoveryUnlockViewProps> = ({
             autoFocus
           />
           <p className="text-[11px] text-zinc-500 font-mono mt-1">
-            {t('recoveryKeyNotice') || 'Words separated by spaces generated during vault creation.'}
+            {t('recoveryKeyNotice') || 'Words separated by spaces or dashes generated during vault creation.'}
           </p>
         </div>
 
@@ -155,7 +118,7 @@ export const RecoveryUnlockView: React.FC<RecoveryUnlockViewProps> = ({
 
       <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono text-zinc-500 pt-2 border-t border-white/5">
         <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-        <span>BIP-39 88-Bit Mathematical Entropy Protection</span>
+        <span>Hardware Passkey Will Be Automatically Re-bound Upon Unlock</span>
       </div>
     </div>
   );

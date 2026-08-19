@@ -83,7 +83,9 @@ export function useVaults({
 
       const salt = cryptoService.generateSalt();
       const vmk = await cryptoService.generateVMK();
-      const recoveryKey = customRecoveryKey || MnemonicService.generateRecoveryKey(8);
+      const recoveryKey = customRecoveryKey
+        ? MnemonicService.normalizeMnemonic(customRecoveryKey)
+        : MnemonicService.generateRecoveryKey(8);
 
       // 2. Request Server OPRF evaluation for Recovery Key
       const recoveryBlindPoint = await cryptoService.computeOprfBlindPoint(recoveryKey, salt);
@@ -97,22 +99,29 @@ export function useVaults({
       );
       const wrappedVmkByRecovery = await cryptoService.wrapVMK(vmk, recoveryKeyKey);
 
-      // 4. Passkey Key Wrapping (Hardware-bound)
-      let wrappedVmkByPasskey: string | undefined;
+      // 4. Passkey Key Wrapping (Mandatory & Hardware-bound)
       let pvk = providedPasskeyKey;
 
-      if (!pvk && username && PasskeyCryptoService.isSupported()) {
-        try {
-          const passkeyRes = await PasskeyCryptoService.authenticateAndDeriveKey(username, salt);
-          pvk = passkeyRes.key;
-        } catch (_) {
-          // If not yet registered or cancelled, we will allow binding upon first unlock
+      if (!pvk) {
+        if (!username) {
+          throw new Error('User session is required to create a vault.');
         }
+        if (!PasskeyCryptoService.isSupported()) {
+          throw new Error('WebAuthn / Passkeys are not supported in this browser environment.');
+        }
+        if (!PasskeyCryptoService.hasPasskey(username)) {
+          // If no passkey exists for this user, register one now
+          await PasskeyCryptoService.registerPasskey(username);
+        }
+        const passkeyRes = await PasskeyCryptoService.authenticateAndDeriveKey(username, salt);
+        pvk = passkeyRes.key;
       }
 
-      if (pvk) {
-        wrappedVmkByPasskey = await cryptoService.wrapVMK(vmk, pvk);
+      if (!pvk) {
+        throw new Error('Passkey verification failed. A valid Passkey is required to create and encrypt your vault.');
       }
+
+      const wrappedVmkByPasskey = await cryptoService.wrapVMK(vmk, pvk);
 
       const newVault: VaultInfo = {
         id: vaultId,
@@ -176,11 +185,12 @@ export function useVaults({
         throw new Error('Vault recovery metadata is missing.');
       }
 
-      const recoveryBlindPoint = await cryptoService.computeOprfBlindPoint(mnemonic, targetVault.salt);
+      const normalizedMnemonic = MnemonicService.normalizeMnemonic(mnemonic);
+      const recoveryBlindPoint = await cryptoService.computeOprfBlindPoint(normalizedMnemonic, targetVault.salt);
       const recoveryOprf = await apiClient.evaluateVaultOprf(vaultId, recoveryBlindPoint);
 
       const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(
-        mnemonic,
+        normalizedMnemonic,
         targetVault.salt,
         recoveryOprf.evaluatedPoint
       );
@@ -195,9 +205,14 @@ export function useVaults({
             targetVault.salt
           );
           const wrappedVmkByPasskey = await cryptoService.wrapVMK(vmk, pvk);
-          setVaults((prev) =>
-            prev.map((v) => (v.id === vaultId ? { ...v, wrappedVmkByPasskey } : v))
-          );
+          targetVault.wrappedVmkByPasskey = wrappedVmkByPasskey;
+          setVaults((prev) => {
+            const next = prev.map((v) => (v.id === vaultId ? { ...v, wrappedVmkByPasskey } : v));
+            try {
+              localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(next));
+            } catch (_) {}
+            return next;
+          });
         } catch (_) {}
       }
 
@@ -214,12 +229,13 @@ export function useVaults({
         throw new Error('Vault metadata is missing recovery key wrapping');
       }
 
+      const normalizedMnemonic = MnemonicService.normalizeMnemonic(mnemonic);
       // OPRF Evaluation for recovery key
-      const recoveryBlindPoint = await cryptoService.computeOprfBlindPoint(mnemonic, targetVault.salt);
+      const recoveryBlindPoint = await cryptoService.computeOprfBlindPoint(normalizedMnemonic, targetVault.salt);
       const recoveryOprf = await apiClient.evaluateVaultOprf(vaultId, recoveryBlindPoint);
 
       const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(
-        mnemonic,
+        normalizedMnemonic,
         targetVault.salt,
         recoveryOprf.evaluatedPoint
       );
