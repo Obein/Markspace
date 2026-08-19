@@ -46,15 +46,28 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
     return vaults.length === 0 ? 'create' : 'passkey';
   });
 
-  // Automatically enforce Passkey setup or adjust mode when vaults change
+  const prevUsernameRef = React.useRef<string | null>(username);
+  const prevVaultsLengthRef = React.useRef<number>(vaults.length);
+
+  // Automatically enforce Passkey setup or adjust mode when vaults or user changes
   useEffect(() => {
+    const isUserChanged = prevUsernameRef.current !== username;
+    const isVaultsLoaded = prevVaultsLengthRef.current === 0 && vaults.length > 0;
+    prevUsernameRef.current = username;
+    prevVaultsLengthRef.current = vaults.length;
+
     if (username) {
       if (!PasskeyCryptoService.hasPasskey(username)) {
         if (mode !== 'setup-passkey') {
           setMode('setup-passkey');
         }
-      } else if (vaults.length === 0 && mode !== 'create' && mode !== 'setup-passkey') {
-        setMode('create');
+      } else if (vaults.length === 0) {
+        if (mode !== 'create' && mode !== 'setup-passkey') {
+          setMode('create');
+        }
+      } else if (isUserChanged || isVaultsLoaded) {
+        // When existing vaults are loaded or user logs in with vaults, default to passkey unlock
+        setMode('passkey');
       }
     }
   }, [username, vaults.length, mode]);
@@ -63,7 +76,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
   const [shake, setShake] = useState(false);
 
   const activeVault = vaults.find((v) => v.id === activeVaultId) || vaults[0];
-  const isCreateMode = mode === 'create' || vaults.length === 0 || !activeVault;
+  const isCreateMode = mode === 'create' || (vaults.length === 0 && mode !== 'setup-passkey');
 
   if (!isAuthenticated || isVaultUnlocked) return null;
 
