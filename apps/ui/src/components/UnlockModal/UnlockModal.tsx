@@ -63,6 +63,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
   const [shake, setShake] = useState(false);
 
   const activeVault = vaults.find((v) => v.id === activeVaultId) || vaults[0];
+  const isCreateMode = mode === 'create' || vaults.length === 0 || !activeVault;
 
   if (!isAuthenticated || isVaultUnlocked) return null;
 
@@ -95,7 +96,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
             <span className="font-mono text-zinc-300">
               {mode === 'setup-passkey'
                 ? t('setupPasskeyTitle') || 'Passkey Setup'
-                : mode === 'create'
+                : isCreateMode
                 ? 'Setup Vault'
                 : 'Vault Locked'}
             </span>
@@ -120,10 +121,10 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
         )}
 
         {/* Vault Switcher & Management bar (When multiple vaults exist and in unlock mode) */}
-        {mode !== 'create' && mode !== 'setup-passkey' && vaults.length > 0 && (
+        {!isCreateMode && mode !== 'setup-passkey' && vaults.length > 0 && activeVault && (
           <div className="mb-5 flex items-center justify-between gap-2 p-1.5 rounded-xl bg-black/40 border border-white/10">
             <select
-              value={activeVault?.id || ''}
+              value={activeVault.id}
               onChange={(e) => onSelectVault(e.target.value)}
               className="bg-transparent text-xs text-zinc-200 font-mono focus:outline-none px-2 py-1 flex-1 cursor-pointer"
             >
@@ -150,13 +151,14 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
-              {onDeleteVault && activeVault && (
+              {onDeleteVault && (
                 <button
                   type="button"
                   onClick={() => {
+                    const vaultName = activeVault?.name || 'this vault';
                     if (
                       window.confirm(
-                        t('confirmDeleteVault') || `Delete vault "${activeVault.name}" and all its encrypted files?`
+                        t('confirmDeleteVault') || `Delete vault "${vaultName}" and all its encrypted files?`
                       )
                     ) {
                       onDeleteVault(activeVault.id);
@@ -183,13 +185,15 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
             }}
             onError={setErrorMsg}
           />
-        ) : mode === 'create' ? (
+        ) : isCreateMode ? (
           <CreateVaultView
             vaultsCount={vaults.length}
             onCreateVault={onCreateVault}
             onBackToUnlock={() => {
               setErrorMsg(null);
-              setMode('passkey');
+              if (vaults.length > 0) {
+                setMode('passkey');
+              }
             }}
             onComplete={(vaultId, vmk) => {
               handleUnlockSuccess(vaultId, vmk);

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   Lock,
   Fingerprint,
-  ShieldCheck,
   KeyRound,
   Loader2,
   AlertCircle,
@@ -12,7 +11,7 @@ import { VaultInfo } from '../../interfaces/INoteModels';
 import { PasskeyCryptoService } from '../../crypto/PasskeyCryptoService';
 
 export interface PasskeyUnlockViewProps {
-  activeVault: VaultInfo;
+  activeVault: VaultInfo | undefined;
   username: string | null;
   onUnlockSuccess: (vaultId: string, vmk: CryptoKey) => void;
   onUnlockWithPasskey: (vaultId: string) => Promise<CryptoKey>;
@@ -33,6 +32,7 @@ export const PasskeyUnlockView: React.FC<PasskeyUnlockViewProps> = ({
   const isSupported = PasskeyCryptoService.isSupported();
 
   const handleTriggerPasskeyUnlock = async () => {
+    if (!activeVault) return;
     onError(null);
     try {
       setLoading(true);
@@ -54,7 +54,7 @@ export const PasskeyUnlockView: React.FC<PasskeyUnlockViewProps> = ({
           <Lock className="w-8 h-8" />
         </div>
         <h2 className="text-base font-bold text-white tracking-wide">
-          {activeVault.name || t('encryptedVault')}
+          {activeVault?.name || t('encryptedVault') || 'Encrypted Vault'}
         </h2>
         <p className="text-xs text-zinc-400 font-mono">
           {t('passkeyUnlockDesc') || 'Unlock with biometric hardware or security key'}
@@ -67,7 +67,7 @@ export const PasskeyUnlockView: React.FC<PasskeyUnlockViewProps> = ({
           <button
             type="button"
             onClick={handleTriggerPasskeyUnlock}
-            disabled={loading}
+            disabled={loading || !activeVault}
             className="w-full py-3 px-4 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white font-semibold text-xs flex items-center justify-center gap-2.5 transition shadow-lg shadow-primaryColor-500/20 disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
@@ -98,12 +98,6 @@ export const PasskeyUnlockView: React.FC<PasskeyUnlockViewProps> = ({
           <KeyRound className="w-3.5 h-3.5 text-primaryColor-400" />
           <span>{t('unlockWithRecovery') || 'Unlock with 8-Word Recovery Phrase'}</span>
         </button>
-      </div>
-
-      {/* Security Architecture Info */}
-      <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono text-zinc-500 pt-2 border-t border-white/5">
-        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-        <span>Hardware-Bound Zero-Knowledge FIDO2 Architecture</span>
       </div>
     </div>
   );
