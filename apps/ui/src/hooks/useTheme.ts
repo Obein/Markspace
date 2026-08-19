@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export type AccentColor = 'blue' | 'emerald' | 'violet' | 'amber' | 'rose' | 'cyan' | 'custom';
 
@@ -37,6 +37,8 @@ export function useTheme(username?: string | null) {
     return saved !== null ? saved === 'true' : true;
   });
 
+  const isInitialThemeMount = useRef(true);
+
   const getStorageKey = useCallback(
     (suffix: string) => {
       return username ? `markspace_${suffix}_${username}` : `markspace_${suffix}_default`;
@@ -62,6 +64,20 @@ export function useTheme(username?: string | null) {
   }, [username, getStorageKey]);
 
   useEffect(() => {
+    if (isInitialThemeMount.current) {
+      isInitialThemeMount.current = false;
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+      }
+      return;
+    }
+
+    // Apply smooth transition buffer on user theme switch
+    document.documentElement.classList.add('theme-transitioning');
     if (isDark) {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('light');
@@ -70,6 +86,12 @@ export function useTheme(username?: string | null) {
       document.documentElement.classList.add('light');
     }
     localStorage.setItem('markspace_dark_mode', String(isDark));
+
+    const timeout = setTimeout(() => {
+      document.documentElement.classList.remove('theme-transitioning');
+    }, 400);
+
+    return () => clearTimeout(timeout);
   }, [isDark]);
 
   // Apply accent color and custom CSS properties to documentElement
