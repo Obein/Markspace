@@ -5,6 +5,7 @@ import {
   Plus,
   Loader2,
   AlertCircle,
+  AlertTriangle,
   Trash2,
   Edit2,
   KeyRound,
@@ -29,6 +30,7 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const isSupported = PasskeyCryptoService.isSupported();
 
@@ -75,23 +77,10 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
     loadCredentials();
   };
 
-  const handleDeletePasskey = (cred: PasskeyRegistrationResult) => {
+  const executeDeletePasskey = (credentialId: string) => {
     if (!username) return;
-
-    if (credentials.length <= 1) {
-      const confirmed = window.confirm(
-        t('confirmDeleteLastPasskey') ||
-          `"${cred.name}" is your only registered Passkey. If you delete it, you will need your 8-word Recovery Phrase to unlock your vaults. Continue?`
-      );
-      if (!confirmed) return;
-    } else {
-      const confirmed = window.confirm(
-        t('confirmDeletePasskey') || `Delete Passkey "${cred.name}"?`
-      );
-      if (!confirmed) return;
-    }
-
-    PasskeyCryptoService.deletePasskey(username, cred.credentialId);
+    PasskeyCryptoService.deletePasskey(username, credentialId);
+    setConfirmDeleteId(null);
     loadCredentials();
   };
 
@@ -158,65 +147,101 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
       {credentials.length > 0 && (
         <div className="space-y-2 pt-1">
           {credentials.map((cred) => (
-            <div
-              key={cred.credentialId}
-              className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between gap-3 text-xs"
-            >
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                {getDeviceIcon(cred.name)}
-                <div className="min-w-0 flex-1">
-                  {editingId === cred.credentialId ? (
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="text"
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        className="px-2 py-0.5 rounded bg-zinc-800 border border-white/20 text-white text-xs font-mono focus:outline-none focus:border-primaryColor-500 flex-1"
-                        autoFocus
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleSaveRename(cred.credentialId);
-                          if (e.key === 'Escape') setEditingId(null);
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleSaveRename(cred.credentialId)}
-                        className="px-2 py-0.5 rounded bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-[10px] font-mono cursor-pointer"
-                      >
-                        {t('save') || 'Save'}
-                      </button>
+            <React.Fragment key={cred.credentialId}>
+              {confirmDeleteId === cred.credentialId ? (
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 space-y-2.5 my-1.5 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-start gap-2.5 text-red-400">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+                    <div className="space-y-1.5 text-xs flex-1">
+                      <p className="font-semibold text-red-300 leading-snug">
+                        {credentials.length <= 1
+                          ? (t('deleteLastPasskeyWarning') ||
+                            'This is your only registered Passkey. After removing it, you can no longer use biometric unlock and must use your 8-word Recovery Phrase to unlock/recover vaults.')
+                          : (t('deletePasskeyWarning') ||
+                            'Are you sure you want to remove this Passkey from your account?')}
+                      </p>
+                      <p className="text-[11px] text-zinc-400 leading-relaxed font-mono">
+                        {t('orphanPasskeyNotice') ||
+                          'Notice: The corresponding Passkey in this client device keychain will become an orphaned passkey and must be deleted manually from your password manager.'}
+                      </p>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-zinc-200 truncate">{cred.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleStartRename(cred)}
-                        className="p-0.5 text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
-                        title={t('rename') || 'Rename'}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  )}
-                  <div className="text-[10px] text-zinc-500 font-mono flex items-center gap-2 mt-0.5">
-                    <span>{t('createdOn') || 'Created'}: {formatDate(cred.createdAt)}</span>
-                    <span>•</span>
-                    <span className="truncate">ID: {cred.credentialId.slice(0, 8)}...</span>
+                  </div>
+                  <div className="flex items-center gap-2 justify-end pt-1 border-t border-red-500/20">
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-zinc-300 text-xs font-mono transition cursor-pointer"
+                    >
+                      {t('cancel') || 'Cancel'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => executeDeletePasskey(cred.credentialId)}
+                      className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-mono font-medium transition shadow-sm cursor-pointer"
+                    >
+                      {t('confirmRemove') || 'Confirm Remove'}
+                    </button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    {getDeviceIcon(cred.name)}
+                    <div className="min-w-0 flex-1">
+                      {editingId === cred.credentialId ? (
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            className="px-2 py-0.5 rounded bg-zinc-800 border border-white/20 text-white text-xs font-mono focus:outline-none focus:border-primaryColor-500 flex-1"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveRename(cred.credentialId);
+                              if (e.key === 'Escape') setEditingId(null);
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleSaveRename(cred.credentialId)}
+                            className="px-2 py-0.5 rounded bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-[10px] font-mono cursor-pointer"
+                          >
+                            {t('save') || 'Save'}
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-zinc-200 truncate">{cred.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleStartRename(cred)}
+                            className="p-0.5 text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+                            title={t('rename') || 'Rename'}
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                      <div className="text-[10px] text-zinc-500 font-mono flex items-center gap-2 mt-0.5">
+                        <span>{t('createdOn') || 'Created'}: {formatDate(cred.createdAt)}</span>
+                        <span>•</span>
+                        <span className="truncate">ID: {cred.credentialId.slice(0, 8)}...</span>
+                      </div>
+                    </div>
+                  </div>
 
-              {/* Action Buttons */}
-              <button
-                type="button"
-                onClick={() => handleDeletePasskey(cred)}
-                className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-zinc-400 hover:text-red-300 transition cursor-pointer"
-                title={t('delete') || 'Delete Passkey'}
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
+                  {/* Action Buttons */}
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteId(cred.credentialId)}
+                    className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-zinc-400 hover:text-red-300 transition cursor-pointer"
+                    title={t('delete') || 'Delete Passkey'}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </React.Fragment>
           ))}
         </div>
       )}
