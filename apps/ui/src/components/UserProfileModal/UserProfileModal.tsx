@@ -281,7 +281,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     <button
                       key={opt.id}
                       type="button"
-                      onClick={() => onSelectAccentColor && onSelectAccentColor(opt.id)}
+                      onClick={() => {
+                        if (onSelectAccentColor) onSelectAccentColor(opt.id);
+                        if (onSelectCustomHex) onSelectCustomHex(opt.hex);
+                      }}
                       className={`relative flex flex-col items-center justify-center p-2 rounded-xl border transition-all cursor-pointer group ${
                         accentColor === opt.id
                           ? 'border-white/50 bg-white/15 shadow-md scale-105'

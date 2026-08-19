@@ -85,7 +85,7 @@ export function useTheme(username?: string | null) {
       if (rgb) {
         document.documentElement.style.setProperty(
           '--accent-primary-rgb',
-          `${rgb.r}, ${rgb.g}, ${rgb.b}`
+          `${rgb.r} ${rgb.g} ${rgb.b}`
         );
       }
     } else {
@@ -110,6 +110,12 @@ export function useTheme(username?: string | null) {
 
   const setAccentColor = useCallback((color: AccentColor) => {
     setAccentColorState(color);
+    if (color !== 'custom') {
+      const preset = ACCENT_COLOR_OPTIONS.find((c) => c.id === color);
+      if (preset) {
+        setCustomHexState(preset.hex);
+      }
+    }
   }, []);
 
   const setCustomHex = useCallback((hex: string) => {
