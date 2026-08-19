@@ -1,7 +1,7 @@
 import { ParsedTableData } from '../../utils/TableConverter';
 
 export interface VisualTableEditorProps {
-  initialData: ParsedTableData;
+  initialData?: ParsedTableData | null;
   onSave: (markdownTable: string) => void;
   onClose: () => void;
 }

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Table as TableIcon, Check, X } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
 import { useApp } from '../../context/AppContext';
@@ -16,27 +16,27 @@ export const VisualTableEditor: React.FC<VisualTableEditorProps> = ({
   const { sheetEngine } = useApp();
 
   const [headers, setHeaders] = useState<string[]>(
-    initialData.headers && initialData.headers.length > 0
+    initialData?.headers && initialData.headers.length > 0
       ? initialData.headers
       : ['Header 1', 'Header 2']
   );
   const [alignments, setAlignments] = useState<TableAlignment[]>(
-    initialData.alignments && initialData.alignments.length > 0
+    initialData?.alignments && initialData.alignments.length > 0
       ? initialData.alignments
       : ['left', 'left']
   );
   const [rows, setRows] = useState<string[][]>(
-    initialData.rows && initialData.rows.length > 0 ? initialData.rows : [['', '']]
+    initialData?.rows && initialData.rows.length > 0 ? initialData.rows : [['', '']]
   );
 
   useEffect(() => {
-    if (initialData.headers && initialData.headers.length > 0) {
+    if (initialData?.headers && initialData.headers.length > 0) {
       setHeaders(initialData.headers);
     }
-    if (initialData.alignments && initialData.alignments.length > 0) {
+    if (initialData?.alignments && initialData.alignments.length > 0) {
       setAlignments(initialData.alignments);
     }
-    if (initialData.rows && initialData.rows.length > 0) {
+    if (initialData?.rows && initialData.rows.length > 0) {
       setRows(initialData.rows);
     }
   }, [initialData]);
