@@ -5,14 +5,15 @@ import {
   Copy,
   Check,
   RefreshCw,
-  Loader2,
   AlertTriangle,
   Sparkles,
   QrCode,
+  Loader2,
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
+import { Card, Badge, Button } from '../common';
 
 export const TotpSetupSection: React.FC = () => {
   const { apiClient } = useApp();
@@ -151,7 +152,7 @@ export const TotpSetupSection: React.FC = () => {
   };
 
   return (
-    <div className="p-4 rounded-2xl bg-black/[0.03] dark:bg-white/5 border border-black/10 dark:border-white/10 space-y-4">
+    <Card className="space-y-4">
       {/* Header Info */}
       <div className="flex items-start gap-3">
         <div
@@ -169,9 +170,9 @@ export const TotpSetupSection: React.FC = () => {
               {t('twoFactorAuth')}
             </h4>
             {isTotpEnabled && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-mono border border-emerald-500/30">
+              <Badge variant="emerald" size="xs">
                 {t('totpEnabled')}
-              </span>
+              </Badge>
             )}
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
@@ -184,23 +185,27 @@ export const TotpSetupSection: React.FC = () => {
       {!isSettingUp && !isDisabling && (
         <div>
           {isTotpEnabled ? (
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              fullWidth
               onClick={() => setIsDisabling(true)}
-              className="w-full py-2.5 px-4 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-600 dark:text-red-300 border border-red-500/30 text-xs font-mono transition cursor-pointer flex items-center justify-center gap-2"
+              className="text-red-600 dark:text-red-300 border-red-500/30 bg-red-500/10 hover:bg-red-500/20 font-mono text-xs"
+              icon={<AlertTriangle className="w-4 h-4" />}
             >
-              <AlertTriangle className="w-4 h-4" />
-              <span>{t('disableTotp')}</span>
-            </button>
+              {t('disableTotp')}
+            </Button>
           ) : (
-            <button
+            <Button
               type="button"
+              variant="primary"
+              fullWidth
+              size="md"
               onClick={handleStartSetup}
-              className="w-full py-2.5 px-4 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-xs font-semibold shadow-lg shadow-primaryColor-500/20 transition cursor-pointer flex items-center justify-center gap-2"
+              icon={<Sparkles className="w-4 h-4" />}
             >
-              <Sparkles className="w-4 h-4" />
-              <span>{t('enableTotp')}</span>
-            </button>
+              {t('enableTotp')}
+            </Button>
           )}
         </div>
       )}
@@ -290,20 +295,24 @@ export const TotpSetupSection: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                fullWidth
+                size="md"
                 onClick={() => setIsSettingUp(false)}
-                className="flex-1 py-2.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 text-xs font-medium transition cursor-pointer"
               >
                 {t('cancel')}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                disabled={loading}
-                className="flex-1 py-2.5 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-xs font-semibold shadow-lg shadow-primaryColor-500/20 transition disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                variant="primary"
+                fullWidth
+                size="md"
+                loading={loading}
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : t('confirmAndEnable')}
-              </button>
+                {t('confirmAndEnable')}
+              </Button>
             </div>
           </form>
         </div>
@@ -336,23 +345,28 @@ export const TotpSetupSection: React.FC = () => {
             />
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              fullWidth
+              size="md"
               onClick={() => setIsDisabling(false)}
-              className="flex-1 py-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 text-xs transition cursor-pointer"
             >
               {t('cancel')}
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={loading}
-              className="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition disabled:opacity-50 cursor-pointer"
+              variant="danger"
+              fullWidth
+              size="md"
+              loading={loading}
             >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin text-white mx-auto" /> : t('disableTotp')}
-            </button>
+              {t('disableTotp')}
+            </Button>
           </div>
         </form>
       )}
-    </div>
+    </Card>
   );
 };
+

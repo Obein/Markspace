@@ -9,3 +9,4 @@ export * from './UserProfileModal';
 export * from './VaultSettingsModal';
 export * from './VersionHistoryModal';
 export * from './VisualTableEditor';
+export * from './common';
