@@ -14,7 +14,8 @@ export class MarkdownPreviewService implements IPreviewService {
     // Custom code block renderer: handles Mermaid, LaTeX/Math, and Syntax Highlighting
     this.customRenderer.code = (token: Tokens.Code) => {
       const text = token.text || '';
-      const language = token.lang ? token.lang.trim().toLowerCase() : '';
+      const rawLanguage = token.lang ? token.lang.trim() : '';
+      const language = rawLanguage.toLowerCase();
 
       // 1. Mermaid Diagram Code Block (explicit ```mermaid or implicit starting with diagram keyword)
       if (isMermaidCode(text, language)) {
