@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { FileText, ChevronUp, ChevronDown } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
@@ -221,6 +221,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           top: -99999,
           left: -99999,
           zIndex: -99,
+          overflow: 'hidden',      // ← constrains child divs to the measured width
+          boxSizing: 'border-box',
         }}
       >
         {lines.map((line, i) => (
@@ -230,6 +232,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               wordBreak: 'break-word',
               whiteSpace: 'pre-wrap',
               minHeight: '24px',
+              boxSizing: 'border-box',
+              width: '100%',       // ← explicitly fill parent width
             }}
           >
             {line === '' ? '\u00A0' : line}
