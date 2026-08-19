@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
 import { VaultFileItem } from '../../interfaces/INoteModels';
+import { FileTreeBuilder } from '../../utils/FileTreeBuilder';
 
 export interface UseFileUploadOptions {
   activeVaultId: string;
@@ -57,7 +58,11 @@ export function useFileUpload({
         setIsUploadingFiles(true);
         for (const file of fileList) {
           try {
-            const category = file.name.endsWith('.md') ? 'markdown' : 'binary';
+            // Use the shared detectCategory utility so that webp, png, gif, svg,
+            // mp4, mp3, etc. are all correctly classified rather than falling
+            // through to 'binary'. MIME type is passed as a secondary signal.
+            const category = FileTreeBuilder.detectCategory(file.name, file.type || undefined);
+
             const ext = `.${file.name.split('.').pop() || ''}`;
             const baseName = file.name.replace(/\.[^/.]+$/, '');
             const filename = getUniqueFilename(baseName, ext);
