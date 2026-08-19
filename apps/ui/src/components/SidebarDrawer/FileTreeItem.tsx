@@ -1,4 +1,4 @@
-﻿import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   FileText,
   Folder,
@@ -90,7 +90,22 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
     }
   }, [editingNodeId]);
 
-  const getFileIcon = (category: string) => {
+  const getFileIcon = (category: string, isActive?: boolean) => {
+    if (isActive) {
+      switch (category) {
+        case 'image':
+          return <ImageIcon className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300 shrink-0" />;
+        case 'video':
+          return <Film className="w-3.5 h-3.5 text-purple-700 dark:text-purple-300 shrink-0" />;
+        case 'audio':
+          return <Music className="w-3.5 h-3.5 text-pink-700 dark:text-pink-300 shrink-0" />;
+        case 'binary':
+          return <File className="w-3.5 h-3.5 text-amber-700 dark:text-amber-300 shrink-0" />;
+        default:
+          return <FileText className="w-3.5 h-3.5 text-primaryColor-700 dark:text-primaryColor-300 shrink-0" />;
+      }
+    }
+
     switch (category) {
       case 'image':
         return <ImageIcon className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />;
@@ -101,7 +116,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
       case 'binary':
         return <File className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />;
       default:
-        return <FileText className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400 shrink-0" />;
+        return <FileText className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 shrink-0" />;
     }
   };
 
@@ -285,8 +300,8 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
             disabled={isDeleting}
             className={`w-full text-left px-2 py-1.5 rounded-lg transition flex items-center justify-between text-xs font-mono border cursor-grab active:cursor-grabbing ${
               isActive
-                ? 'bg-primaryColor-500/15 dark:bg-primaryColor-500/20 border-black/10 dark:border-white/15 backdrop-blur-md text-primaryColor-700 dark:text-primaryColor-300 font-semibold shadow-sm'
-                : 'bg-white/0 hover:bg-black/5 dark:hover:bg-white/5 border-transparent text-zinc-700 dark:text-zinc-300'
+                ? 'bg-primaryColor-500/20 dark:bg-primaryColor-500/25 border-black/15 dark:border-white/20 backdrop-blur-md text-zinc-950 dark:text-white font-bold shadow-sm'
+                : 'bg-white/0 hover:bg-black/5 dark:hover:bg-white/5 border-transparent text-zinc-600 dark:text-zinc-400'
             } ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={{ paddingLeft: `${depth * 12 + 12}px` }}
           >
@@ -294,9 +309,11 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
               {isDeleting ? (
                 <Loader2 className="w-3.5 h-3.5 text-red-400 animate-spin shrink-0" />
               ) : (
-                getFileIcon(fileItem.category)
+                getFileIcon(fileItem.category, isActive)
               )}
-              <span className="truncate">{fileItem.filename}</span>
+              <span className={`truncate ${isActive ? 'text-zinc-950 dark:text-white font-bold' : 'text-zinc-700 dark:text-zinc-300'}`}>
+                {fileItem.filename}
+              </span>
             </div>
           </button>
         );
