@@ -1,3 +1,4 @@
+export * from './useHeightMap';
 export * from './useLineHeights';
 export * from './useSmartList';
 export * from './useMarkdownPreview';

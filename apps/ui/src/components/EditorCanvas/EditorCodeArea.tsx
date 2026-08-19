@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { IHighlightService } from '../../interfaces/IHighlightService';
 
 interface EditorCodeAreaProps {
@@ -10,8 +10,14 @@ interface EditorCodeAreaProps {
   highlightService: IHighlightService;
   category: string;
   placeholder?: string;
+  minContentHeight?: number;
 }
 
+/**
+ * EditorCodeArea — Independent Code Editing Layer
+ *
+ * Implements layer rendering with synchronized syntax highlight backdrop and transparent interactive textarea.
+ */
 export const EditorCodeArea: React.FC<EditorCodeAreaProps> = ({
   textareaRef,
   value,
@@ -21,6 +27,7 @@ export const EditorCodeArea: React.FC<EditorCodeAreaProps> = ({
   highlightService,
   category,
   placeholder = 'Write your thoughts...',
+  minContentHeight,
 }) => {
   // Generate real-time syntax highlighted HTML using Lezer parser
   const highlightedHtml = useMemo(() => {
@@ -33,7 +40,10 @@ export const EditorCodeArea: React.FC<EditorCodeAreaProps> = ({
   }, [value, category, highlightService]);
 
   return (
-    <div className="flex-1 relative min-h-full">
+    <div
+      className="flex-1 relative min-h-full"
+      style={minContentHeight ? { minHeight: `${minContentHeight}px` } : undefined}
+    >
       {/* Real-time Syntax Highlighted Backdrop */}
       <pre
         aria-hidden="true"
@@ -59,6 +69,7 @@ export const EditorCodeArea: React.FC<EditorCodeAreaProps> = ({
         placeholder={placeholder}
         spellCheck={false}
         className="relative z-10 w-full h-full min-h-[500px] px-4 m-0 p-0 border-0 bg-transparent text-transparent placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-[15px] leading-6 editor-textarea whitespace-pre-wrap break-words selection:bg-primaryColor-500/25 dark:selection:bg-primaryColor-500/35 overflow-hidden scrollbar-none"
+        style={minContentHeight ? { minHeight: `${Math.max(minContentHeight, 500)}px` } : undefined}
       />
     </div>
   );

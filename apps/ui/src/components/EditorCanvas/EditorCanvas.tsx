@@ -5,7 +5,7 @@ import { useI18n } from '../../i18n/i18nContext';
 import { VisualTableEditor } from '../VisualTableEditor';
 import { EditorCanvasProps } from './EditorCanvas.types';
 import {
-  useLineHeights,
+  useHeightMap,
   useSmartList,
   useMarkdownPreview,
   useSyncScroll,
@@ -40,8 +40,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const category = activeFile?.category || 'markdown';
   const lines = useMemo(() => content.split('\n'), [content]);
 
-  // Hook: Calculate dynamic wrapped line heights
-  const { lineHeights, mirrorRef, textareaRef } = useLineHeights(
+  // Hook: Calculate dynamic wrapped line heights and coordinate mapping (Height Map)
+  const { heightMap, mirrorRef, textareaRef } = useHeightMap(
     lines,
     content,
     isSplitView,
@@ -320,8 +320,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
               <div className="flex w-full min-h-[calc(100%-13rem)] px-2 sm:px-4">
                 <LineGutter
-                  lines={lines}
-                  lineHeights={lineHeights}
+                  heightMap={heightMap}
                   activeLineIndex={activeLineIndex}
                   documentTables={documentTables}
                   onSelectLine={handleSelectLine}
@@ -336,6 +335,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   highlightService={highlightService}
                   category={category}
                   placeholder="Write your thoughts..."
+                  minContentHeight={heightMap.totalHeight}
                 />
               </div>
 
@@ -373,8 +373,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               }`}
             >
               <LineGutter
-                lines={lines}
-                lineHeights={lineHeights}
+                heightMap={heightMap}
                 activeLineIndex={activeLineIndex}
                 documentTables={documentTables}
                 onSelectLine={handleSelectLine}
@@ -390,6 +389,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 highlightService={highlightService}
                 category={category}
                 placeholder="Write your thoughts..."
+                minContentHeight={heightMap.totalHeight}
               />
             </div>
 
