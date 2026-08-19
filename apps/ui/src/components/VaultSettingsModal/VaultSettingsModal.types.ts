@@ -8,8 +8,8 @@ export interface VaultSettingsModalProps {
   onSelectVault: (id: string) => void;
   onCreateVault: (
     name: string,
-    pin: string,
-    recoveryKey?: string
+    customRecoveryKey?: string,
+    providedPasskeyKey?: CryptoKey
   ) => Promise<{ vault: VaultInfo; recoveryKey: string; vmk: CryptoKey }>;
   onRenameVault?: (vaultId: string, newName: string) => void;
   onDeleteVault?: (vaultId: string) => void;

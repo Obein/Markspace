@@ -71,6 +71,8 @@ export const AppContent: React.FC = () => {
     setActiveVaultId,
     activeVault,
     handleCreateVault,
+    handleUnlockVaultWithPasskey,
+    handleUnlockVaultWithRecovery,
     handleRenameVault,
     handleDeleteVault,
   } = useVaults({
@@ -198,6 +200,8 @@ export const AppContent: React.FC = () => {
           onOpenProfile={openProfile}
           onCreateVault={handleCreateVault}
           onDeleteVault={handleDeleteVault}
+          onUnlockVaultWithPasskey={handleUnlockVaultWithPasskey}
+          onUnlockVaultWithRecovery={handleUnlockVaultWithRecovery}
         />
       )}
 

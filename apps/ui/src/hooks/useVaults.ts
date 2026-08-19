@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { MnemonicService } from '../crypto/MnemonicService';
+import { PasskeyCryptoService } from '../crypto/PasskeyCryptoService';
 import { TranslationKey } from '../i18n/i18nContext';
 import { VaultInfo } from '../interfaces/INoteModels';
 
@@ -74,8 +75,8 @@ export function useVaults({
   const handleCreateVault = useCallback(
     async (
       name: string,
-      pin: string,
-      customRecoveryKey?: string
+      customRecoveryKey?: string,
+      providedPasskeyKey?: CryptoKey
     ): Promise<{ vault: VaultInfo; recoveryKey: string; vmk: CryptoKey }> => {
       // 1. Pure standard UUID for Vault ID
       const vaultId = crypto.randomUUID();
@@ -84,25 +85,40 @@ export function useVaults({
       const vmk = await cryptoService.generateVMK();
       const recoveryKey = customRecoveryKey || MnemonicService.generateRecoveryKey(8);
 
-      // 2. Request Server OPRF evaluations for PIN & Recovery Key
-      const pinBlindPoint = await cryptoService.computeOprfBlindPoint(pin, salt);
+      // 2. Request Server OPRF evaluation for Recovery Key
       const recoveryBlindPoint = await cryptoService.computeOprfBlindPoint(recoveryKey, salt);
-
-      const pinOprfRes = await apiClient.setupVaultOprf(vaultId, pinBlindPoint);
       const recoveryOprfRes = await apiClient.setupVaultOprf(vaultId, recoveryBlindPoint);
 
-      // 3. Multi-Factor OPRF Key Derivation
-      const pinKey = await cryptoService.deriveKeyFromPin(pin, salt, pinOprfRes.evaluatedPoint);
-      const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(recoveryKey, salt, recoveryOprfRes.evaluatedPoint);
-
-      const wrappedVmkByPin = await cryptoService.wrapVMK(vmk, pinKey);
+      // 3. Multi-Factor OPRF Key Derivation for Recovery Key
+      const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(
+        recoveryKey,
+        salt,
+        recoveryOprfRes.evaluatedPoint
+      );
       const wrappedVmkByRecovery = await cryptoService.wrapVMK(vmk, recoveryKeyKey);
+
+      // 4. Passkey Key Wrapping (Hardware-bound)
+      let wrappedVmkByPasskey: string | undefined;
+      let pvk = providedPasskeyKey;
+
+      if (!pvk && username && PasskeyCryptoService.isSupported()) {
+        try {
+          const passkeyRes = await PasskeyCryptoService.authenticateAndDeriveKey(username, salt);
+          pvk = passkeyRes.key;
+        } catch (_) {
+          // If not yet registered or cancelled, we will allow binding upon first unlock
+        }
+      }
+
+      if (pvk) {
+        wrappedVmkByPasskey = await cryptoService.wrapVMK(vmk, pvk);
+      }
 
       const newVault: VaultInfo = {
         id: vaultId,
         name: name.trim() || t('untitledNote'),
         salt,
-        wrappedVmkByPin,
+        wrappedVmkByPasskey,
         wrappedVmkByRecovery,
         createdAt: Date.now(),
       };
@@ -120,12 +136,75 @@ export function useVaults({
       if (!activeVaultId) {
         setActiveVaultId(newVault.id);
       }
-      // Note: Do not setVaultKey here immediately so user can view & backup the recovery key card
       showToast(t('createVault'), 'success');
 
       return { vault: newVault, recoveryKey, vmk };
     },
     [activeVaultId, apiClient, cryptoService, setActiveVaultId, showToast, t, username]
+  );
+
+  const handleUnlockVaultWithPasskey = useCallback(
+    async (vaultId: string): Promise<CryptoKey> => {
+      const targetVault = vaults.find((v) => v.id === vaultId) || vaults[0];
+      if (!targetVault || !targetVault.salt) {
+        throw new Error('Vault metadata is missing or corrupted.');
+      }
+      if (!username) {
+        throw new Error('User session not active.');
+      }
+
+      const { key: pvk } = await PasskeyCryptoService.authenticateAndDeriveKey(
+        username,
+        targetVault.salt
+      );
+
+      if (!targetVault.wrappedVmkByPasskey) {
+        throw new Error('This vault is not bound to your Passkey. Please unlock with your 8-word Recovery Phrase.');
+      }
+
+      const vmk = await cryptoService.unwrapVMK(targetVault.wrappedVmkByPasskey, pvk);
+      setVaultKey(vaultId, vmk);
+      return vmk;
+    },
+    [vaults, username, cryptoService, setVaultKey]
+  );
+
+  const handleUnlockVaultWithRecovery = useCallback(
+    async (vaultId: string, mnemonic: string): Promise<CryptoKey> => {
+      const targetVault = vaults.find((v) => v.id === vaultId) || vaults[0];
+      if (!targetVault || !targetVault.salt || !targetVault.wrappedVmkByRecovery) {
+        throw new Error('Vault recovery metadata is missing.');
+      }
+
+      const recoveryBlindPoint = await cryptoService.computeOprfBlindPoint(mnemonic, targetVault.salt);
+      const recoveryOprf = await apiClient.evaluateVaultOprf(vaultId, recoveryBlindPoint);
+
+      const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(
+        mnemonic,
+        targetVault.salt,
+        recoveryOprf.evaluatedPoint
+      );
+
+      const vmk = await cryptoService.unwrapVMK(targetVault.wrappedVmkByRecovery, recoveryKeyKey);
+
+      // Auto-bind Passkey if available and user is authenticated
+      if (username && PasskeyCryptoService.isSupported()) {
+        try {
+          const { key: pvk } = await PasskeyCryptoService.authenticateAndDeriveKey(
+            username,
+            targetVault.salt
+          );
+          const wrappedVmkByPasskey = await cryptoService.wrapVMK(vmk, pvk);
+          setVaults((prev) =>
+            prev.map((v) => (v.id === vaultId ? { ...v, wrappedVmkByPasskey } : v))
+          );
+        } catch (_) {}
+      }
+
+      setVaultKey(vaultId, vmk);
+      return vmk;
+    },
+    [vaults, cryptoService, apiClient, username, setVaultKey]
   );
 
   const handleResetVaultPin = useCallback(
@@ -146,7 +225,7 @@ export function useVaults({
       );
       const vmk = await cryptoService.unwrapVMK(targetVault.wrappedVmkByRecovery, recoveryKeyKey);
 
-      // Setup OPRF for new PIN
+      // Setup OPRF for new PIN (retained code for backward-compat)
       const newPinBlindPoint = await cryptoService.computeOprfBlindPoint(newPin, targetVault.salt);
       const newPinOprf = await apiClient.setupVaultOprf(vaultId, newPinBlindPoint);
 
@@ -218,6 +297,8 @@ export function useVaults({
     setActiveVaultId,
     activeVault,
     handleCreateVault,
+    handleUnlockVaultWithPasskey,
+    handleUnlockVaultWithRecovery,
     handleResetVaultPin,
     handleRenameVault,
     handleDeleteVault,

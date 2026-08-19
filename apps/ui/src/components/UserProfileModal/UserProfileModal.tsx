@@ -1,10 +1,11 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { X, ShieldCheck, LogOut, Globe, Palette, FileText, Loader2, ChevronRight, ChevronDown, Lock, Copy, Check, AlertTriangle } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { ACCENT_COLOR_OPTIONS } from '../../hooks/useTheme';
 import { LANGUAGE_OPTIONS, Language, useI18n } from '../../i18n/i18nContext';
 import { AuditLogResponse } from '../../interfaces/IApiClient';
 import { TotpSetupSection } from './TotpSetupSection';
+import { PasskeySection } from './PasskeySection';
 import { UserProfileModalProps } from './UserProfileModal.types';
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
@@ -158,6 +159,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </span>
           </div>
         </div>
+
+        {/* Passkey Hardware Authentication Management */}
+        <PasskeySection username={username} userId={userId} />
 
         {/* TOTP Multi-Factor Authentication Management */}
         <div className="mb-4">

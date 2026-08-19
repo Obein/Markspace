@@ -4,6 +4,7 @@ export interface VaultInfo {
   id: string;
   name: string;
   salt?: string;
+  wrappedVmkByPasskey?: string;
   wrappedVmkByPin?: string;
   wrappedVmkByRecovery?: string;
   createdAt: number;
