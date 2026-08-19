@@ -108,16 +108,16 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
   };
 
   return (
-    <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3.5 mb-4">
+    <div className="p-4 rounded-2xl bg-black/[0.03] dark:bg-white/5 border border-black/10 dark:border-white/10 space-y-3.5 mb-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Fingerprint className="w-4 h-4 text-primaryColor-400" />
-          <span className="text-xs font-medium text-zinc-200">
+          <Fingerprint className="w-4 h-4 text-primaryColor-600 dark:text-primaryColor-400" />
+          <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
             {t('passkeyManagement') || 'Hardware Passkeys (WebAuthn)'}
           </span>
         </div>
-        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
           <Check className="w-3 h-3" />
           <span>
             {credentials.length} {credentials.length === 1 ? 'Passkey' : 'Passkeys'}
@@ -125,20 +125,20 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
         </span>
       </div>
 
-      <p className="text-[11px] text-zinc-400 leading-relaxed font-mono">
+      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed font-mono">
         {t('passkeyAccountDesc') ||
           'Bound to your account to securely unlock all your E2EE Vaults via Passkeys (Google Password Manager, iCloud Keychain, Windows Hello, YubiKey).'}
       </p>
 
       {errorMsg && (
-        <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs font-mono">
+        <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-300 text-xs font-mono">
           {errorMsg}
         </div>
       )}
 
       {successMsg && (
-        <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-mono flex items-center gap-1.5">
-          <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+        <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-mono flex items-center gap-1.5">
+          <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
@@ -150,17 +150,17 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
             <React.Fragment key={cred.credentialId}>
               {confirmDeleteId === cred.credentialId ? (
                 <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 space-y-2.5 my-1.5 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="flex items-start gap-2.5 text-red-400">
-                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+                  <div className="flex items-start gap-2.5 text-red-600 dark:text-red-400">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
                     <div className="space-y-1.5 text-xs flex-1">
-                      <p className="font-semibold text-red-300 leading-snug">
+                      <p className="font-semibold text-red-700 dark:text-red-300 leading-snug">
                         {credentials.length <= 1
                           ? (t('deleteLastPasskeyWarning') ||
                             'This is your only registered Passkey. After removing it, you can no longer use biometric unlock and must use your 8-word Recovery Phrase to unlock/recover vaults.')
                           : (t('deletePasskeyWarning') ||
                             'Are you sure you want to remove this Passkey from your account?')}
                       </p>
-                      <p className="text-[11px] text-zinc-400 leading-relaxed font-mono">
+                      <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed font-mono">
                         {t('orphanPasskeyNotice') ||
                           'Notice: The corresponding Passkey in this client device keychain will become an orphaned passkey and must be deleted manually from your password manager.'}
                       </p>
@@ -170,7 +170,7 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
                     <button
                       type="button"
                       onClick={() => setConfirmDeleteId(null)}
-                      className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-zinc-300 text-xs font-mono transition cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-zinc-700 dark:text-zinc-300 text-xs font-mono transition cursor-pointer"
                     >
                       {t('cancel') || 'Cancel'}
                     </button>
@@ -184,7 +184,7 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
                   </div>
                 </div>
               ) : (
-                <div className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-white/80 dark:bg-black/40 border border-black/10 dark:border-white/10 flex items-center justify-between gap-3 text-xs shadow-xs">
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     {getDeviceIcon(cred.name)}
                     <div className="min-w-0 flex-1">
@@ -194,7 +194,7 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
                             type="text"
                             value={editingName}
                             onChange={(e) => setEditingName(e.target.value)}
-                            className="px-2 py-0.5 rounded bg-zinc-800 border border-white/20 text-white text-xs font-mono focus:outline-none focus:border-primaryColor-500 flex-1"
+                            className="px-2 py-0.5 rounded bg-white dark:bg-zinc-800 border border-black/20 dark:border-white/20 text-zinc-900 dark:text-white text-xs font-mono focus:outline-none focus:border-primaryColor-500 flex-1"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') handleSaveRename(cred.credentialId);
@@ -211,18 +211,18 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
                         </div>
                       ) : (
                         <div className="flex items-center gap-1.5">
-                          <span className="font-semibold text-zinc-200 truncate">{cred.name}</span>
+                          <span className="font-semibold text-zinc-900 dark:text-zinc-200 truncate">{cred.name}</span>
                           <button
                             type="button"
                             onClick={() => handleStartRename(cred)}
-                            className="p-0.5 text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+                            className="p-0.5 text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300 transition cursor-pointer"
                             title={t('rename') || 'Rename'}
                           >
                             <Edit2 className="w-3 h-3" />
                           </button>
                         </div>
                       )}
-                      <div className="text-[10px] text-zinc-500 font-mono flex items-center gap-2 mt-0.5">
+                      <div className="text-[10px] text-zinc-500 dark:text-zinc-500 font-mono flex items-center gap-2 mt-0.5">
                         <span>{t('createdOn') || 'Created'}: {formatDate(cred.createdAt)}</span>
                         <span>•</span>
                         <span className="truncate">ID: {cred.credentialId.slice(0, 8)}...</span>
@@ -234,7 +234,7 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
                   <button
                     type="button"
                     onClick={() => setConfirmDeleteId(cred.credentialId)}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-zinc-400 hover:text-red-300 transition cursor-pointer"
+                    className="p-1.5 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-red-500/15 text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-300 transition cursor-pointer"
                     title={t('delete') || 'Delete Passkey'}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -248,9 +248,9 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
 
       {/* Add New Passkey Bar */}
       {isSupported ? (
-        <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-          <div className="flex items-center gap-1 text-[11px] font-mono text-zinc-500">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="pt-2 border-t border-black/10 dark:border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-1 text-[11px] font-mono text-zinc-500 dark:text-zinc-500">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span>FIDO2 WebAuthn Supported</span>
           </div>
 
@@ -258,7 +258,7 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
             type="button"
             onClick={handleRegisterPasskey}
             disabled={loading}
-            className="px-3 py-1.5 rounded-xl bg-primaryColor-500/20 hover:bg-primaryColor-500/30 text-primaryColor-300 hover:text-white border border-primaryColor-500/40 text-xs font-mono font-medium flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+            className="px-3 py-1.5 rounded-xl bg-primaryColor-500/15 hover:bg-primaryColor-500/25 text-primaryColor-700 dark:text-primaryColor-300 hover:text-primaryColor-800 dark:hover:text-white border border-primaryColor-500/30 text-xs font-mono font-medium flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -274,8 +274,8 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
           </button>
         </div>
       ) : (
-        <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs flex items-center gap-2 font-mono">
-          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+        <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-200 text-xs flex items-center gap-2 font-mono">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
           <span>WebAuthn is not supported in this browser.</span>
         </div>
       )}

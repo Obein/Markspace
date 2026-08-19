@@ -98,29 +98,29 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg cursor-pointer"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 dark:bg-black/80 backdrop-blur-lg cursor-pointer"
     >
-      <div className="w-full max-w-lg p-6 sm:p-8 glass-panel rounded-glass-lg border border-white/10 text-white shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto cursor-default">
+      <div className="w-full max-w-lg p-6 sm:p-8 glass-panel rounded-glass-lg border border-black/10 dark:border-white/10 text-zinc-900 dark:text-white shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto cursor-default">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition cursor-pointer z-10"
+          className="absolute top-4 right-4 p-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition cursor-pointer z-10"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Top Centered Modal Title */}
-        <div className="text-center pb-3 border-b border-white/10 mb-5">
-          <h2 className="text-base font-bold text-white tracking-wide">
+        <div className="text-center pb-3 border-b border-black/10 dark:border-white/10 mb-5">
+          <h2 className="text-base font-bold text-zinc-900 dark:text-white tracking-wide">
             {t('userProfile')}
           </h2>
         </div>
 
         {/* User Info Header */}
-        <div className="mb-5 pb-4 border-b border-white/10 space-y-2.5">
+        <div className="mb-5 pb-4 border-b border-black/10 dark:border-white/10 space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <h3 className="text-lg font-bold text-white">{username || 'Anonymous'}</h3>
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-white">{username || 'Anonymous'}</h3>
               {role === 'admin' ? (
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primaryColor-500/15 text-primaryColor-700 dark:text-primaryColor-300 border border-black/10 dark:border-white/15 backdrop-blur-md flex items-center gap-1 shadow-sm">
                   <span>SYSTEM ADMIN</span>
@@ -135,15 +135,15 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
           {/* User UUID Bar */}
           {userId && (
-            <div className="flex items-center justify-between text-[11px] font-mono bg-black/40 px-3 py-1.5 rounded-xl border border-white/5 text-zinc-400">
+            <div className="flex items-center justify-between text-[11px] font-mono bg-black/5 dark:bg-black/40 px-3 py-1.5 rounded-xl border border-black/5 dark:border-white/5 text-zinc-600 dark:text-zinc-400">
               <span className="truncate max-w-[320px]">UUID: {userId}</span>
               <button
                 type="button"
                 onClick={copyUuid}
-                className="text-zinc-400 hover:text-white transition cursor-pointer flex items-center gap-1 shrink-0 ml-2"
+                className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition cursor-pointer flex items-center gap-1 shrink-0 ml-2"
                 title="Copy User UUID"
               >
-                {copiedUuid ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedUuid ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span className="text-[10px]">{copiedUuid ? 'Copied' : 'Copy'}</span>
               </button>
             </div>
@@ -151,10 +151,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </div>
 
         {/* Idle Account Lifecycle Destruction Policy Notice */}
-        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs font-mono flex items-start gap-2.5 mb-4">
-          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs font-mono flex items-start gap-2.5 mb-4">
+          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div className="text-left">
-            <span className="font-medium text-amber-300/90 block leading-relaxed text-[11px]">
+            <span className="font-medium text-amber-900 dark:text-amber-300/90 block leading-relaxed text-[11px]">
               {t('idleAccountNotice')}
             </span>
           </div>
@@ -169,15 +169,15 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </div>
 
         {/* Vault Auto-Lock Idle Settings */}
-        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 mb-4">
+        <div className="p-4 rounded-2xl bg-black/[0.03] dark:bg-white/5 border border-black/10 dark:border-white/10 space-y-3 mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-primaryColor-500/10 border border-primaryColor-500/20 text-primaryColor-400">
+              <div className="p-2 rounded-xl bg-primaryColor-500/10 border border-primaryColor-500/20 text-primaryColor-600 dark:text-primaryColor-400">
                 <Lock className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-semibold text-zinc-200 block">{t('autoLockVault')}</span>
-                <span className="text-[10px] text-zinc-400 block">{t('autoLockDesc')}</span>
+                <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 block">{t('autoLockVault')}</span>
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block">{t('autoLockDesc')}</span>
               </div>
             </div>
             {/* Toggle Switch */}
@@ -188,15 +188,15 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 onChange={(e) => onToggleAutoLock && onToggleAutoLock(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-9 h-5 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primaryColor-600"></div>
+              <div className="w-9 h-5 bg-zinc-300 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primaryColor-600"></div>
             </label>
           </div>
 
           {autoLockEnabled && (
-            <div className="pt-2 border-t border-white/10 space-y-3 animate-in fade-in duration-150">
+            <div className="pt-2 border-t border-black/10 dark:border-white/10 space-y-3 animate-in fade-in duration-150">
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-zinc-300">{t('autoLockTimeout')}</span>
-                <span className="text-primaryColor-400 font-bold">
+                <span className="text-zinc-700 dark:text-zinc-300">{t('autoLockTimeout')}</span>
+                <span className="text-primaryColor-600 dark:text-primaryColor-400 font-bold">
                   {autoLockMinutes} {t('minutes')}
                 </span>
               </div>
@@ -211,7 +211,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     className={`py-1 rounded-lg border transition text-[11px] cursor-pointer ${
                       autoLockMinutes === mins
                         ? 'bg-primaryColor-600 text-white font-bold border-primaryColor-500 shadow-sm'
-                        : 'bg-black/30 hover:bg-white/10 text-zinc-400 hover:text-white border-white/10'
+                        : 'bg-black/5 dark:bg-black/30 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border-black/10 dark:border-white/10'
                     }`}
                   >
                     {mins} {t('minutes')}
@@ -232,7 +232,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     onChangeAutoLockMinutes &&
                     onChangeAutoLockMinutes(parseInt(e.target.value, 10))
                   }
-                  className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-primaryColor-500"
+                  className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-primaryColor-500"
                 />
                 <span className="text-[10px] text-zinc-500 font-mono">60m</span>
               </div>
@@ -241,11 +241,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </div>
 
         {/* Theme Accent Color Selection Section (Collapsible Accordion - Closed by default) */}
-        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 mb-4 transition-all">
+        <div className="p-4 rounded-2xl bg-black/[0.03] dark:bg-white/5 border border-black/10 dark:border-white/10 mb-4 transition-all">
           <button
             type="button"
             onClick={() => setIsThemeColorOpen(!isThemeColorOpen)}
-            className="w-full flex items-center justify-between text-xs font-medium text-zinc-200 hover:text-white transition cursor-pointer"
+            className="w-full flex items-center justify-between text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:text-zinc-900 dark:hover:text-white transition cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
               <Palette className="w-4 h-4 text-primaryColor-500" />
@@ -270,7 +270,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           </button>
 
           {isThemeColorOpen && (
-            <div className="pt-3.5 mt-3 border-t border-white/10 space-y-3.5 animate-in fade-in duration-150">
+            <div className="pt-3.5 mt-3 border-t border-black/10 dark:border-white/10 space-y-3.5 animate-in fade-in duration-150">
               {/* Presets Grid */}
               <div className="grid grid-cols-6 gap-2">
                 {ACCENT_COLOR_OPTIONS.map((opt) => (
@@ -283,8 +283,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     }}
                     className={`relative flex flex-col items-center justify-center p-2 rounded-xl border transition-all cursor-pointer group ${
                       accentColor === opt.id
-                        ? 'border-white/50 bg-white/15 shadow-md scale-105'
-                        : 'border-white/5 bg-black/20 hover:bg-white/10 hover:border-white/20'
+                        ? 'border-primaryColor-500 dark:border-white/50 bg-primaryColor-500/10 dark:bg-white/15 shadow-md scale-105'
+                        : 'border-black/5 dark:border-white/5 bg-black/5 dark:bg-black/20 hover:bg-black/10 dark:hover:bg-white/10'
                     }`}
                   >
                     <div
@@ -298,7 +298,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               </div>
 
               {/* Custom Color Palette Picker (No text labels) */}
-              <div className="p-3 rounded-xl bg-black/30 border border-black/10 dark:border-white/10 backdrop-blur-md flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-black/5 dark:bg-black/30 border border-black/10 dark:border-white/10 backdrop-blur-md flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <input
@@ -311,14 +311,14 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     <label
                       htmlFor="customColorInput"
                       className={`w-7 h-7 rounded-full border border-black/10 dark:border-white/20 shadow-md flex items-center justify-center cursor-pointer transition-transform hover:scale-110 ${
-                        accentColor === 'custom' ? 'ring-2 ring-white/50' : ''
+                        accentColor === 'custom' ? 'ring-2 ring-primaryColor-500 dark:ring-white/50' : ''
                       }`}
                       style={{ backgroundColor: customHex }}
                     >
                       {accentColor === 'custom' && <Check className="w-3.5 h-3.5 text-white drop-shadow" />}
                     </label>
                   </div>
-                  <span className="text-xs text-zinc-300 font-mono font-semibold tracking-wider">
+                  <span className="text-xs text-zinc-700 dark:text-zinc-300 font-mono font-semibold tracking-wider">
                     {customHex.toUpperCase()}
                   </span>
                 </div>
@@ -336,7 +336,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                         }
                       }
                     }}
-                    className="w-24 px-2.5 py-1 rounded-lg bg-zinc-900 border border-white/10 text-xs font-mono text-white text-center uppercase focus:outline-none focus:border-primaryColor-500"
+                    className="w-24 px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-900 border border-black/15 dark:border-white/10 text-xs font-mono text-zinc-900 dark:text-white text-center uppercase focus:outline-none focus:border-primaryColor-500"
                     placeholder="#3B82F6"
                   />
                 </div>
@@ -346,23 +346,23 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </div>
 
         {/* Language Selection Section */}
-        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 mb-4">
+        <div className="p-4 rounded-2xl bg-black/[0.03] dark:bg-white/5 border border-black/10 dark:border-white/10 space-y-2 mb-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-medium text-zinc-200">
-              <Globe className="w-4 h-4 text-primaryColor-400" />
+            <div className="flex items-center gap-2 text-xs font-medium text-zinc-800 dark:text-zinc-200">
+              <Globe className="w-4 h-4 text-primaryColor-600 dark:text-primaryColor-400" />
               <span>{t('language')}</span>
             </div>
-            <span className="text-[10px] text-primaryColor-400 font-mono font-semibold">
+            <span className="text-[10px] text-primaryColor-600 dark:text-primaryColor-400 font-mono font-semibold">
               {LANGUAGE_OPTIONS.find((l) => l.code === language)?.flag} {LANGUAGE_OPTIONS.find((l) => l.code === language)?.label}
             </span>
           </div>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as Language)}
-            className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-white/10 text-xs font-mono text-white focus:outline-none focus:border-primaryColor-500/50 transition cursor-pointer"
+            className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-black/15 dark:border-white/10 text-xs font-mono text-zinc-900 dark:text-white focus:outline-none focus:border-primaryColor-500/50 transition cursor-pointer"
           >
             {LANGUAGE_OPTIONS.map((opt) => (
-              <option key={opt.code} value={opt.code} className="bg-zinc-900 text-white">
+              <option key={opt.code} value={opt.code} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">
                 {opt.flag} {opt.label} ({opt.code})
               </option>
             ))}
@@ -370,34 +370,34 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </div>
 
         {/* Security Audit Logs Entrance */}
-        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 mb-6">
+        <div className="p-4 rounded-2xl bg-black/[0.03] dark:bg-white/5 border border-black/10 dark:border-white/10 space-y-3 mb-6">
           <button
             onClick={handleToggleAuditLogs}
-            className="w-full flex items-center justify-between text-xs font-medium text-zinc-200 hover:text-white transition cursor-pointer"
+            className="w-full flex items-center justify-between text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:text-zinc-900 dark:hover:text-white transition cursor-pointer"
           >
             <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-primaryColor-400" />
+              <FileText className="w-4 h-4 text-primaryColor-600 dark:text-primaryColor-400" />
               <div className="text-left">
-                <span className="block">{t('securityAudit')}</span>
-                <span className="text-[10px] text-zinc-400 font-mono block">
+                <span className="block font-semibold text-zinc-800 dark:text-zinc-200">{t('securityAudit')}</span>
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono block">
                   {t('auditLogLimitNotice') || 'Auto-pruned to latest 100 entries'}
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-zinc-400 font-mono">
+            <div className="flex items-center gap-1 text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
               {showAuditLogs ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </div>
           </button>
 
           {showAuditLogs && (
-            <div className="pt-2 space-y-2 border-t border-white/10">
+            <div className="pt-2 space-y-2 border-t border-black/10 dark:border-white/10">
               {loadingLogs ? (
-                <div className="p-4 text-center text-zinc-400 text-xs font-mono flex items-center justify-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-primaryColor-400" />
+                <div className="p-4 text-center text-zinc-500 dark:text-zinc-400 text-xs font-mono flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-primaryColor-500" />
                   <span>Loading audit logs...</span>
                 </div>
               ) : logsError ? (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-300 text-xs rounded-xl">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-300 text-xs rounded-xl">
                   {logsError}
                 </div>
               ) : auditLogs.length === 0 ? (
@@ -409,7 +409,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   {auditLogs.map((log) => (
                     <div
                       key={log.id}
-                      className="p-2.5 rounded-xl bg-black/40 border border-white/5 text-[11px] font-mono space-y-1"
+                      className="p-2.5 rounded-xl bg-black/5 dark:bg-black/40 border border-black/5 dark:border-white/5 text-[11px] font-mono space-y-1"
                     >
                       <div className="flex items-center justify-between">
                         <span className={`px-2 py-0.5 rounded text-[9px] font-semibold border ${getActionBadgeColor(log.action)}`}>
@@ -418,15 +418,15 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                         <span className="text-zinc-500 text-[10px]">{formatTimestamp(log.timestamp)}</span>
                       </div>
 
-                      <div className="flex items-center justify-between text-zinc-300 text-[10px] pt-1">
-                        <span>{t('authMethod')}: <strong className="text-zinc-200">{log.authMethod}</strong></span>
-                        <span className={`font-semibold ${log.status === 'SUCCESS' ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <div className="flex items-center justify-between text-zinc-700 dark:text-zinc-300 text-[10px] pt-1">
+                        <span>{t('authMethod')}: <strong className="text-zinc-900 dark:text-zinc-200">{log.authMethod}</strong></span>
+                        <span className={`font-semibold ${log.status === 'SUCCESS' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                           {log.status}
                         </span>
                       </div>
 
-                      <div className="text-zinc-400 text-[10px]">
-                        <span>IP: <strong className="text-zinc-300">{log.ipAddress}</strong></span>
+                      <div className="text-zinc-600 dark:text-zinc-400 text-[10px]">
+                        <span>IP: <strong className="text-zinc-800 dark:text-zinc-300">{log.ipAddress}</strong></span>
                         {log.details && (
                           <p className="text-zinc-500 text-[9px] truncate mt-0.5">{log.details}</p>
                         )}
@@ -440,9 +440,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </div>
 
         {/* Account Footer Actions */}
-        <div className="flex items-center justify-between pt-4 border-t border-white/10 text-xs">
+        <div className="flex items-center justify-between pt-4 border-t border-black/10 dark:border-white/10 text-xs">
           <div className="flex items-center gap-1.5 text-zinc-500 text-[11px] font-mono">
-            <ShieldCheck className="w-3.5 h-3.5 text-primaryColor-400" />
+            <ShieldCheck className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400" />
             <span>Zero-Knowledge Account</span>
           </div>
           <button
@@ -450,7 +450,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               onClose();
               logoutAccount();
             }}
-            className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition flex items-center gap-1 cursor-pointer"
+            className="px-3 py-1.5 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border border-black/10 dark:border-white/10 transition flex items-center gap-1 cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>{t('logoutAccount')}</span>

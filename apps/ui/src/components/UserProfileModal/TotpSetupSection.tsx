@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -151,30 +151,30 @@ export const TotpSetupSection: React.FC = () => {
   };
 
   return (
-    <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-4">
+    <div className="p-4 rounded-2xl bg-black/[0.03] dark:bg-white/5 border border-black/10 dark:border-white/10 space-y-4">
       {/* Header Info */}
       <div className="flex items-start gap-3">
         <div
           className={`p-2.5 rounded-xl border shrink-0 mt-0.5 ${
             isTotpEnabled
-              ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
-              : 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+              ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+              : 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400'
           }`}
         >
           {isTotpEnabled ? <ShieldCheck className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h4 className="text-sm font-bold text-white">
+            <h4 className="text-sm font-bold text-zinc-900 dark:text-white">
               {t('twoFactorAuth')}
             </h4>
             {isTotpEnabled && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono border border-emerald-500/30">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-mono border border-emerald-500/30">
                 {t('totpEnabled')}
               </span>
             )}
           </div>
-          <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
             {isTotpEnabled ? t('totpEnabledDesc') : t('totpDisabledDesc')}
           </p>
         </div>
@@ -187,7 +187,7 @@ export const TotpSetupSection: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsDisabling(true)}
-              className="w-full py-2.5 px-4 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 text-xs font-mono transition cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-600 dark:text-red-300 border border-red-500/30 text-xs font-mono transition cursor-pointer flex items-center justify-center gap-2"
             >
               <AlertTriangle className="w-4 h-4" />
               <span>{t('disableTotp')}</span>
@@ -206,35 +206,35 @@ export const TotpSetupSection: React.FC = () => {
       )}
 
       {errorMsg && (
-        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs font-mono">
+        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-300 text-xs font-mono">
           {errorMsg}
         </div>
       )}
 
       {successMsg && (
-        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-mono">
+        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-mono">
           {successMsg}
         </div>
       )}
 
       {/* Setup Form with QR Code & Secret Key */}
       {isSettingUp && (
-        <div className="p-4 rounded-xl bg-black/40 border border-primaryColor-500/30 space-y-4 animate-in fade-in duration-150">
+        <div className="p-4 rounded-xl bg-black/[0.03] dark:bg-black/40 border border-primaryColor-500/30 space-y-4 animate-in fade-in duration-150">
           <div className="flex items-center justify-between text-xs font-mono">
-            <span className="text-zinc-300 font-semibold flex items-center gap-1.5">
-              <QrCode className="w-4 h-4 text-primaryColor-400" />
+            <span className="text-zinc-800 dark:text-zinc-300 font-semibold flex items-center gap-1.5">
+              <QrCode className="w-4 h-4 text-primaryColor-600 dark:text-primaryColor-400" />
               <span>1. {t('scanQrCodeOrSecret')}</span>
             </span>
-            <span className="flex items-center gap-1 text-amber-300 text-[11px]">
+            <span className="flex items-center gap-1 text-amber-600 dark:text-amber-300 text-[11px]">
               <RefreshCw className="w-3 h-3 animate-spin" />
               <span>{t('rotatesIn')} {secondsRemaining}s</span>
             </span>
           </div>
 
           {/* QR Code Container */}
-          <div className="flex flex-col items-center justify-center p-3.5 bg-black/50 border border-white/10 rounded-2xl">
+          <div className="flex flex-col items-center justify-center p-3.5 bg-black/5 dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-2xl">
             {qrCodeDataUrl ? (
-              <div className="p-2.5 bg-white rounded-xl shadow-lg">
+              <div className="p-2.5 bg-white rounded-xl shadow-lg border border-black/10">
                 <img
                   src={qrCodeDataUrl}
                   alt="TOTP Setup QR Code"
@@ -243,21 +243,21 @@ export const TotpSetupSection: React.FC = () => {
               </div>
             ) : (
               <div className="w-40 h-40 flex items-center justify-center text-zinc-500 text-xs font-mono">
-                <Loader2 className="w-6 h-6 animate-spin text-primaryColor-400" />
+                <Loader2 className="w-6 h-6 animate-spin text-primaryColor-500" />
               </div>
             )}
-            <p className="text-[11px] text-zinc-400 mt-2 font-mono text-center">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 font-mono text-center">
               Google Authenticator / 1Password / Authy
             </p>
           </div>
 
           {/* Manual Secret Key Copy Box */}
           <div className="space-y-1.5">
-            <label className="text-[11px] text-zinc-400 font-mono block">
+            <label className="text-[11px] text-zinc-600 dark:text-zinc-400 font-mono block">
               {t('totpSecretKey')}:
             </label>
-            <div className="p-2.5 rounded-xl bg-primaryColor-950/40 border border-primaryColor-500/30 flex items-center justify-between gap-2">
-              <div className="font-mono text-xs text-primaryColor-300 tracking-wider select-all break-all pr-2">
+            <div className="p-2.5 rounded-xl bg-primaryColor-50 dark:bg-primaryColor-950/40 border border-primaryColor-500/30 flex items-center justify-between gap-2">
+              <div className="font-mono text-xs text-primaryColor-700 dark:text-primaryColor-300 font-semibold tracking-wider select-all break-all pr-2">
                 {setupSecret}
               </div>
               <button
@@ -273,7 +273,7 @@ export const TotpSetupSection: React.FC = () => {
 
           <form onSubmit={handleEnableSubmit} className="space-y-3 pt-2">
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1">
+              <label className="block text-xs font-medium text-zinc-800 dark:text-zinc-300 mb-1">
                 2. {t('enterTotpCode')}
               </label>
               <input
@@ -283,7 +283,7 @@ export const TotpSetupSection: React.FC = () => {
                 value={verifyCode}
                 onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ''))}
                 placeholder="000000"
-                className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-primaryColor-500 text-base font-mono tracking-widest text-center"
+                className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/50 border border-black/20 dark:border-white/10 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-primaryColor-500 text-base font-mono tracking-widest text-center"
                 required
                 autoFocus
               />
@@ -293,7 +293,7 @@ export const TotpSetupSection: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsSettingUp(false)}
-                className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-medium transition cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 text-xs font-medium transition cursor-pointer"
               >
                 {t('cancel')}
               </button>
@@ -315,12 +315,12 @@ export const TotpSetupSection: React.FC = () => {
           onSubmit={handleDisableSubmit}
           className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 space-y-3 animate-in fade-in duration-150"
         >
-          <div className="flex items-center gap-2 text-red-300 text-xs font-semibold">
+          <div className="flex items-center gap-2 text-red-600 dark:text-red-300 text-xs font-semibold">
             <AlertTriangle className="w-4 h-4" />
             <span>{t('confirmDisableTotp')}</span>
           </div>
           <div>
-            <label className="block text-xs font-medium text-zinc-300 mb-1">
+            <label className="block text-xs font-medium text-zinc-800 dark:text-zinc-300 mb-1">
               {t('enterDisableCode')}
             </label>
             <input
@@ -330,7 +330,7 @@ export const TotpSetupSection: React.FC = () => {
               value={disableCode}
               onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, ''))}
               placeholder="000000"
-              className="w-full px-4 py-2 rounded-xl bg-black/50 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-red-500 text-sm font-mono tracking-widest text-center"
+              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-black/50 border border-black/20 dark:border-white/10 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-red-500 text-sm font-mono tracking-widest text-center"
               required
               autoFocus
             />
@@ -339,7 +339,7 @@ export const TotpSetupSection: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsDisabling(false)}
-              className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs transition cursor-pointer"
+              className="flex-1 py-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 text-xs transition cursor-pointer"
             >
               {t('cancel')}
             </button>
