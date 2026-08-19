@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+﻿import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { FileText, ChevronUp, ChevronDown } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
@@ -198,7 +198,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   if (!activeFile) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 font-editor-mono font-mono text-sm select-none">
-        <FileText className="w-12 h-12 mb-3 opacity-20 text-blue-500 dark:text-blue-400" />
+        <FileText className="w-12 h-12 mb-3 opacity-20 text-primaryColor-500 dark:text-primaryColor-400" />
         <p>Select or create a note to begin</p>
       </div>
     );

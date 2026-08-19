@@ -21,7 +21,7 @@ export const VaultHeader: React.FC<VaultHeaderProps> = ({
   return (
     <div className="p-4 border-b border-black/5 dark:border-white/10 flex items-center justify-between">
       <div className="flex items-center gap-2.5">
-        <div className="p-1 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0 shadow-sm">
+        <div className="p-1 rounded-xl bg-primaryColor-500/10 border border-black/10 dark:border-white/15 backdrop-blur-md flex items-center justify-center shrink-0 shadow-sm">
           <img
             src="/assets/obex_cat_eye_logo-256.webp"
             alt="Markspace Logo"
@@ -31,7 +31,7 @@ export const VaultHeader: React.FC<VaultHeaderProps> = ({
         <div>
           <h1 className="font-bold text-sm text-zinc-900 dark:text-white tracking-wide flex items-center gap-1.5">
             <span>Markspace</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-700 dark:text-blue-300 font-mono">
+            <span className="text-[10px] px-2 py-0.5 rounded-lg bg-primaryColor-500/15 text-primaryColor-700 dark:text-primaryColor-300 border border-black/10 dark:border-white/15 backdrop-blur-md font-mono shadow-sm">
               E2EE
             </span>
           </h1>

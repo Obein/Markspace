@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 
 export interface BentoSpecItem {
@@ -51,7 +51,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
           handleCardClick();
         }
       }}
-      className={`cursor-pointer select-none rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-blue-500/40 hover:bg-[#14141c] transition-all duration-300 shadow-xl backdrop-blur-xl relative overflow-hidden flex flex-col justify-center group p-4 sm:p-5 lg:p-6 min-h-[90px] ${
+      className={`cursor-pointer select-none rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-primaryColor-500/40 hover:bg-[#14141c] transition-all duration-300 shadow-xl backdrop-blur-xl relative overflow-hidden flex flex-col justify-center group p-4 sm:p-5 lg:p-6 min-h-[90px] ${
         isTransitioning
           ? 'scale-95 blur-md opacity-60'
           : 'scale-100 blur-0 opacity-100'
@@ -74,7 +74,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
               {heroTitle}
             </div>
             {heroSubtitle && (
-              <div className="text-xs sm:text-sm font-bold font-mono tracking-wider text-zinc-400 group-hover:text-blue-300 transition-colors uppercase">
+              <div className="text-xs sm:text-sm font-bold font-mono tracking-wider text-zinc-400 group-hover:text-primaryColor-300 transition-colors uppercase">
                 {heroSubtitle}
               </div>
             )}
@@ -86,7 +86,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
           <div>
             {/* Top Bar with Return indicator */}
             <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-white/10">
-              <span className="text-xs font-bold text-blue-400 font-mono">
+              <span className="text-xs font-bold text-primaryColor-400 font-mono">
                 {detailTitle}
               </span>
               <span className="text-[10px] font-mono text-zinc-400 flex items-center gap-1 hover:text-white transition">

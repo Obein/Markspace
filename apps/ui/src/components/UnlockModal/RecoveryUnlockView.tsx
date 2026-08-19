@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { ArrowLeft, Sparkles, CheckCircle2, Loader2 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { VaultInfo } from '../../interfaces/INoteModels';
@@ -120,7 +120,7 @@ export const RecoveryUnlockView: React.FC<RecoveryUnlockViewProps> = ({
             <span>Vault Recovery & Reset PIN</span>
           </h3>
           <p className="text-[11px] text-zinc-400 font-mono truncate">
-            Vault UUID: <span className="text-blue-400 select-all">{activeVault?.id}</span>
+            Vault UUID: <span className="text-primaryColor-400 select-all">{activeVault?.id}</span>
           </p>
         </div>
       </div>
@@ -135,7 +135,7 @@ export const RecoveryUnlockView: React.FC<RecoveryUnlockViewProps> = ({
             value={recoveryMnemonic}
             onChange={(e) => setRecoveryMnemonic(e.target.value)}
             placeholder="word1-word2-word3-word4-word5-word6-word7-word8"
-            className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500 text-xs font-mono resize-none"
+            className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-primaryColor-500 text-xs font-mono resize-none"
             required
           />
         </div>
@@ -158,7 +158,7 @@ export const RecoveryUnlockView: React.FC<RecoveryUnlockViewProps> = ({
             value={newPinAfterRecovery}
             onChange={(e) => setNewPinAfterRecovery(e.target.value.replace(/\D/g, ''))}
             placeholder="••••"
-            className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500 text-sm tracking-widest font-mono text-center"
+            className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-primaryColor-500 text-sm tracking-widest font-mono text-center"
             required
           />
         </div>

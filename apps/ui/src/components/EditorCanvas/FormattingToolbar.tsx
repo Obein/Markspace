@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   Bold,
   Italic,
@@ -121,7 +121,7 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
       {/* Visual Table Editor Action Button */}
       <button
         onClick={onOpenVisualTable}
-        className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition flex items-center justify-center gap-1 text-[11px] font-editor-mono font-mono cursor-pointer shrink-0"
+        className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-primaryColor-600 dark:text-primaryColor-400 hover:text-primaryColor-700 dark:hover:text-primaryColor-300 transition flex items-center justify-center gap-1 text-[11px] font-editor-mono font-mono cursor-pointer shrink-0"
         title="Visual Markdown Table Editor"
       >
         <TableIcon className="w-3.5 h-3.5" />
@@ -131,7 +131,7 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
       {/* LaTeX Math Formula Button */}
       <button
         onClick={() => onInsertFormatting('$$\n', '\n$$', true)}
-        className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition flex items-center justify-center gap-1 text-[11px] font-editor-mono font-mono cursor-pointer shrink-0"
+        className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-primaryColor-600 dark:text-primaryColor-400 hover:text-primaryColor-700 dark:hover:text-primaryColor-300 transition flex items-center justify-center gap-1 text-[11px] font-editor-mono font-mono cursor-pointer shrink-0"
         title="LaTeX Formula ($$...$$)"
       >
         <Sigma className="w-3.5 h-3.5" />
@@ -162,7 +162,7 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
             onClick={onToggleFindReplace}
             className={`p-1.5 rounded-lg transition flex items-center justify-center gap-1 text-[11px] font-editor-mono font-mono cursor-pointer shrink-0 ${
               isFindOpen
-                ? 'bg-blue-600/15 text-blue-600 dark:text-blue-400 font-bold border border-blue-500/30'
+                ? 'bg-primaryColor-600/15 text-primaryColor-600 dark:text-primaryColor-400 font-bold border border-primaryColor-500/30'
                 : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'
             }`}
             title="Find and Replace (Ctrl+F / Ctrl+H)"

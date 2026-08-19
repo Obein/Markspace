@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { TableAlignment } from '../../utils/TableConverter';
 import { SelectedCellCoord } from './VisualTableEditor.types';
@@ -50,7 +50,7 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
                 key={ci}
                 className={`p-1.5 border border-white/10 text-center select-none ${
                   selectedCell?.c === ci
-                    ? 'bg-blue-600/20 text-blue-300 font-bold border-blue-500/40'
+                    ? 'bg-primaryColor-600/20 text-primaryColor-300 font-bold border-primaryColor-500/40'
                     : 'bg-white/5 text-zinc-400'
                 }`}
               >
@@ -72,7 +72,7 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
             <th className="w-10 p-1 bg-transparent border-none">
               <button
                 onClick={() => onAddColumn()}
-                className="w-full py-1 rounded bg-white/5 hover:bg-white/10 text-blue-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+                className="w-full py-1 rounded bg-white/5 hover:bg-white/10 text-primaryColor-400 hover:text-white flex items-center justify-center transition cursor-pointer"
                 title="Append column"
               >
                 <Plus className="w-3 h-3" />
@@ -93,7 +93,7 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
                   onClick={() => onSelectCell({ r: -1, c: ci })}
                   className={`p-0 border border-white/10 font-bold transition ${
                     isSelected
-                      ? 'ring-2 ring-blue-500 bg-blue-500/10 z-10'
+                      ? 'ring-2 ring-primaryColor-500 bg-primaryColor-500/10 z-10'
                       : 'bg-white/[0.03] hover:bg-white/[0.06]'
                   }`}
                 >
@@ -125,7 +125,7 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
               {/* Row Number Column (1, 2, 3...) with hover delete */}
               <td
                 className={`w-10 p-1.5 border border-white/10 text-center text-zinc-500 text-[10px] select-none relative ${
-                  selectedCell?.r === ri ? 'bg-blue-600/20 text-blue-300 font-bold' : 'bg-white/5'
+                  selectedCell?.r === ri ? 'bg-primaryColor-600/20 text-primaryColor-300 font-bold' : 'bg-white/5'
                 }`}
               >
                 <span className="group-hover:hidden">{ri + 1}</span>
@@ -152,7 +152,7 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
                     onClick={() => onSelectCell({ r: ri, c: ci })}
                     className={`p-0 border border-white/10 transition relative ${
                       isSelected
-                        ? 'ring-2 ring-blue-500 bg-blue-500/10 z-10'
+                        ? 'ring-2 ring-primaryColor-500 bg-primaryColor-500/10 z-10'
                         : 'hover:bg-white/[0.04]'
                     }`}
                   >
@@ -181,7 +181,7 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
                             : 'justify-start text-left'
                         } ${
                           isFormula
-                            ? 'text-blue-300 font-semibold bg-blue-500/[0.04]'
+                            ? 'text-primaryColor-300 font-semibold bg-primaryColor-500/[0.04]'
                             : 'text-zinc-200'
                         }`}
                       >
@@ -201,9 +201,9 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
             <td colSpan={headers.length + 2} className="pt-2">
               <button
                 onClick={() => onAddRow()}
-                className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-dashed border-white/10 text-zinc-400 hover:text-blue-300 text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-dashed border-white/10 text-zinc-400 hover:text-primaryColor-300 text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5 text-blue-400" />
+                <Plus className="w-3.5 h-3.5 text-primaryColor-400" />
                 <span>Append New Row</span>
               </button>
             </td>

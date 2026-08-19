@@ -32,10 +32,10 @@ export const EditorActionControls: React.FC<EditorActionControlsProps> = ({
           <div className="w-px h-4 bg-black/10 dark:bg-white/10 shrink-0" />
           <button
             onClick={onOpenHistory}
-            className="p-1.5 rounded-lg bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/20 text-[var(--accent-primary-dark)] dark:text-[var(--accent-primary-light)] border border-[var(--accent-primary)]/20 transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+            className="p-1.5 rounded-xl bg-primaryColor-500/10 hover:bg-primaryColor-500/20 text-primaryColor-700 dark:text-primaryColor-300 border border-black/10 dark:border-white/15 backdrop-blur-md transition flex items-center gap-1.5 shrink-0 cursor-pointer shadow-sm"
             title={t('versionHistory')}
           >
-            <History className="w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0" />
+            <History className="w-3.5 h-3.5 text-primaryColor-500 shrink-0" />
             <span className="text-[11px] font-medium whitespace-nowrap">{t('history')}</span>
           </button>
         </>
@@ -76,10 +76,10 @@ export const EditorActionControls: React.FC<EditorActionControlsProps> = ({
           <div className="w-px h-4 bg-black/10 dark:bg-white/10 shrink-0" />
           <button
             onClick={onDownloadCurrentFile}
-            className="p-1.5 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white border border-black/10 dark:border-white/10 transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+            className="p-1.5 rounded-xl bg-primaryColor-500/10 hover:bg-primaryColor-500/20 text-primaryColor-700 dark:text-primaryColor-300 border border-black/10 dark:border-white/15 backdrop-blur-md transition flex items-center gap-1.5 shrink-0 cursor-pointer shadow-sm"
             title="Download Current File"
           >
-            <Download className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+            <Download className="w-3.5 h-3.5 text-primaryColor-500 shrink-0" />
             <span className="text-[11px] font-medium whitespace-nowrap">{t('download')}</span>
           </button>
         </>

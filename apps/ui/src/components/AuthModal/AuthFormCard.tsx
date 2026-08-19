@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   LogIn,
   UserPlus,
@@ -108,7 +108,7 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as Language)}
-            className="pl-7 pr-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-xs font-mono transition cursor-pointer appearance-none focus:outline-none focus:border-blue-500"
+            className="pl-7 pr-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-xs font-mono transition cursor-pointer appearance-none focus:outline-none focus:border-primaryColor-500"
             title="Change Language / 切换语言"
           >
             {LANGUAGE_OPTIONS.map((opt) => (
@@ -154,7 +154,7 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
               <div>
                 <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
                   <span>{isRegisterMode ? t('register') : t('signIn')}</span>
-                  <span className="text-xs text-blue-400 font-mono">@{usernameInput.trim()}</span>
+                  <span className="text-xs text-primaryColor-400 font-mono">@{usernameInput.trim()}</span>
                 </h2>
                 <p className="text-[11px] text-zinc-400">{t('step2Title')}</p>
               </div>
@@ -187,7 +187,7 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
                 onFocus={() => setIsUsernameFocused(true)}
                 onBlur={() => setIsUsernameFocused(false)}
                 placeholder={isRegisterMode ? 'e.g. alice_01' : t('enterUsername')}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-primaryColor-500 text-xs font-mono"
                 required
                 autoFocus
               />
@@ -196,7 +196,7 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer text-xs"
+              className="w-full py-2.5 px-4 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white font-semibold transition shadow-lg shadow-primaryColor-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer text-xs"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -227,7 +227,7 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
                       value={accountPassword}
                       onChange={(e) => setAccountPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full pl-3.5 pr-10 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
+                      className="w-full pl-3.5 pr-10 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-primaryColor-500 text-xs font-mono"
                       required
                       autoFocus
                     />
@@ -250,7 +250,7 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full pl-3.5 pr-10 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
+                      className="w-full pl-3.5 pr-10 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-primaryColor-500 text-xs font-mono"
                       required
                     />
                     <button
@@ -271,7 +271,7 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer text-xs mt-1"
+                  className="w-full py-2 px-4 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white font-semibold transition shadow-lg shadow-primaryColor-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer text-xs mt-1"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -293,7 +293,7 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
                       <button
                         type="button"
                         onClick={() => setLoginMethod('password')}
-                        className="text-[11px] text-blue-400 hover:underline font-mono cursor-pointer"
+                        className="text-[11px] text-primaryColor-400 hover:underline font-mono cursor-pointer"
                       >
                         {t('usePassword')}
                       </button>
@@ -305,7 +305,7 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
                       value={totpCode}
                       onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
                       placeholder="000000"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500 text-base font-mono tracking-widest text-center"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-primaryColor-500 text-base font-mono tracking-widest text-center"
                       required
                       autoFocus
                     />
@@ -318,7 +318,7 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
                         <button
                           type="button"
                           onClick={() => setLoginMethod('totp')}
-                          className="text-[11px] text-blue-400 hover:underline font-mono cursor-pointer"
+                          className="text-[11px] text-primaryColor-400 hover:underline font-mono cursor-pointer"
                         >
                           {t('useTotpCode')}
                         </button>
@@ -330,7 +330,7 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
                         value={accountPassword}
                         onChange={(e) => setAccountPassword(e.target.value)}
                         placeholder="••••••••••••"
-                        className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
+                        className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-primaryColor-500 text-xs font-mono"
                         required
                         autoFocus
                       />
@@ -349,7 +349,7 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer text-xs"
+                  className="w-full py-2.5 px-4 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white font-semibold transition shadow-lg shadow-primaryColor-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer text-xs"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin text-white" />

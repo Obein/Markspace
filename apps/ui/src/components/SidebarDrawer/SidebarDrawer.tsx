@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+﻿import React, { useRef, useState } from 'react';
 import {
   Plus,
   Search,
@@ -249,7 +249,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
           <button
             onClick={onCreateNote}
             disabled={isCreatingNote}
-            className="flex-1 py-1.5 px-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition shadow-lg shadow-blue-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 py-1.5 px-2.5 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition shadow-lg shadow-primaryColor-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isCreatingNote ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -266,7 +266,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             title={t('createDirectory')}
           >
             {isCreatingFolderLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-blue-600 dark:text-blue-400" />
+              <Loader2 className="w-4 h-4 animate-spin text-primaryColor-600 dark:text-primaryColor-400" />
             ) : (
               <FolderPlus className="w-4 h-4" />
             )}
@@ -279,7 +279,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             title={isUploadingFiles ? t('uploading') : t('addFileMedia')}
           >
             {isUploadingFiles ? (
-              <Loader2 className="w-4 h-4 animate-spin text-blue-600 dark:text-blue-400" />
+              <Loader2 className="w-4 h-4 animate-spin text-primaryColor-600 dark:text-primaryColor-400" />
             ) : (
               <Upload className="w-4 h-4" />
             )}
@@ -299,9 +299,9 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
               onChange={(e) => setNewFolderName(e.target.value)}
               placeholder={t('createDirectory')}
               autoFocus
-              className="flex-1 px-2.5 py-1 bg-white dark:bg-black/40 border border-black/15 dark:border-white/10 rounded-lg text-xs font-mono text-zinc-900 dark:text-white focus:outline-none focus:border-blue-500"
+              className="flex-1 px-2.5 py-1 bg-white dark:bg-black/40 border border-black/15 dark:border-white/10 rounded-lg text-xs font-mono text-zinc-900 dark:text-white focus:outline-none focus:border-primaryColor-500"
             />
-            <button type="submit" className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer">
+            <button type="submit" className="p-1 text-primaryColor-600 dark:text-primaryColor-400 hover:text-primaryColor-700 dark:hover:text-primaryColor-300 cursor-pointer">
               <Check className="w-4 h-4" />
             </button>
             <button
@@ -323,7 +323,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder={t('searchPlaceholder')}
-              className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-black/5 dark:bg-black/20 border border-black/5 dark:border-white/5 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 font-mono"
+              className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-black/5 dark:bg-black/20 border border-black/5 dark:border-white/5 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-primaryColor-500/50 font-mono"
             />
           </div>
         </div>
@@ -332,7 +332,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
         <div className="flex-1 overflow-y-auto p-2 space-y-0.5 min-h-0">
           {isLoadingVaultTree ? (
             <div className="p-8 text-center text-zinc-500 dark:text-zinc-400 text-xs font-mono flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin text-blue-600 dark:text-blue-400" />
+              <Loader2 className="w-5 h-5 animate-spin text-primaryColor-600 dark:text-primaryColor-400" />
               <span>{t('loadingVaultTree')}</span>
             </div>
           ) : treeNodes.length === 0 ? (
@@ -383,7 +383,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="px-3 py-1.5 border-b border-black/5 dark:border-white/10 text-[11px] text-zinc-600 dark:text-zinc-400 font-semibold truncate flex items-center gap-1.5">
-                <Folder className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                <Folder className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400 shrink-0" />
                 <span className="truncate">{contextMenu.nodeName}</span>
               </div>
 
@@ -398,7 +398,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-200 hover:text-zinc-900 dark:hover:text-white flex items-center gap-2 transition my-0.5 cursor-pointer"
               >
-                <Download className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                <Download className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400" />
                 <span>{t('download')}</span>
               </button>
 
@@ -415,7 +415,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
                   }}
                   className="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-200 hover:text-zinc-900 dark:hover:text-white flex items-center gap-2 transition my-0.5 cursor-pointer"
                 >
-                  <Edit2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  <Edit2 className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400" />
                   <span>{t('rename')}</span>
                 </button>
               )}

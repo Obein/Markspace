@@ -34,12 +34,17 @@ export class MarkdownPreviewService implements IPreviewService {
       // 3. Syntax Highlighted Code Block using HighlightService
       const lang = language || 'text';
       const highlighted = this.highlightService.highlightCode(text, lang);
-      return `<pre class="my-4 p-4 rounded-xl border border-black/10 dark:border-white/10 bg-[#f4f4f5] dark:bg-[#09090b] overflow-x-auto shadow-sm dark:shadow-md"><code class="font-editor-mono font-mono text-xs leading-relaxed text-zinc-900 dark:text-zinc-100">${highlighted}</code></pre>`;
+
+      const langHeader = rawLanguage
+        ? `<div class="code-block-header"><span class="code-lang-tag">${escapeHtml(rawLanguage)}</span></div>`
+        : '';
+
+      return `<div class="code-block-wrapper">${langHeader}<pre><code class="font-editor-mono font-mono text-xs leading-relaxed text-zinc-900 dark:text-zinc-100">${highlighted}</code></pre></div>`;
     };
 
     // Table with container
     this.customRenderer.table = (token: Tokens.Table) => {
-      let thead = '<thead class="bg-black/5 dark:bg-white/10 text-zinc-900 dark:text-blue-300 border-b border-black/10 dark:border-white/10"><tr>';
+      let thead = '<thead class="bg-black/5 dark:bg-white/10 text-zinc-900 dark:text-primaryColor-300 border-b border-black/10 dark:border-white/10"><tr>';
       token.header.forEach((cell) => {
         const cellText = this.customRenderer.parser.parseInline(cell.tokens || []);
         thead += `<th class="px-4 py-2.5 text-left font-semibold">${cellText}</th>`;
@@ -277,7 +282,7 @@ export function normalizeMermaidCode(code: string): string {
 
 function renderMermaidContainer(code: string): string {
   const encoded = encodeURIComponent(code.trim());
-  return `<div class="mermaid-container my-6 flex justify-center overflow-x-auto p-4 rounded-2xl bg-black/[0.02] dark:bg-white/5 border border-black/10 dark:border-white/10 shadow-sm dark:shadow-lg"><div class="mermaid-diagram-code text-xs text-zinc-600 dark:text-zinc-400 font-mono flex items-center gap-2" data-mermaid-code="${encoded}"><span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span><span>Loading Mermaid Diagram...</span></div></div>`;
+  return `<div class="mermaid-container my-6 flex justify-center overflow-x-auto p-4 rounded-2xl bg-black/[0.02] dark:bg-white/5 border border-black/10 dark:border-white/10 shadow-sm dark:shadow-lg"><div class="mermaid-diagram-code text-xs text-zinc-600 dark:text-zinc-400 font-mono flex items-center gap-2" data-mermaid-code="${encoded}"><span class="w-2 h-2 rounded-full bg-primaryColor-500 animate-ping"></span><span>Loading Mermaid Diagram...</span></div></div>`;
 }
 
 function renderKatexDisplay(math: string): string {

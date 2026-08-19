@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { AlertCircle, Music } from 'lucide-react';
 
 interface MediaPreviewProps {
@@ -34,7 +34,7 @@ export const MediaPreview: React.FC<MediaPreviewProps> = ({
 
       {category === 'audio' && (
         <div className="w-full max-w-md p-6 glass-panel rounded-2xl border border-white/10 space-y-4">
-          <div className="p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20 text-blue-400 w-16 h-16 mx-auto flex items-center justify-center">
+          <div className="p-4 bg-primaryColor-500/10 rounded-2xl border border-primaryColor-500/20 text-primaryColor-400 w-16 h-16 mx-auto flex items-center justify-center">
             <Music className="w-8 h-8" />
           </div>
           <h3 className="font-mono text-sm text-white font-semibold">{filename}</h3>
@@ -52,7 +52,7 @@ export const MediaPreview: React.FC<MediaPreviewProps> = ({
           {onDownloadFile && (
             <button
               onClick={onDownloadFile}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-mono transition shadow-lg cursor-pointer"
+              className="px-4 py-2 bg-primaryColor-600 hover:bg-primaryColor-500 text-white rounded-xl text-xs font-mono transition shadow-lg cursor-pointer"
             >
               Download Decrypted File
             </button>

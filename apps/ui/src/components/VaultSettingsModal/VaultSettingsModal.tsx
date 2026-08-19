@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { X, Download, Plus, Database, ShieldCheck, Trash2, Edit2, Check } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
@@ -59,14 +59,14 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
           <div className="space-y-4 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-                <Database className="w-4 h-4 text-blue-400" />
+                <Database className="w-4 h-4 text-primaryColor-400" />
                 <span>{t('activeVault')}</span>
               </div>
               <button
                 onClick={() => setShowCreateVaultDialog(true)}
-                className="text-xs px-2.5 py-1 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/30 flex items-center gap-1.5 font-medium transition cursor-pointer"
+                className="text-xs px-2.5 py-1 rounded-xl bg-primaryColor-500/15 hover:bg-primaryColor-500/25 text-primaryColor-700 dark:text-primaryColor-300 border border-black/10 dark:border-white/15 backdrop-blur-md flex items-center gap-1.5 font-medium transition cursor-pointer shadow-sm"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3.5 h-3.5 text-primaryColor-500" />
                 <span>{t('createVault')}</span>
               </button>
             </div>
@@ -125,7 +125,7 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
                         }
                         setEditingVaultId(null);
                       }}
-                      className="p-2.5 rounded-xl border border-blue-500/40 bg-blue-500/10 flex items-center gap-2 animate-in fade-in duration-150 text-xs font-mono"
+                      className="p-2.5 rounded-xl border border-primaryColor-500/40 bg-primaryColor-500/10 flex items-center gap-2 animate-in fade-in duration-150 text-xs font-mono"
                     >
                       <input
                         type="text"
@@ -134,12 +134,12 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
                         onKeyDown={(e) => {
                           if (e.key === 'Escape') setEditingVaultId(null);
                         }}
-                        className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-white text-xs font-mono focus:outline-none focus:border-blue-400"
+                        className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-white text-xs font-mono focus:outline-none focus:border-primaryColor-400"
                         autoFocus
                       />
                       <button
                         type="submit"
-                        className="p-1 rounded bg-blue-600 hover:bg-blue-500 text-white transition cursor-pointer"
+                        className="p-1 rounded bg-primaryColor-600 hover:bg-primaryColor-500 text-white transition cursor-pointer"
                         title={t('confirm')}
                       >
                         <Check className="w-3.5 h-3.5" />
@@ -161,7 +161,7 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
                     key={v.id}
                     className={`p-3 rounded-xl border flex items-center justify-between transition ${
                       isActive
-                        ? 'bg-blue-600/20 border-blue-500/50 text-white font-medium'
+                        ? 'bg-primaryColor-500/15 dark:bg-primaryColor-500/20 border-black/10 dark:border-white/15 backdrop-blur-md text-zinc-900 dark:text-white font-semibold shadow-sm'
                         : 'bg-white/5 hover:bg-white/10 border-white/5 text-zinc-300'
                     }`}
                   >
@@ -169,13 +169,13 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
                       onClick={() => onSelectVault(v.id)}
                       className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer"
                     >
-                      <div className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-blue-400' : 'bg-zinc-600'}`} />
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-primaryColor-400' : 'bg-zinc-600'}`} />
                       <div className="flex flex-col min-w-0">
                         <span className="text-xs font-mono truncate">{v.name}</span>
                         <span className="text-[9px] text-zinc-500 font-mono truncate">{v.id}</span>
                       </div>
                       {isActive && (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0 ml-1">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg bg-primaryColor-500/15 text-primaryColor-700 dark:text-primaryColor-300 border border-black/10 dark:border-white/15 backdrop-blur-md shrink-0 ml-1">
                           Active
                         </span>
                       )}
@@ -190,7 +190,7 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
                             setEditingVaultId(v.id);
                             setEditingVaultName(v.name);
                           }}
-                          className="p-1.5 rounded-lg bg-white/5 hover:bg-blue-500/20 text-zinc-400 hover:text-blue-300 border border-white/10 transition cursor-pointer"
+                          className="p-1.5 rounded-lg bg-white/5 hover:bg-primaryColor-500/20 text-zinc-400 hover:text-primaryColor-300 border border-white/10 transition cursor-pointer"
                           title={t('rename')}
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -221,7 +221,7 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
           <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-medium text-zinc-200">
-                <Download className="w-4 h-4 text-blue-400" />
+                <Download className="w-4 h-4 text-primaryColor-400" />
                 <span>{t('exportVault')}</span>
               </div>
               <span className="text-[10px] text-zinc-400 font-mono">
@@ -231,9 +231,9 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
             <button
               onClick={handleExportVault}
               disabled={!isVaultUnlocked || activeVaultNotes.length === 0}
-              className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center justify-center gap-2 transition disabled:opacity-50 border border-blue-400/20 shadow-lg shadow-blue-500/10 cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-xl bg-primaryColor-500/15 hover:bg-primaryColor-500/25 text-primaryColor-700 dark:text-primaryColor-300 border border-black/10 dark:border-white/15 backdrop-blur-md text-xs font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50 shadow-sm cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5 text-primaryColor-500" />
               <span>{t('download')} "{activeVault?.name}"</span>
             </button>
           </div>
@@ -241,7 +241,7 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
           {/* Footer info */}
           <div className="flex items-center justify-between pt-4 border-t border-white/10 text-xs text-zinc-500">
             <div className="flex items-center gap-1.5 text-[11px] font-mono">
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+              <ShieldCheck className="w-3.5 h-3.5 text-primaryColor-400" />
               <span>Zero-Knowledge E2EE PIN Architecture</span>
             </div>
           </div>

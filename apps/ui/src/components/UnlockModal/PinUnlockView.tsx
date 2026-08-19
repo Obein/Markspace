@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { KeyRound, Database, Loader2, AlertTriangle, HelpCircle, Plus, Trash2 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
@@ -121,7 +121,7 @@ export const PinUnlockView: React.FC<PinUnlockViewProps> = ({
   return (
     <div>
       <div className="flex flex-col items-center text-center mb-5">
-        <div className="p-2 bg-gradient-to-b from-blue-500/20 to-purple-500/10 rounded-2xl border border-white/15 mb-3 shadow-xl shadow-blue-500/10 flex items-center justify-center">
+        <div className="p-2 bg-gradient-to-b from-primaryColor-500/20 to-purple-500/10 rounded-2xl border border-white/15 mb-3 shadow-xl shadow-primaryColor-500/10 flex items-center justify-center">
           <img
             src="/assets/obex_cat_eye_logo-256.webp"
             alt="Markspace Logo"
@@ -152,7 +152,7 @@ export const PinUnlockView: React.FC<PinUnlockViewProps> = ({
         <div className="p-3 rounded-xl bg-black/40 border border-white/10 space-y-1.5">
           <div className="flex items-center justify-between text-xs text-zinc-400">
             <span className="flex items-center gap-1.5">
-              <Database className="w-3.5 h-3.5 text-blue-400" />
+              <Database className="w-3.5 h-3.5 text-primaryColor-400" />
               <span>Select Vault</span>
             </span>
             <button
@@ -161,7 +161,7 @@ export const PinUnlockView: React.FC<PinUnlockViewProps> = ({
                 onError(null);
                 onSwitchToCreate();
               }}
-              className="text-[11px] text-blue-400 hover:text-blue-300 flex items-center gap-1 font-mono cursor-pointer"
+              className="text-[11px] text-primaryColor-400 hover:text-primaryColor-300 flex items-center gap-1 font-mono cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>New Vault</span>
@@ -172,7 +172,7 @@ export const PinUnlockView: React.FC<PinUnlockViewProps> = ({
             <select
               value={activeVault?.id || activeVaultId}
               onChange={(e) => handleSelectDifferentVault(e.target.value)}
-              className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-zinc-900 border border-white/10 text-xs font-mono text-white focus:outline-none focus:border-blue-500/50 transition cursor-pointer"
+              className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-zinc-900 border border-white/10 text-xs font-mono text-white focus:outline-none focus:border-primaryColor-500/50 transition cursor-pointer"
             >
               {vaults.map((v) => (
                 <option key={v.id} value={v.id} className="bg-zinc-900 text-white">
@@ -245,7 +245,7 @@ export const PinUnlockView: React.FC<PinUnlockViewProps> = ({
             value={pin}
             onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
             placeholder="••••"
-            className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500 text-lg tracking-[0.3em] font-mono text-center disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:border-primaryColor-500 text-lg tracking-[0.3em] font-mono text-center disabled:opacity-40 disabled:cursor-not-allowed"
             required
             autoFocus
           />
@@ -254,7 +254,7 @@ export const PinUnlockView: React.FC<PinUnlockViewProps> = ({
         <button
           type="submit"
           disabled={loading || isLockedOut}
-          className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition shadow-lg shadow-blue-500/20 border border-blue-400/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer text-xs"
+          className="w-full py-3 px-4 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white font-medium transition shadow-lg shadow-primaryColor-500/20 border border-primaryColor-400/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer text-xs"
         >
           {loading ? (
             <>
@@ -278,7 +278,7 @@ export const PinUnlockView: React.FC<PinUnlockViewProps> = ({
             onError(null);
             onSwitchToRecovery();
           }}
-          className="text-xs text-blue-400 hover:text-blue-300 transition flex items-center gap-1.5 mx-auto font-mono cursor-pointer"
+          className="text-xs text-primaryColor-400 hover:text-primaryColor-300 transition flex items-center gap-1.5 mx-auto font-mono cursor-pointer"
         >
           <HelpCircle className="w-3.5 h-3.5" />
           <span>Forgot PIN? Unlock with Recovery Key</span>

@@ -119,9 +119,11 @@
   }
 }
 
-/* Global Selection & Form Accent Variables */
+/* Global High-Contrast Selection & Form Accent Variables */
 ::selection {
-  background-color: rgba(var(--accent-primary-rgb, 59, 130, 246), 0.35);
+  background-color: var(--accent-primary, #3b82f6);
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
 }
 
 input[type="range"] {

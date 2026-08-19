@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Database,
   ArrowLeft,
@@ -94,7 +94,7 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
       <div className="space-y-4 animate-in fade-in duration-150">
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400">
+            <div className="p-2 rounded-xl bg-primaryColor-500/15 border border-primaryColor-500/30 text-primaryColor-400">
               <Database className="w-5 h-5" />
             </div>
             <div>
@@ -127,7 +127,7 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
               value={newVaultName}
               onChange={(e) => setNewVaultName(e.target.value)}
               placeholder="e.g. Personal Workspace, Research Notes"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-primaryColor-500 text-xs font-mono"
               required
               autoFocus
             />
@@ -151,7 +151,7 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
               value={newVaultPin}
               onChange={(e) => setNewVaultPin(e.target.value.replace(/\D/g, ''))}
               placeholder="••••"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-sm tracking-widest font-mono text-center"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-primaryColor-500 text-sm tracking-widest font-mono text-center"
               required
             />
           </div>
@@ -171,7 +171,7 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
               value={newVaultConfirmPin}
               onChange={(e) => setNewVaultConfirmPin(e.target.value.replace(/\D/g, ''))}
               placeholder="••••"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-sm tracking-widest font-mono text-center"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-primaryColor-500 text-sm tracking-widest font-mono text-center"
               required
             />
           </div>
@@ -179,7 +179,7 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-500/20 transition disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer mt-2"
+            className="w-full py-3 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-xs font-semibold shadow-lg shadow-primaryColor-500/20 transition disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer mt-2"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -221,13 +221,13 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
         </div>
         <div className="flex items-center justify-between text-zinc-400 text-[11px]">
           <span>Vault UUID:</span>
-          <span className="text-blue-400 select-all font-mono text-[10px]">{createdRecoveryInfo.vault.id}</span>
+          <span className="text-primaryColor-400 select-all font-mono text-[10px]">{createdRecoveryInfo.vault.id}</span>
         </div>
       </div>
 
       {/* Mnemonic Key Box */}
-      <div className="relative p-3.5 rounded-xl bg-blue-950/40 border border-blue-500/30 space-y-2">
-        <div className="flex items-center justify-between text-[11px] text-blue-300 font-mono">
+      <div className="relative p-3.5 rounded-xl bg-primaryColor-950/40 border border-primaryColor-500/30 space-y-2">
+        <div className="flex items-center justify-between text-[11px] text-primaryColor-300 font-mono">
           <span className="flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-amber-400" />
             <span>BIP-39 Mnemonic Recovery Key</span>
@@ -239,7 +239,7 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
               setCopiedRecovery(true);
               setTimeout(() => setCopiedRecovery(false), 2000);
             }}
-            className="px-2 py-0.5 rounded bg-blue-600/80 hover:bg-blue-500 text-white text-[10px] flex items-center gap-1 transition cursor-pointer shadow-sm"
+            className="px-2 py-0.5 rounded bg-primaryColor-600/80 hover:bg-primaryColor-500 text-white text-[10px] flex items-center gap-1 transition cursor-pointer shadow-sm"
           >
             {copiedRecovery ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
             <span>{copiedRecovery ? 'Copied' : 'Copy'}</span>
@@ -277,7 +277,7 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
           type="checkbox"
           checked={confirmedBackup}
           onChange={(e) => setConfirmedBackup(e.target.checked)}
-          className="w-4 h-4 rounded text-blue-600 focus:ring-0 cursor-pointer"
+          className="w-4 h-4 rounded text-primaryColor-600 focus:ring-0 cursor-pointer"
         />
         <span>I have safely backed up my recovery key and Vault UUID.</span>
       </label>
@@ -285,7 +285,7 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
       <button
         onClick={handleFinishVaultCreation}
         disabled={!confirmedBackup}
-        className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-lg shadow-blue-500/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 cursor-pointer"
+        className="w-full py-3 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-xs font-bold transition shadow-lg shadow-primaryColor-500/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 cursor-pointer"
       >
         <ShieldCheck className="w-4 h-4" />
         <span>Complete & Open Vault</span>

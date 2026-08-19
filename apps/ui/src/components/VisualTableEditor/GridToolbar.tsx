@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Rows,
   Columns,
@@ -46,7 +46,7 @@ export const GridToolbar: React.FC<GridToolbarProps> = ({
           className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-200 border border-white/10 transition flex items-center gap-1.5 cursor-pointer"
           title="Add Row Below Selected"
         >
-          <Rows className="w-3.5 h-3.5 text-blue-400" />
+          <Rows className="w-3.5 h-3.5 text-primaryColor-400" />
           <span>+ Row</span>
         </button>
 
@@ -55,7 +55,7 @@ export const GridToolbar: React.FC<GridToolbarProps> = ({
           className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-200 border border-white/10 transition flex items-center gap-1.5 cursor-pointer"
           title="Add Column to the Right"
         >
-          <Columns className="w-3.5 h-3.5 text-blue-400" />
+          <Columns className="w-3.5 h-3.5 text-primaryColor-400" />
           <span>+ Column</span>
         </button>
 
@@ -65,7 +65,7 @@ export const GridToolbar: React.FC<GridToolbarProps> = ({
         <div className="relative">
           <button
             onClick={() => setIsFormulaMenuOpen(!isFormulaMenuOpen)}
-            className="px-2.5 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 transition flex items-center gap-1.5 font-editor-mono font-mono cursor-pointer"
+            className="px-2.5 py-1 rounded-lg bg-primaryColor-500/10 hover:bg-primaryColor-500/20 text-primaryColor-300 border border-primaryColor-500/20 transition flex items-center gap-1.5 font-editor-mono font-mono cursor-pointer"
           >
             <Calculator className="w-3.5 h-3.5" />
             <span>fx Formula</span>
@@ -81,9 +81,9 @@ export const GridToolbar: React.FC<GridToolbarProps> = ({
                     onInsertFormula(func);
                     setIsFormulaMenuOpen(false);
                   }}
-                  className="w-full px-3 py-1.5 text-left hover:bg-blue-600/20 text-zinc-200 hover:text-white flex items-center justify-between font-editor-mono font-mono cursor-pointer"
+                  className="w-full px-3 py-1.5 text-left hover:bg-primaryColor-600/20 text-zinc-200 hover:text-white flex items-center justify-between font-editor-mono font-mono cursor-pointer"
                 >
-                  <span className="font-semibold text-blue-400">={func}()</span>
+                  <span className="font-semibold text-primaryColor-400">={func}()</span>
                   <span className="text-[10px] text-zinc-500">{func.toLowerCase()}</span>
                 </button>
               ))}
@@ -102,7 +102,7 @@ export const GridToolbar: React.FC<GridToolbarProps> = ({
             onClick={() => onToggleAlignment(selectedCell.c, 'left')}
             className={`p-1 rounded cursor-pointer ${
               alignments[selectedCell.c] === 'left'
-                ? 'bg-blue-600/30 text-blue-300 border border-blue-500/40'
+                ? 'bg-primaryColor-600/30 text-primaryColor-300 border border-primaryColor-500/40'
                 : 'hover:bg-white/10 hover:text-white'
             }`}
             title="Align Left"
@@ -113,7 +113,7 @@ export const GridToolbar: React.FC<GridToolbarProps> = ({
             onClick={() => onToggleAlignment(selectedCell.c, 'center')}
             className={`p-1 rounded cursor-pointer ${
               alignments[selectedCell.c] === 'center'
-                ? 'bg-blue-600/30 text-blue-300 border border-blue-500/40'
+                ? 'bg-primaryColor-600/30 text-primaryColor-300 border border-primaryColor-500/40'
                 : 'hover:bg-white/10 hover:text-white'
             }`}
             title="Align Center"
@@ -124,7 +124,7 @@ export const GridToolbar: React.FC<GridToolbarProps> = ({
             onClick={() => onToggleAlignment(selectedCell.c, 'right')}
             className={`p-1 rounded cursor-pointer ${
               alignments[selectedCell.c] === 'right'
-                ? 'bg-blue-600/30 text-blue-300 border border-blue-500/40'
+                ? 'bg-primaryColor-600/30 text-primaryColor-300 border border-primaryColor-500/40'
                 : 'hover:bg-white/10 hover:text-white'
             }`}
             title="Align Right"

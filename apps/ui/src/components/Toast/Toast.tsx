@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
 import { ToastMessage, ToastProps } from './Toast.types';
 
@@ -43,7 +43,7 @@ const ToastItem: React.FC<{ toast: ToastMessage; onDismiss: (id: string) => void
       <div className="flex items-start gap-2.5 min-w-0 flex-1">
         {isError && <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />}
         {isSuccess && <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />}
-        {!isError && !isSuccess && <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />}
+        {!isError && !isSuccess && <Info className="w-4 h-4 text-primaryColor-400 shrink-0 mt-0.5" />}
         <span className="break-words whitespace-pre-wrap leading-relaxed select-text">{toast.message}</span>
       </div>
 

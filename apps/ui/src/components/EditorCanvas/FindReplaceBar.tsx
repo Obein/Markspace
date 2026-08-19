@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+﻿import React, { useRef, useEffect } from 'react';
 import {
   Search,
   ChevronDown,
@@ -108,7 +108,7 @@ export const FindReplaceBar: React.FC<FindReplaceBarProps> = ({
         >
           <ChevronRight
             className={`w-3.5 h-3.5 transition-transform duration-150 ${
-              isReplaceMode ? 'rotate-90 text-blue-600 dark:text-blue-400' : ''
+              isReplaceMode ? 'rotate-90 text-primaryColor-600 dark:text-primaryColor-400' : ''
             }`}
           />
         </button>
@@ -125,7 +125,7 @@ export const FindReplaceBar: React.FC<FindReplaceBarProps> = ({
             className={`w-full min-w-0 pl-7 pr-14 py-1 bg-black/5 dark:bg-black/30 border rounded-lg text-xs font-mono text-zinc-900 dark:text-white focus:outline-none transition ${
               regexError
                 ? 'border-red-500 focus:border-red-500'
-                : 'border-black/10 dark:border-white/10 focus:border-blue-500'
+                : 'border-black/10 dark:border-white/10 focus:border-primaryColor-500'
             }`}
           />
 
@@ -151,7 +151,7 @@ export const FindReplaceBar: React.FC<FindReplaceBarProps> = ({
             onClick={() => setIsCaseSensitive((prev) => !prev)}
             className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition cursor-pointer ${
               isCaseSensitive
-                ? 'bg-blue-600 text-white'
+                ? 'bg-primaryColor-600 text-white'
                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
             }`}
             title="Match Case (Aa)"
@@ -162,7 +162,7 @@ export const FindReplaceBar: React.FC<FindReplaceBarProps> = ({
             onClick={() => setIsWholeWord((prev) => !prev)}
             className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition cursor-pointer ${
               isWholeWord
-                ? 'bg-blue-600 text-white'
+                ? 'bg-primaryColor-600 text-white'
                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
             }`}
             title="Match Whole Word (\b)"
@@ -173,7 +173,7 @@ export const FindReplaceBar: React.FC<FindReplaceBarProps> = ({
             onClick={() => setIsRegex((prev) => !prev)}
             className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition cursor-pointer ${
               isRegex
-                ? 'bg-blue-600 text-white'
+                ? 'bg-primaryColor-600 text-white'
                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
             }`}
             title="Use Regular Expression (.*)"
@@ -215,7 +215,7 @@ export const FindReplaceBar: React.FC<FindReplaceBarProps> = ({
       {isReplaceMode && (
         <div className="flex items-center gap-1.5 pt-1 border-t border-black/5 dark:border-white/10 animate-in fade-in duration-100 w-full min-w-0">
           <div className="w-5 shrink-0 flex items-center justify-center text-zinc-400">
-            <Sparkles className="w-3 h-3 text-blue-500/70" />
+            <Sparkles className="w-3 h-3 text-primaryColor-500/70" />
           </div>
 
           <input
@@ -229,7 +229,7 @@ export const FindReplaceBar: React.FC<FindReplaceBarProps> = ({
                 ? 'Replace... ($1, $2)'
                 : (t('replacePlaceholder') || 'Replace with...')
             }
-            className="flex-1 min-w-0 px-2.5 py-1 bg-black/5 dark:bg-black/30 border border-black/10 dark:border-white/10 rounded-lg text-xs font-mono text-zinc-900 dark:text-white focus:outline-none focus:border-blue-500"
+            className="flex-1 min-w-0 px-2.5 py-1 bg-black/5 dark:bg-black/30 border border-black/10 dark:border-white/10 rounded-lg text-xs font-mono text-zinc-900 dark:text-white focus:outline-none focus:border-primaryColor-500"
           />
 
           <button
@@ -238,14 +238,14 @@ export const FindReplaceBar: React.FC<FindReplaceBarProps> = ({
             className="px-2 py-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white border border-black/10 dark:border-white/10 transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shrink-0 whitespace-nowrap"
             title="Replace Current (Enter in replace input)"
           >
-            <Replace className="w-3 h-3 text-blue-600 dark:text-blue-400 shrink-0" />
+            <Replace className="w-3 h-3 text-primaryColor-600 dark:text-primaryColor-400 shrink-0" />
             <span className="text-[10px] font-medium whitespace-nowrap">{t('replace') || 'Replace'}</span>
           </button>
 
           <button
             onClick={onReplaceAll}
             disabled={matchesCount === 0}
-            className="px-2 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shrink-0 whitespace-nowrap shadow-sm"
+            className="px-2 py-1 rounded-lg bg-primaryColor-600 hover:bg-primaryColor-500 text-white transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shrink-0 whitespace-nowrap shadow-sm"
             title="Replace All Matches"
           >
             <ReplaceAll className="w-3 h-3 shrink-0" />

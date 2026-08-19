@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+﻿import React, { useRef, useEffect } from 'react';
 import {
   FileText,
   Folder,
@@ -101,7 +101,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
       case 'binary':
         return <File className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />;
       default:
-        return <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />;
+        return <FileText className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400 shrink-0" />;
     }
   };
 
@@ -124,10 +124,10 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
                   }
                   onCancelRename();
                 }}
-                className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/40 text-xs font-mono my-0.5"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-primaryColor-500/10 border border-primaryColor-500/40 text-xs font-mono my-0.5"
                 style={{ paddingLeft: `${depth * 12 + 8}px` }}
               >
-                <Folder className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                <Folder className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400 shrink-0" />
                 <input
                   ref={editInputRef}
                   type="text"
@@ -146,7 +146,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
                 />
                 <button
                   type="submit"
-                  className="p-0.5 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-white shrink-0 cursor-pointer"
+                  className="p-0.5 text-primaryColor-600 dark:text-primaryColor-400 hover:text-primaryColor-800 dark:hover:text-white shrink-0 cursor-pointer"
                   title={t('confirm')}
                 >
                   <Check className="w-3 h-3" />
@@ -259,7 +259,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
               />
               <button
                 type="submit"
-                className="p-0.5 text-[var(--accent-primary)] hover:text-blue-800 dark:hover:text-white shrink-0 cursor-pointer"
+                className="p-0.5 text-[var(--accent-primary)] hover:text-primaryColor-800 dark:hover:text-white shrink-0 cursor-pointer"
                 title={t('confirm')}
               >
                 <Check className="w-3 h-3" />
@@ -285,7 +285,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
             disabled={isDeleting}
             className={`w-full text-left px-2 py-1.5 rounded-lg transition flex items-center justify-between text-xs font-mono border cursor-grab active:cursor-grabbing ${
               isActive
-                ? 'bg-[var(--accent-primary)]/15 dark:bg-[var(--accent-primary)]/20 border-[var(--accent-primary)]/40 text-[var(--accent-primary-dark)] dark:text-white font-medium'
+                ? 'bg-primaryColor-500/15 dark:bg-primaryColor-500/20 border-black/10 dark:border-white/15 backdrop-blur-md text-primaryColor-700 dark:text-primaryColor-300 font-semibold shadow-sm'
                 : 'bg-white/0 hover:bg-black/5 dark:hover:bg-white/5 border-transparent text-zinc-700 dark:text-zinc-300'
             } ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={{ paddingLeft: `${depth * 12 + 12}px` }}

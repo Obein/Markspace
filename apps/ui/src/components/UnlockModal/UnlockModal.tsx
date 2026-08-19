@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { ShieldCheck, LogOut } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
@@ -159,7 +159,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
 
         {/* Modal Footer */}
         <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-zinc-400">
-          <div className="flex items-center gap-1 text-blue-400 text-[11px] font-mono">
+          <div className="flex items-center gap-1 text-primaryColor-400 text-[11px] font-mono">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Zero-Knowledge Multi-Factor Protection</span>
           </div>

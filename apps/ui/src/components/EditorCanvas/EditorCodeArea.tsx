@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { IHighlightService } from '../../interfaces/IHighlightService';
 
 interface EditorCodeAreaProps {
@@ -58,7 +58,7 @@ export const EditorCodeArea: React.FC<EditorCodeAreaProps> = ({
         onFocus={onSelectionChange}
         placeholder={placeholder}
         spellCheck={false}
-        className="relative z-10 w-full h-full min-h-[500px] px-4 m-0 p-0 border-0 bg-transparent text-transparent placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-[15px] leading-6 editor-textarea whitespace-pre-wrap break-words selection:bg-blue-500/25 dark:selection:bg-blue-500/35 overflow-hidden scrollbar-none"
+        className="relative z-10 w-full h-full min-h-[500px] px-4 m-0 p-0 border-0 bg-transparent text-transparent placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none resize-none font-editor-mono font-mono text-[15px] leading-6 editor-textarea whitespace-pre-wrap break-words selection:bg-primaryColor-500/25 dark:selection:bg-primaryColor-500/35 overflow-hidden scrollbar-none"
       />
     </div>
   );

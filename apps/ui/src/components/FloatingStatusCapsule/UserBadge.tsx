@@ -26,14 +26,14 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ username, role, onOpenProf
         <button
           type="button"
           onClick={onOpenAdmin || onOpenProfile}
-          className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[var(--accent-primary)]/15 hover:bg-[var(--accent-primary)]/25 text-[var(--accent-primary-dark)] dark:text-[var(--accent-primary-light)] border border-[var(--accent-primary)]/30 flex items-center gap-1 shrink-0 transition cursor-pointer"
+          className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-primaryColor-500/15 hover:bg-primaryColor-500/25 text-primaryColor-700 dark:text-primaryColor-300 border border-black/10 dark:border-white/15 backdrop-blur-md flex items-center gap-1 shrink-0 transition cursor-pointer shadow-sm"
           title="Open System Administration Console"
         >
           <Shield className="w-2.5 h-2.5" />
           <span>ADMIN</span>
         </button>
       ) : (
-        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-black/5 dark:bg-white/5 text-zinc-500 dark:text-zinc-400 border border-black/10 dark:border-white/10 shrink-0">
+        <span className="px-2 py-0.5 rounded-lg text-[9px] font-semibold bg-black/5 dark:bg-white/5 text-zinc-600 dark:text-zinc-400 border border-black/10 dark:border-white/15 backdrop-blur-md shrink-0">
           USER
         </span>
       )}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { X, History, RotateCcw, Loader2, Clock, FileText, Network } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
@@ -139,7 +139,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+            <div className="p-2.5 rounded-2xl bg-primaryColor-500/10 border border-primaryColor-500/20 text-primaryColor-400">
               <History className="w-5 h-5" />
             </div>
             <div>
@@ -165,7 +165,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
           <div className="w-80 border-r border-white/10 pr-4 flex flex-col overflow-y-auto shrink-0 space-y-2">
             {loading ? (
               <div className="p-12 text-center text-zinc-400 text-xs font-mono flex flex-col items-center justify-center gap-2">
-                <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
+                <Loader2 className="w-5 h-5 animate-spin text-primaryColor-400" />
                 <span>Loading version snapshots...</span>
               </div>
             ) : error ? (
@@ -188,20 +188,20 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
                     onClick={() => handleSelectVersion(ver)}
                     className={`p-3 rounded-xl border transition cursor-pointer space-y-1.5 ${
                       isSelected
-                        ? 'bg-blue-600/20 border-blue-500/50 text-white'
+                        ? 'bg-primaryColor-600/20 border-primaryColor-500/50 text-white'
                         : 'bg-white/5 hover:bg-white/10 border-white/5 text-zinc-300'
                     }`}
                   >
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-semibold text-zinc-200 truncate flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-blue-400 shrink-0" />
+                        <Clock className="w-3 h-3 text-primaryColor-400 shrink-0" />
                         <span>{formatTimestamp(ver.timestamp)}</span>
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 pt-0.5">
-                      <span className="flex items-center gap-1 text-blue-300 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">
-                        <Network className="w-3 h-3 text-blue-400" />
+                      <span className="flex items-center gap-1 text-primaryColor-300 bg-primaryColor-500/10 px-1.5 py-0.5 rounded border border-primaryColor-500/20">
+                        <Network className="w-3 h-3 text-primaryColor-400" />
                         <span>{ver.commitHash.substring(0, 8)}</span>
                       </span>
                       <span className="text-zinc-500 truncate max-w-[120px]">{ver.commitMessage || 'Snapshot'}</span>
@@ -215,7 +215,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
                             handleRevert(ver.timestamp);
                           }}
                           disabled={isReverting}
-                          className="w-full py-1.5 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium font-mono flex items-center justify-center gap-1.5 transition disabled:opacity-50 cursor-pointer shadow-md"
+                          className="w-full py-1.5 px-3 rounded-lg bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-xs font-medium font-mono flex items-center justify-center gap-1.5 transition disabled:opacity-50 cursor-pointer shadow-md"
                         >
                           {isReverting ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -236,10 +236,10 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
           <div className="flex-1 flex flex-col bg-black/40 border border-white/10 rounded-2xl overflow-hidden min-h-0">
             <div className="px-4 py-2.5 bg-white/5 border-b border-white/10 flex items-center justify-between text-xs font-mono text-zinc-400 shrink-0">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-blue-400" />
+                <FileText className="w-4 h-4 text-primaryColor-400" />
                 <span>Version Preview</span>
                 {selectedVersion && (
-                  <span className="text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                  <span className="text-primaryColor-300 bg-primaryColor-500/10 px-2 py-0.5 rounded border border-primaryColor-500/20">
                     {formatTimestamp(selectedVersion.timestamp)}
                   </span>
                 )}
@@ -254,7 +254,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
             <div className="flex-1 p-4 overflow-y-auto font-mono text-xs text-zinc-200 leading-relaxed whitespace-pre-wrap select-text">
               {loadingPreview ? (
                 <div className="h-full flex items-center justify-center text-zinc-500 gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                  <Loader2 className="w-4 h-4 animate-spin text-primaryColor-400" />
                   <span>Decrypting historical version content...</span>
                 </div>
               ) : previewContent ? (

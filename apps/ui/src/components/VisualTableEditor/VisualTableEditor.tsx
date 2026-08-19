@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Table as TableIcon, Check, X } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
 import { useApp } from '../../context/AppContext';
@@ -212,13 +212,13 @@ export const VisualTableEditor: React.FC<VisualTableEditorProps> = ({
         {/* Top Header Bar */}
         <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between gap-4 bg-white/5">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30">
+            <div className="p-2 rounded-xl bg-primaryColor-500/20 text-primaryColor-400 border border-primaryColor-500/30">
               <TableIcon className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-white tracking-wide flex items-center gap-2">
                 <span>{t('visualTableEditor') || 'Visual Table Editor'}</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-editor-mono font-mono">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primaryColor-500/20 text-primaryColor-300 font-editor-mono font-mono">
                   {headers.length} Cols × {rows.length} Rows
                 </span>
               </h2>
@@ -238,7 +238,7 @@ export const VisualTableEditor: React.FC<VisualTableEditorProps> = ({
             </button>
             <button
               onClick={handleFinish}
-              className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition shadow-lg shadow-blue-500/25 flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-1.5 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-xs font-medium transition shadow-lg shadow-primaryColor-500/25 flex items-center gap-1.5 cursor-pointer"
             >
               <Check className="w-4 h-4" />
               <span>{t('confirm')}</span>

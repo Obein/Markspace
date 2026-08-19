@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Table as TableIcon } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
 import { DetectedTableRange } from '../../utils/TableConverter';
@@ -35,7 +35,7 @@ export const LineGutter: React.FC<LineGutterProps> = ({
             style={{ height: lineHeights[i] ? `${lineHeights[i]}px` : '24px' }}
             className={`relative flex items-start justify-end leading-6 transition-all duration-150 cursor-gutter ${
               isActive
-                ? 'text-blue-600 dark:text-blue-400 font-bold opacity-100 scale-105'
+                ? 'text-primaryColor-600 dark:text-primaryColor-400 font-bold opacity-100 scale-105'
                 : 'text-zinc-400 dark:text-zinc-500 opacity-50 hover:opacity-100'
             }`}
           >
@@ -49,10 +49,10 @@ export const LineGutter: React.FC<LineGutterProps> = ({
                     e.stopPropagation();
                     onOpenTableAtRange(tableAtLine);
                   }}
-                  className="px-1.5 py-0.5 rounded bg-blue-600/90 hover:bg-blue-500 text-white text-[10px] font-sans font-medium shadow-md shadow-blue-500/30 border border-blue-400/30 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1"
+                  className="px-1.5 py-0.5 rounded bg-primaryColor-600/90 hover:bg-primaryColor-500 text-white text-[10px] font-sans font-medium shadow-md shadow-primaryColor-500/30 border border-primaryColor-400/30 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1"
                   title={t('visualTableEditor') || 'Visual Table Editor'}
                 >
-                  <TableIcon className="w-2.5 h-2.5 text-blue-200" />
+                  <TableIcon className="w-2.5 h-2.5 text-primaryColor-200" />
                   <span>{t('convertToVisualTable') || '可视化编辑'}</span>
                 </button>
               </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useI18n } from '../../i18n/i18nContext';
 import { BentoCard } from './BentoCard';
 import {
@@ -45,7 +45,7 @@ export const AuthBentoTop: React.FC<AuthBentoTopProps> = ({ isFormFocused }) => 
         className={`col-span-1 md:col-span-2 h-full text-center items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isFormFocused ? '-translate-y-[68%] opacity-30 blur-[0.5px]' : 'translate-0 opacity-100 blur-0'
         }`}
-        heroTitle={<span className="text-2xl sm:text-3xl lg:text-4xl font-black text-blue-400">&lt;15ms</span>}
+        heroTitle={<span className="text-2xl sm:text-3xl lg:text-4xl font-black text-primaryColor-400">&lt;15ms</span>}
         heroSubtitle={t('bentoEdgeSub')}
         svgGraphic={<SvgGlobalEdge />}
         detailTitle={t('bentoEdgeTitle')}

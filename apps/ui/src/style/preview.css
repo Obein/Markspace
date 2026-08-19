@@ -139,10 +139,10 @@
 .markdown-preview code {
   font-family: var(--font-editor-mono, 'Monaspace Neon', monospace);
   font-size: 0.85em;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--accent-primary-rgb, 59 130 246) / 0.12);
   padding: 0.15rem 0.35rem;
   border-radius: 0.25rem;
-  color: #bfdbfe;
+  color: var(--accent-primary-light, #93c5fd);
 }
 
 .markdown-preview pre {
@@ -213,12 +213,12 @@
 
 :root:not(.dark) .markdown-preview a,
 .light .markdown-preview a {
-  color: #2563eb;
+  color: var(--accent-primary-dark, #1d4ed8);
 }
 
 :root:not(.dark) .markdown-preview a:hover,
 .light .markdown-preview a:hover {
-  color: #1d4ed8;
+  color: var(--accent-primary, #2563eb);
 }
 
 :root:not(.dark) .markdown-preview strong,
@@ -233,7 +233,7 @@
 
 :root:not(.dark) .markdown-preview blockquote,
 .light .markdown-preview blockquote {
-  border-left: 3px solid #2563eb;
+  border-left: 3px solid var(--accent-primary, #3b82f6);
   color: #52525b;
   background: rgba(0, 0, 0, 0.03);
 }
@@ -248,19 +248,9 @@
   border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-:root:not(.dark) .markdown-preview a,
-.light .markdown-preview a {
-  color: var(--accent-primary-dark, #1d4ed8);
-}
-
-:root:not(.dark) .markdown-preview a:hover,
-.light .markdown-preview a:hover {
-  color: var(--accent-primary, #2563eb);
-}
-
 :root:not(.dark) .markdown-preview code,
 .light .markdown-preview code {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(var(--accent-primary-rgb, 59 130 246) / 0.08);
   color: var(--accent-primary-dark, #1e40af);
 }
 
@@ -346,12 +336,15 @@
 .mermaid-container text.noteText,
 .mermaid-container .labelText,
 .mermaid-container text.labelText,
-.mermaid-container .loopText,
-.mermaid-container text.loopText,
-.mermaid-container .nodeLabel,
-.mermaid-container .edgeLabel,
-.mermaid-container .label,
-.mermaid-container .cluster-label,
 .mermaid-container text {
   font-family: var(--font-preview-body), 'Noto Sans SC', 'Noto Sans TC', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* High-Contrast Crisp Text Selection in Preview Mode */
+.markdown-preview ::selection,
+.markdown-preview *::selection {
+  background-color: var(--accent-primary, #3b82f6) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: none !important;
 }

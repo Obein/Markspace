@@ -1,4 +1,5 @@
-/** @type {import('tailwindcss').Config} */
+import type { Config } from 'tailwindcss';
+
 export default {
   content: [
     './index.html',
@@ -16,7 +17,7 @@ export default {
           dark: 'rgba(24, 24, 27, 0.65)',
           light: 'rgba(255, 255, 255, 0.70)',
         },
-        blue: {
+        primaryColor: {
           50: 'rgb(var(--accent-primary-rgb, 59 130 246) / 0.05)',
           100: 'rgb(var(--accent-primary-rgb, 59 130 246) / 0.1)',
           200: 'rgb(var(--accent-primary-rgb, 59 130 246) / 0.2)',
@@ -34,10 +35,6 @@ export default {
           hover: 'var(--accent-primary-hover, #2563EB)',
           light: 'var(--accent-primary-light, #60A5FA)',
           dark: 'var(--accent-primary-dark, #1D4ED8)',
-          blue: '#3B82F6',
-          emerald: '#10B981',
-          amber: '#F59E0B',
-          purple: '#8B5CF6',
         },
       },
       borderRadius: {
@@ -58,4 +55,4 @@ export default {
     },
   },
   plugins: [],
-};
+} satisfies Config;

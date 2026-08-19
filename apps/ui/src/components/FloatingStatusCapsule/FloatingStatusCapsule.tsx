@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Lock, Sun, Moon } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
 import { FloatingStatusCapsuleProps } from './FloatingStatusCapsule.types';
@@ -49,10 +49,10 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
           <div className="w-px h-4 bg-black/10 dark:bg-white/10 shrink-0" />
           <button
             onClick={onOpenUnlockModal}
-            className="flex items-center gap-1.5 text-blue-600 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-200 font-medium transition shrink-0 cursor-pointer"
+            className="flex items-center gap-1.5 text-primaryColor-600 dark:text-primaryColor-300 hover:text-primaryColor-700 dark:hover:text-primaryColor-200 font-medium transition shrink-0 cursor-pointer"
             title="Click to enter Data Password and Unlock Vault"
           >
-            <Lock className="w-4 h-4 animate-pulse text-blue-600 dark:text-blue-400 shrink-0" />
+            <Lock className="w-4 h-4 animate-pulse text-primaryColor-600 dark:text-primaryColor-400 shrink-0" />
             <span className="underline whitespace-nowrap">{t('unlockVault')}</span>
           </button>
         </>
@@ -67,10 +67,10 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
           <div className="flex items-center gap-3 font-mono text-[11px] shrink-0 whitespace-nowrap">
             {hasSelection ? (
               <>
-                <span className="text-blue-600 dark:text-blue-400 font-medium">
+                <span className="text-primaryColor-600 dark:text-primaryColor-400 font-medium">
                   {selectedWordCount}/{wordCount} {t('selWords')}
                 </span>
-                <span className="text-blue-600 dark:text-blue-400 font-medium">
+                <span className="text-primaryColor-600 dark:text-primaryColor-400 font-medium">
                   {selectedCharCount}/{charCount} {t('selChars')}
                 </span>
               </>
@@ -91,8 +91,8 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
           {/* Save Indicator */}
           <div className="flex items-center gap-2 shrink-0">
             {isSaving ? (
-              <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1 font-mono text-[11px] whitespace-nowrap">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-ping" />
+              <span className="text-primaryColor-600 dark:text-primaryColor-400 flex items-center gap-1 font-mono text-[11px] whitespace-nowrap">
+                <span className="w-1.5 h-1.5 rounded-full bg-primaryColor-600 dark:bg-primaryColor-400 animate-ping" />
                 {t('saving')}
               </span>
             ) : isSaveFailed ? (
@@ -142,9 +142,9 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
         title="Toggle Dark/Light Mode"
       >
         {isDark ? (
-          <Sun className="w-3.5 h-3.5 text-amber-400 dark:text-blue-300 shrink-0" />
+          <Sun className="w-3.5 h-3.5 text-amber-400 dark:text-primaryColor-300 shrink-0" />
         ) : (
-          <Moon className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+          <Moon className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400 shrink-0" />
         )}
       </button>
     </div>

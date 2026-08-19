@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+﻿import React, { useRef } from 'react';
 import { Maximize2, Minimize2, Image as ImageIcon, Film, Music, File } from 'lucide-react';
 
 interface EditorHeaderProps {
@@ -122,9 +122,9 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
             title={isFullWidth ? 'Standard Width' : 'Full Width'}
           >
             {isFullWidth ? (
-              <Minimize2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <Minimize2 className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400" />
             ) : (
-              <Maximize2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <Maximize2 className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400" />
             )}
           </button>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   KeyRound,
   ShieldCheck,
@@ -116,7 +116,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
         {step === 'form' ? (
           <div>
             <div className="flex items-center gap-3 mb-5 pb-4 border-b border-white/10">
-              <div className="p-2.5 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400">
+              <div className="p-2.5 rounded-xl bg-primaryColor-500/15 border border-primaryColor-500/30 text-primaryColor-400">
                 <Database className="w-5 h-5" />
               </div>
               <div>
@@ -139,7 +139,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Work Notes, Private Vault"
-                  className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-xs font-mono"
+                  className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-primaryColor-500 text-xs font-mono"
                   required
                   autoFocus
                 />
@@ -163,7 +163,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                   placeholder="••••"
-                  className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-sm tracking-widest font-mono text-center"
+                  className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-primaryColor-500 text-sm tracking-widest font-mono text-center"
                   required
                 />
               </div>
@@ -183,7 +183,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
                   value={confirmPin}
                   onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
                   placeholder="••••"
-                  className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 text-sm tracking-widest font-mono text-center"
+                  className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-primaryColor-500 text-sm tracking-widest font-mono text-center"
                   required
                 />
               </div>
@@ -199,7 +199,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-500/20 transition disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-xs font-semibold shadow-lg shadow-primaryColor-500/20 transition disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -238,13 +238,13 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
               </div>
               <div className="flex items-center justify-between text-zinc-400 text-[11px]">
                 <span>Vault Identifier (ID):</span>
-                <span className="text-blue-400 select-all font-mono text-[10px]">{createdVault?.id}</span>
+                <span className="text-primaryColor-400 select-all font-mono text-[10px]">{createdVault?.id}</span>
               </div>
             </div>
 
             {/* Mnemonic Key Box */}
-            <div className="relative p-4 rounded-xl bg-blue-950/40 border border-blue-500/30 space-y-2">
-              <div className="flex items-center justify-between text-[11px] text-blue-300 font-mono">
+            <div className="relative p-4 rounded-xl bg-primaryColor-950/40 border border-primaryColor-500/30 space-y-2">
+              <div className="flex items-center justify-between text-[11px] text-primaryColor-300 font-mono">
                 <span className="flex items-center gap-1">
                   <Sparkles className="w-3 h-3 text-amber-400" />
                   <span>BIP-39 Mnemonic Recovery Key</span>
@@ -252,7 +252,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="px-2 py-0.5 rounded bg-blue-600/80 hover:bg-blue-500 text-white text-[10px] flex items-center gap-1 transition cursor-pointer shadow-sm"
+                  className="px-2 py-0.5 rounded bg-primaryColor-600/80 hover:bg-primaryColor-500 text-white text-[10px] flex items-center gap-1 transition cursor-pointer shadow-sm"
                 >
                   {copied ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
                   <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -291,7 +291,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
                 type="checkbox"
                 checked={confirmedSaved}
                 onChange={(e) => setConfirmedSaved(e.target.checked)}
-                className="w-4 h-4 rounded text-blue-600 focus:ring-0 cursor-pointer"
+                className="w-4 h-4 rounded text-primaryColor-600 focus:ring-0 cursor-pointer"
               />
               <span>I have safely backed up my recovery key and Vault ID.</span>
             </label>
@@ -299,7 +299,7 @@ export const CreateVaultDialog: React.FC<CreateVaultDialogProps> = ({
             <button
               onClick={handleFinish}
               disabled={!confirmedSaved}
-              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-lg shadow-blue-500/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-3 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-xs font-bold transition shadow-lg shadow-primaryColor-500/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <ShieldCheck className="w-4 h-4" />
               <span>Complete & Open Vault</span>

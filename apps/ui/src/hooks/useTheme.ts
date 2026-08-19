@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 
 export type AccentColor = 'blue' | 'emerald' | 'violet' | 'amber' | 'rose' | 'cyan' | 'custom';
 
@@ -11,7 +11,7 @@ export interface AccentColorConfig {
 }
 
 export const ACCENT_COLOR_OPTIONS: AccentColorConfig[] = [
-  { id: 'blue', labelKey: 'accentBlue', name: 'Sapphire Blue', dotClass: 'bg-blue-500', hex: '#3b82f6' },
+  { id: 'blue', labelKey: 'accentBlue', name: 'Sapphire Blue', dotClass: 'bg-primaryColor-500', hex: '#3b82f6' },
   { id: 'emerald', labelKey: 'accentEmerald', name: 'Emerald Green', dotClass: 'bg-emerald-500', hex: '#10b981' },
   { id: 'violet', labelKey: 'accentViolet', name: 'Cosmic Violet', dotClass: 'bg-violet-500', hex: '#8b5cf6' },
   { id: 'amber', labelKey: 'accentAmber', name: 'Amber Gold', dotClass: 'bg-amber-500', hex: '#f59e0b' },
