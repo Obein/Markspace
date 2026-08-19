@@ -182,7 +182,7 @@ export const AppContent: React.FC = () => {
   }));
 
   return (
-    <div className={`flex w-full h-screen gap-4 overflow-hidden ${isDark ? 'dark bg-[#09090B]' : 'bg-[#F4F4F5]'}`}>
+    <div className={`flex w-full h-full overflow-hidden ${isDark ? 'dark bg-[#09090B]' : 'bg-[#F4F4F5]'}`}>
       {/* Toast Notification Container */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
