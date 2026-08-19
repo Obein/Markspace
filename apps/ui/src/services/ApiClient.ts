@@ -486,7 +486,7 @@ export class ApiClient implements IApiClient {
   async moveVaultNode(nodeId: string, newPath: string): Promise<VaultNodeResponse> {
     return this.request<VaultNodeResponse>(`/vault/nodes/${nodeId}/move`, {
       method: 'PATCH',
-      body: JSON.stringify({ newPath }),
+      body: JSON.stringify({ nodeId, newPath }),
     });
   }
 

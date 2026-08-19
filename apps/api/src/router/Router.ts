@@ -101,6 +101,12 @@ export class Router {
     this.addRoute('DELETE', '/api/v1/vault/nodes/:id', true, false, (container, ctx) =>
       container.vaultController.deleteNode(ctx)
     );
+    this.addRoute('PATCH', '/api/v1/vault/nodes/:id/move', true, false, (container, ctx) =>
+      container.vaultController.moveNode(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vault/nodes/:id/move', true, false, (container, ctx) =>
+      container.vaultController.moveNode(ctx)
+    );
     this.addRoute('POST', '/api/v1/vault/nodes/move', true, false, (container, ctx) =>
       container.vaultController.moveNode(ctx)
     );
@@ -135,10 +141,19 @@ export class Router {
     this.addRoute('GET', '/api/v1/vault/nodes/:id/versions', true, false, (container, ctx) =>
       container.vaultController.getNodeHistory(ctx)
     );
+    this.addRoute('GET', '/api/v1/vault/nodes/:id/history', true, false, (container, ctx) =>
+      container.vaultController.getNodeHistory(ctx)
+    );
     this.addRoute('GET', '/api/v1/vault/nodes/:id/versions/:timestamp/content', true, false, (container, ctx) =>
       container.vaultController.getVersionContent(ctx)
     );
+    this.addRoute('GET', '/api/v1/vault/nodes/:id/history/:timestamp/content', true, false, (container, ctx) =>
+      container.vaultController.getVersionContent(ctx)
+    );
     this.addRoute('POST', '/api/v1/vault/nodes/:id/versions/revert', true, false, (container, ctx) =>
+      container.vaultController.revertNodeVersion(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vault/nodes/:id/history/:timestamp/revert', true, false, (container, ctx) =>
       container.vaultController.revertNodeVersion(ctx)
     );
 

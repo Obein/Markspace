@@ -262,13 +262,14 @@ export class VaultController {
 
   public async moveNode(ctx: RequestContext): Promise<Response> {
     const userId = ctx.user!.userId;
-    const body = (await ctx.request.json()) as any;
+    const body = (await ctx.request.json().catch(() => ({}))) as any;
+    const nodeId = ctx.params.id || body?.nodeId;
 
-    if (!body.nodeId || !body.newPath) {
+    if (!nodeId || !body?.newPath) {
       throw new Error('BAD_REQUEST: Missing required fields (nodeId, newPath)');
     }
 
-    const updatedNode = await this.vaultService.moveNode(userId, body.nodeId, body.newPath);
+    const updatedNode = await this.vaultService.moveNode(userId, nodeId, body.newPath);
 
     return new Response(
       JSON.stringify({
@@ -327,13 +328,19 @@ export class VaultController {
   public async revertNodeVersion(ctx: RequestContext): Promise<Response> {
     const userId = ctx.user!.userId;
     const nodeId = ctx.params.id;
-    const body = (await ctx.request.json()) as any;
-
-    if (!body.timestamp || typeof body.timestamp !== 'number') {
-      throw new Error('BAD_REQUEST: Missing valid numeric timestamp in request body');
+    let timestamp = ctx.params.timestamp ? parseInt(ctx.params.timestamp, 10) : undefined;
+    if (!timestamp || isNaN(timestamp)) {
+      const body = (await ctx.request.json().catch(() => ({}))) as any;
+      if (body?.timestamp && typeof body.timestamp === 'number') {
+        timestamp = body.timestamp;
+      }
     }
 
-    const updatedNode = await this.vaultService.revertNodeToVersion(userId, nodeId, body.timestamp);
+    if (!timestamp || isNaN(timestamp)) {
+      throw new Error('BAD_REQUEST: Missing valid numeric timestamp in request params or body');
+    }
+
+    const updatedNode = await this.vaultService.revertNodeToVersion(userId, nodeId, timestamp);
 
     return new Response(
       JSON.stringify({
