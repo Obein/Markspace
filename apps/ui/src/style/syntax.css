@@ -1,46 +1,46 @@
-/* Lezer Syntax Highlighting Color Theme (Sapphire Accent Palette) */
-.tok-keyword { color: #60a5fa; font-weight: 600; }
+/* Lezer Syntax Highlighting Color Theme (Dynamic Accent Palette) */
+.tok-keyword { color: var(--accent-primary-light, #60a5fa); font-weight: 600; }
 .tok-string { color: #86efac; }
 .tok-number { color: #fcd34d; font-weight: 500; }
 .tok-comment { color: #71717a; font-style: italic; }
 .tok-variableName { color: #f4f4f5; }
-.tok-propertyName { color: #bfdbfe; }
-.tok-typeName { color: #38bdf8; font-weight: 600; }
-.tok-operator { color: #93c5fd; }
+.tok-propertyName { color: var(--accent-primary-light, #bfdbfe); }
+.tok-typeName { color: var(--accent-primary-light, #38bdf8); font-weight: 600; }
+.tok-operator { color: var(--accent-primary-light, #93c5fd); }
 .tok-punctuation { color: #71717a; }
 .tok-atom { color: #818cf8; }
 .tok-literal { color: #f472b6; }
 .tok-meta { color: #a1a1aa; }
 
 /* Lezer Markdown Syntax Classes */
-.tok-heading { color: #38bdf8; font-weight: 700; }
-.tok-heading1 { color: #60a5fa; font-weight: 700; }
-.tok-heading2 { color: #38bdf8; font-weight: 700; }
-.tok-heading3 { color: #93c5fd; font-weight: 600; }
+.tok-heading { color: var(--accent-primary-light, #38bdf8); font-weight: 700; }
+.tok-heading1 { color: var(--accent-primary-light, #60a5fa); font-weight: 700; }
+.tok-heading2 { color: var(--accent-primary-light, #38bdf8); font-weight: 700; }
+.tok-heading3 { color: var(--accent-primary-light, #93c5fd); font-weight: 600; }
 .tok-emphasis { font-style: italic; color: #cbd5e1; }
-.tok-strong { font-weight: 700; color: #60a5fa; }
-.tok-link { color: #38bdf8; text-decoration: underline; }
-.tok-url { color: #93c5fd; }
+.tok-strong { font-weight: 700; color: var(--accent-primary-light, #60a5fa); }
+.tok-link { color: var(--accent-primary-light, #38bdf8); text-decoration: underline; }
+.tok-url { color: var(--accent-primary-light, #93c5fd); }
 .tok-quote { color: #94a3b8; font-style: italic; }
-.tok-monospace { color: #bfdbfe; background: rgba(255, 255, 255, 0.08); border-radius: 0.25rem; }
-.tok-processingInstruction { color: #60a5fa; font-weight: 700; }
-.tok-processingInstructionMark { color: #60a5fa; font-weight: 700; }
+.tok-monospace { color: var(--accent-primary-light, #bfdbfe); background: rgba(255, 255, 255, 0.08); border-radius: 0.25rem; }
+.tok-processingInstruction { color: var(--accent-primary-light, #60a5fa); font-weight: 700; }
+.tok-processingInstructionMark { color: var(--accent-primary-light, #60a5fa); font-weight: 700; }
 
 /* Table Delimiter & Header Shared Accent Style */
 .tok-tableDelimiter,
 .tok-tableDelimiter * {
-  color: #60a5fa !important;
+  color: var(--accent-primary-light, #60a5fa) !important;
   font-weight: 700 !important;
 }
 
 /* Light Theme Syntax Overrides */
-:root:not(.dark) .tok-keyword, .light .tok-keyword { color: #2563eb; }
+:root:not(.dark) .tok-keyword, .light .tok-keyword { color: var(--accent-primary, #2563eb); }
 :root:not(.dark) .tok-string, .light .tok-string { color: #15803d; }
 :root:not(.dark) .tok-number, .light .tok-number { color: #b45309; }
 :root:not(.dark) .tok-comment, .light .tok-comment { color: #9ca3af; font-style: italic; }
 :root:not(.dark) .tok-variableName, .light .tok-variableName { color: #18181b; }
 :root:not(.dark) .tok-propertyName, .light .tok-propertyName { color: #4338ca; }
-:root:not(.dark) .tok-typeName, .light .tok-typeName { color: #0284c7; }
+:root:not(.dark) .tok-typeName, .light .tok-typeName { color: var(--accent-primary, #0284c7); }
 :root:not(.dark) .tok-operator, .light .tok-operator { color: #4b5563; }
 :root:not(.dark) .tok-punctuation, .light .tok-punctuation { color: #6b7280; }
 :root:not(.dark) .tok-atom, .light .tok-atom { color: #6366f1; }
@@ -53,22 +53,22 @@
 .light .tok-heading,
 .light .tok-heading1,
 .light .tok-heading2,
-.light .tok-heading3 { color: #1d4ed8; }
-:root:not(.dark) .tok-strong, .light .tok-strong { color: #1e40af; }
+.light .tok-heading3 { color: var(--accent-primary-dark, #1d4ed8); }
+:root:not(.dark) .tok-strong, .light .tok-strong { color: var(--accent-primary-dark, #1e40af); }
 :root:not(.dark) .tok-emphasis, .light .tok-emphasis { color: #4b5563; font-style: italic; }
-:root:not(.dark) .tok-link, .light .tok-link { color: #0284c7; }
-:root:not(.dark) .tok-url, .light .tok-url { color: #0369a1; }
+:root:not(.dark) .tok-link, .light .tok-link { color: var(--accent-primary, #0284c7); }
+:root:not(.dark) .tok-url, .light .tok-url { color: var(--accent-primary, #0369a1); }
 :root:not(.dark) .tok-quote, .light .tok-quote { color: #6b7280; font-style: italic; }
-:root:not(.dark) .tok-monospace, .light .tok-monospace { color: #0369a1; background: rgba(0, 0, 0, 0.06); }
+:root:not(.dark) .tok-monospace, .light .tok-monospace { color: var(--accent-primary, #0369a1); background: rgba(0, 0, 0, 0.06); }
 :root:not(.dark) .tok-processingInstruction,
 :root:not(.dark) .tok-processingInstructionMark,
 .light .tok-processingInstruction,
-.light .tok-processingInstructionMark { color: #1d4ed8; font-weight: 700; }
+.light .tok-processingInstructionMark { color: var(--accent-primary-dark, #1d4ed8); font-weight: 700; }
 
 :root:not(.dark) .tok-tableDelimiter,
 :root:not(.dark) .tok-tableDelimiter *,
 .light .tok-tableDelimiter,
 .light .tok-tableDelimiter * {
-  color: #1d4ed8 !important;
+  color: var(--accent-primary-dark, #1d4ed8) !important;
   font-weight: 700 !important;
 }

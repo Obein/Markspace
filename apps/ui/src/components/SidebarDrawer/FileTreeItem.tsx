@@ -172,7 +172,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
                 disabled={isDeleting}
                 className={`w-full text-left px-2 py-1.5 rounded-lg flex items-center gap-1.5 text-xs text-zinc-700 dark:text-zinc-300 font-mono transition border cursor-pointer ${
                   isTarget
-                    ? 'bg-blue-500/15 dark:bg-blue-500/20 border-blue-500/40 text-blue-700 dark:text-blue-300'
+                    ? 'bg-[var(--accent-primary)]/15 dark:bg-[var(--accent-primary)]/20 border-[var(--accent-primary)]/40 text-[var(--accent-primary-dark)] dark:text-[var(--accent-primary-light)]'
                     : 'hover:bg-black/5 dark:hover:bg-white/5 border-transparent'
                 } ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 style={{ paddingLeft: `${depth * 12 + 8}px` }}
@@ -185,9 +185,9 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
                   <ChevronRight className="w-3 h-3 text-zinc-400 dark:text-zinc-500" />
                 )}
                 {isOpen ? (
-                  <FolderOpen className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <FolderOpen className="w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0" />
                 ) : (
-                  <Folder className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <Folder className="w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0" />
                 )}
                 <span className="truncate">{node.name}</span>
               </button>
@@ -237,7 +237,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
                 }
                 onCancelRename();
               }}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/40 text-xs font-mono my-0.5"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/40 text-xs font-mono my-0.5"
               style={{ paddingLeft: `${depth * 12 + 12}px` }}
             >
               {getFileIcon(fileItem.category)}
@@ -259,7 +259,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
               />
               <button
                 type="submit"
-                className="p-0.5 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-white shrink-0 cursor-pointer"
+                className="p-0.5 text-[var(--accent-primary)] hover:text-blue-800 dark:hover:text-white shrink-0 cursor-pointer"
                 title={t('confirm')}
               >
                 <Check className="w-3 h-3" />
@@ -285,7 +285,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
             disabled={isDeleting}
             className={`w-full text-left px-2 py-1.5 rounded-lg transition flex items-center justify-between text-xs font-mono border cursor-grab active:cursor-grabbing ${
               isActive
-                ? 'bg-blue-600/15 dark:bg-blue-600/20 border-blue-500/40 text-blue-700 dark:text-white font-medium'
+                ? 'bg-[var(--accent-primary)]/15 dark:bg-[var(--accent-primary)]/20 border-[var(--accent-primary)]/40 text-[var(--accent-primary-dark)] dark:text-white font-medium'
                 : 'bg-white/0 hover:bg-black/5 dark:hover:bg-white/5 border-transparent text-zinc-700 dark:text-zinc-300'
             } ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={{ paddingLeft: `${depth * 12 + 12}px` }}

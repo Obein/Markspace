@@ -32,10 +32,10 @@ export const EditorActionControls: React.FC<EditorActionControlsProps> = ({
           <div className="w-px h-4 bg-black/10 dark:bg-white/10 shrink-0" />
           <button
             onClick={onOpenHistory}
-            className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/20 transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+            className="p-1.5 rounded-lg bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/20 text-[var(--accent-primary-dark)] dark:text-[var(--accent-primary-light)] border border-[var(--accent-primary)]/20 transition flex items-center gap-1.5 shrink-0 cursor-pointer"
             title={t('versionHistory')}
           >
-            <History className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+            <History className="w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0" />
             <span className="text-[11px] font-medium whitespace-nowrap">{t('history')}</span>
           </button>
         </>

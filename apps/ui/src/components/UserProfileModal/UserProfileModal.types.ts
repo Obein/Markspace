@@ -9,5 +9,7 @@ export interface UserProfileModalProps {
   onChangeAutoLockMinutes?: (minutes: number) => void;
   accentColor?: AccentColor;
   onSelectAccentColor?: (color: AccentColor) => void;
+  customHex?: string;
+  onSelectCustomHex?: (hex: string) => void;
 }
 

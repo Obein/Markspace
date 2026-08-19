@@ -16,10 +16,13 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onChangeAutoLockMinutes,
   accentColor = 'blue',
   onSelectAccentColor,
+  customHex = '#3b82f6',
+  onSelectCustomHex,
 }) => {
   const { userId, username, role, logoutAccount, apiClient } = useApp();
   const { language, setLanguage, t } = useI18n();
 
+  const [isThemeColorOpen, setIsThemeColorOpen] = useState(false);
   const [showAuditLogs, setShowAuditLogs] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLogResponse[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
@@ -233,42 +236,117 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           )}
         </div>
 
-        {/* Theme Accent Color Selection Section */}
-        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 mb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-medium text-zinc-200">
-              <Palette className="w-4 h-4 text-blue-400" />
+        {/* Theme Accent Color Selection Section (Collapsible Accordion - Closed by default) */}
+        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 mb-4 transition-all">
+          <button
+            type="button"
+            onClick={() => setIsThemeColorOpen(!isThemeColorOpen)}
+            className="w-full flex items-center justify-between text-xs font-medium text-zinc-200 hover:text-white transition cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              <Palette className="w-4 h-4 text-[var(--accent-primary)]" />
               <span>{t('themeColor')}</span>
             </div>
-            <span className="text-[10px] text-zinc-400 font-mono font-semibold">
-              {t(ACCENT_COLOR_OPTIONS.find((c) => c.id === accentColor)?.labelKey as any) ||
-                ACCENT_COLOR_OPTIONS.find((c) => c.id === accentColor)?.name}
-            </span>
-          </div>
+            <div className="flex items-center gap-2">
+              <span
+                className="w-3 h-3 rounded-full border border-white/20 shadow-sm"
+                style={{
+                  backgroundColor:
+                    accentColor === 'custom'
+                      ? customHex
+                      : ACCENT_COLOR_OPTIONS.find((c) => c.id === accentColor)?.hex || '#3b82f6',
+                }}
+              />
+              <span className="text-[10px] text-zinc-400 font-mono font-semibold">
+                {accentColor === 'custom'
+                  ? t('customColor') || 'Custom'
+                  : t(ACCENT_COLOR_OPTIONS.find((c) => c.id === accentColor)?.labelKey as any) ||
+                    ACCENT_COLOR_OPTIONS.find((c) => c.id === accentColor)?.name}
+              </span>
+              {isThemeColorOpen ? (
+                <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+              ) : (
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
+              )}
+            </div>
+          </button>
 
-          {/* Color Palette Swatch Grid */}
-          <div className="grid grid-cols-6 gap-2">
-            {ACCENT_COLOR_OPTIONS.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => onSelectAccentColor && onSelectAccentColor(opt.id)}
-                className={`relative flex flex-col items-center justify-center p-2 rounded-xl border transition-all cursor-pointer group ${
-                  accentColor === opt.id
-                    ? 'border-white/50 bg-white/15 shadow-md scale-105'
-                    : 'border-white/5 bg-black/20 hover:bg-white/10 hover:border-white/20'
-                }`}
-                title={t(opt.labelKey as any) || opt.name}
-              >
-                <div
-                  className="w-6 h-6 rounded-full shadow-md flex items-center justify-center transition-transform group-hover:scale-110"
-                  style={{ backgroundColor: opt.hex }}
-                >
-                  {accentColor === opt.id && <Check className="w-3.5 h-3.5 text-white drop-shadow" />}
+          {isThemeColorOpen && (
+            <div className="pt-3.5 mt-3 border-t border-white/10 space-y-3.5 animate-in fade-in duration-150">
+              {/* Presets Grid */}
+              <div>
+                <span className="text-[11px] font-mono text-zinc-400 block mb-2">{t('presetColors')}</span>
+                <div className="grid grid-cols-6 gap-2">
+                  {ACCENT_COLOR_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => onSelectAccentColor && onSelectAccentColor(opt.id)}
+                      className={`relative flex flex-col items-center justify-center p-2 rounded-xl border transition-all cursor-pointer group ${
+                        accentColor === opt.id
+                          ? 'border-white/50 bg-white/15 shadow-md scale-105'
+                          : 'border-white/5 bg-black/20 hover:bg-white/10 hover:border-white/20'
+                      }`}
+                      title={t(opt.labelKey as any) || opt.name}
+                    >
+                      <div
+                        className="w-6 h-6 rounded-full shadow-md flex items-center justify-center transition-transform group-hover:scale-110"
+                        style={{ backgroundColor: opt.hex }}
+                      >
+                        {accentColor === opt.id && <Check className="w-3.5 h-3.5 text-white drop-shadow" />}
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </button>
-            ))}
-          </div>
+              </div>
+
+              {/* Custom Color Palette Picker */}
+              <div className="p-3 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="relative">
+                    <input
+                      type="color"
+                      value={customHex}
+                      onChange={(e) => onSelectCustomHex && onSelectCustomHex(e.target.value)}
+                      className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                      id="customColorInput"
+                    />
+                    <label
+                      htmlFor="customColorInput"
+                      className={`w-7 h-7 rounded-full border border-white/20 shadow-md flex items-center justify-center cursor-pointer transition-transform hover:scale-110 ${
+                        accentColor === 'custom' ? 'ring-2 ring-white/50' : ''
+                      }`}
+                      style={{ backgroundColor: customHex }}
+                    >
+                      {accentColor === 'custom' && <Check className="w-3.5 h-3.5 text-white drop-shadow" />}
+                    </label>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-zinc-200 block">{t('customPalette')}</span>
+                    <span className="text-[10px] text-zinc-400 font-mono block">{customHex.toUpperCase()}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={customHex}
+                    maxLength={7}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) {
+                        if (onSelectCustomHex) {
+                          onSelectCustomHex(val);
+                        }
+                      }
+                    }}
+                    className="w-20 px-2 py-1 rounded-lg bg-zinc-900 border border-white/10 text-xs font-mono text-white text-center uppercase focus:outline-none focus:border-[var(--accent-primary)]"
+                    placeholder="#3B82F6"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Language Selection Section */}

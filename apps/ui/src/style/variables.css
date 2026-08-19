@@ -119,3 +119,16 @@
   }
 }
 
+/* Global Selection & Form Accent Variables */
+::selection {
+  background-color: rgba(var(--accent-primary-rgb, 59, 130, 246), 0.35);
+}
+
+input[type="range"] {
+  accent-color: var(--accent-primary, #3b82f6);
+}
+
+input[type="checkbox"] {
+  accent-color: var(--accent-primary, #3b82f6);
+}
+

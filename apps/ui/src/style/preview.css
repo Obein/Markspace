@@ -77,14 +77,14 @@
 }
 
 .markdown-preview a {
-  color: #60a5fa;
+  color: var(--accent-primary-light, #60a5fa);
   text-decoration: underline;
   text-underline-offset: 3px;
   transition: color 0.15s ease;
 }
 
 .markdown-preview a:hover {
-  color: #93c5fd;
+  color: var(--accent-primary, #93c5fd);
 }
 
 .markdown-preview strong {
@@ -101,7 +101,7 @@
   margin-top: 1rem;
   margin-bottom: 1rem;
   padding-left: 1rem;
-  border-left: 3px solid #3b82f6;
+  border-left: 3px solid var(--accent-primary, #3b82f6);
   color: #a1a1aa;
   font-style: italic;
   background: rgba(255, 255, 255, 0.02);
@@ -248,10 +248,20 @@
   border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
+:root:not(.dark) .markdown-preview a,
+.light .markdown-preview a {
+  color: var(--accent-primary-dark, #1d4ed8);
+}
+
+:root:not(.dark) .markdown-preview a:hover,
+.light .markdown-preview a:hover {
+  color: var(--accent-primary, #2563eb);
+}
+
 :root:not(.dark) .markdown-preview code,
 .light .markdown-preview code {
   background: rgba(0, 0, 0, 0.06);
-  color: #1e40af;
+  color: var(--accent-primary-dark, #1e40af);
 }
 
 :root:not(.dark) .markdown-preview pre,

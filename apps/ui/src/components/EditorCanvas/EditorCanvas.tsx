@@ -415,7 +415,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           <button
             type="button"
             onClick={handleScrollToTop}
-            className="w-9 h-9 rounded-full glass-capsule backdrop-blur-[10px] flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/10 transition-colors shadow-lg border border-black/10 dark:border-white/10 cursor-pointer"
+            className="w-9 h-9 rounded-full glass-capsule backdrop-blur-[10px] flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-[var(--accent-primary)] dark:hover:text-[var(--accent-primary-light)] hover:bg-black/5 dark:hover:bg-white/10 transition-colors shadow-lg border border-black/10 dark:border-white/10 cursor-pointer"
             title={t('scrollToTop') || 'Scroll to top'}
             aria-label={t('scrollToTop') || 'Scroll to top'}
           >
@@ -424,7 +424,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           <button
             type="button"
             onClick={handleScrollToBottom}
-            className="w-9 h-9 rounded-full glass-capsule backdrop-blur-[10px] flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/10 transition-colors shadow-lg border border-black/10 dark:border-white/10 cursor-pointer"
+            className="w-9 h-9 rounded-full glass-capsule backdrop-blur-[10px] flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-[var(--accent-primary)] dark:hover:text-[var(--accent-primary-light)] hover:bg-black/5 dark:hover:bg-white/10 transition-colors shadow-lg border border-black/10 dark:border-white/10 cursor-pointer"
             title={t('scrollToBottom') || 'Scroll to bottom'}
             aria-label={t('scrollToBottom') || 'Scroll to bottom'}
           >
