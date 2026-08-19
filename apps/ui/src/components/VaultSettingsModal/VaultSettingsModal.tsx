@@ -242,7 +242,7 @@ export const VaultSettingsModal: React.FC<VaultSettingsModalProps> = ({
           <div className="flex items-center justify-between pt-4 border-t border-white/10 text-xs text-zinc-500">
             <div className="flex items-center gap-1.5 text-[11px] font-mono">
               <ShieldCheck className="w-3.5 h-3.5 text-primaryColor-400" />
-              <span>Zero-Knowledge E2EE PIN Architecture</span>
+              <span>Zero-Knowledge Architecture</span>
             </div>
           </div>
         </div>
