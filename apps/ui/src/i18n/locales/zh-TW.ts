@@ -21,6 +21,7 @@ export const zhTW: typeof enUS = {
   deleting: '刪除中...',
   cancel: '取消',
   confirm: '確認',
+  save: '儲存',
   confirmDelete: '確定要刪除嗎？',
 
   // Authentication & Bento Showcase
@@ -180,6 +181,10 @@ export const zhTW: typeof enUS = {
   passkeyRegisteredSuccess: 'Passkey 已成功註冊並綁定至目前裝置！',
   updatePasskey: '重新綁定目前裝置',
   registerPasskey: '註冊綁定 Passkey',
+  addPasskey: '新增 Passkey',
+  createdOn: '建立於',
+  confirmDeletePasskey: '確定要刪除此 Passkey 嗎？',
+  confirmDeleteLastPasskey: '這是您目前綁定的唯一 Passkey。若刪除，您需要使用 8 詞助記詞復原解鎖資料庫。確定繼續嗎？',
   setupPasskeyTitle: '綁定裝置 Passkey',
   setupPasskeyDesc: '建立或解鎖加密資料庫前，請首先在目前裝置綁定 Passkey。',
   supportedPasskeyProviders: '全平台與雲端同步 Passkey 支援',

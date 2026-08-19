@@ -20,7 +20,8 @@ export const viVN: typeof enUS = {
   delete: 'Xóa',
   deleting: 'Đang xóa...',
   cancel: 'Cancel',
-  confirm: 'Xác Nhận',
+  confirm: 'Xác nhận',
+  save: 'Lưu',
   confirmDelete: 'Bạn có chắc chắn muốn xóa không?',
 
   // Authentication & Bento Showcase
@@ -180,7 +181,11 @@ export const viVN: typeof enUS = {
   passkeyRegisteredSuccess: 'Đã đăng ký và liên kết Passkey thành công với thiết bị này!',
   updatePasskey: 'Liên kết lại thiết bị',
   registerPasskey: 'Đăng ký Passkey',
-  setupPasskeyTitle: 'Thiết lập Passkey Thiết bị',
+  addPasskey: 'Thêm Passkey mới',
+  createdOn: 'Ngày tạo',
+  confirmDeletePasskey: 'Bạn có chắc chắn muốn xóa Passkey này?',
+  confirmDeleteLastPasskey: 'Đây là Passkey duy nhất của bạn. Nếu xóa, bạn sẽ cần cụm từ khôi phục 8 từ để mở khóa kho. Tiếp tục?',
+  setupPasskeyTitle: 'Thiết lập Passkey thiết bị',
   setupPasskeyDesc: 'Tạo Passkey phần cứng trước khi tạo hoặc mở khóa các kho lưu trữ.',
   supportedPasskeyProviders: 'Hỗ trợ Passkey đa nền tảng & đồng bộ đám mây',
   registeringPasskey: 'Đang tạo Passkey trên trình duyệt...',

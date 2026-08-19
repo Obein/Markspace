@@ -19,6 +19,7 @@ export const enUS = {
   deleting: 'Deleting...',
   cancel: 'Cancel',
   confirm: 'Confirm',
+  save: 'Save',
   confirmDelete: 'Are you sure you want to delete?',
 
   // Authentication & Bento Showcase
@@ -178,6 +179,10 @@ export const enUS = {
   passkeyRegisteredSuccess: 'Passkey successfully registered and bound to this device!',
   updatePasskey: 'Re-bind Device',
   registerPasskey: 'Register Passkey',
+  addPasskey: 'Add New Passkey',
+  createdOn: 'Created',
+  confirmDeletePasskey: 'Are you sure you want to delete this Passkey?',
+  confirmDeleteLastPasskey: 'This is your only registered Passkey. If you delete it, you will need your 8-word Recovery Phrase to unlock your vaults. Continue?',
   setupPasskeyTitle: 'Setup Device Passkey',
   setupPasskeyDesc: 'Create a hardware Passkey before creating or unlocking encrypted vaults.',
   supportedPasskeyProviders: 'Cross-Platform & Cloud Synced Passkeys',

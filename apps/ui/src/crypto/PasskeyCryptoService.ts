@@ -1,8 +1,9 @@
 /**
  * PasskeyCryptoService
- * Zero-Trust WebAuthn / FIDO2 Hardware-Bound & Cloud Synced Passkey Engine for Markspace E2EE Vaults.
+ * Zero-Trust WebAuthn / FIDO2 Multi-Passkey Engine for Markspace E2EE Vaults.
  *
  * Supports:
+ * - Multiple bound Passkeys per user
  * - Google Password Manager (Chrome, Android)
  * - Apple iCloud Keychain (Safari, macOS, iOS)
  * - 1Password, Bitwarden, Dashlane
@@ -11,10 +12,13 @@
  */
 
 export interface PasskeyRegistrationResult {
+  id: string;
   credentialId: string;
   rawIdHex: string;
+  name: string;
   type: string;
   createdAt: number;
+  lastUsedAt?: number;
 }
 
 export class PasskeyCryptoService {
@@ -59,34 +63,84 @@ export class PasskeyCryptoService {
   }
 
   /**
+   * Helper to detect default user-friendly device/browser label
+   */
+  public static getDefaultPasskeyName(): string {
+    if (typeof navigator === 'undefined') return 'Passkey';
+    const ua = navigator.userAgent;
+    let browser = 'Browser';
+    let os = 'Device';
+
+    if (ua.includes('Chrome') && !ua.includes('Edg')) browser = 'Chrome';
+    else if (ua.includes('Edg')) browser = 'Edge';
+    else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
+    else if (ua.includes('Firefox')) browser = 'Firefox';
+
+    if (ua.includes('Windows')) os = 'Windows';
+    else if (ua.includes('Macintosh') || ua.includes('Mac OS')) os = 'macOS';
+    else if (ua.includes('iPhone')) os = 'iPhone';
+    else if (ua.includes('iPad')) os = 'iPad';
+    else if (ua.includes('Android')) os = 'Android';
+    else if (ua.includes('Linux')) os = 'Linux';
+
+    return `${browser} on ${os}`;
+  }
+
+  /**
    * Check if user has at least one Passkey registered
    */
   public static hasPasskey(username: string): boolean {
     if (!username) return false;
-    return Boolean(this.getStoredCredential(username));
+    return this.getStoredCredentials(username).length > 0;
   }
 
   /**
-   * Get stored Passkey credential info for a user
+   * Get all stored Passkey credentials for a user
    */
-  public static getStoredCredential(username: string): PasskeyRegistrationResult | null {
-    if (!username) return null;
+  public static getStoredCredentials(username: string): PasskeyRegistrationResult[] {
+    if (!username) return [];
     try {
-      const data = localStorage.getItem(`markspace_passkey_${username}`);
+      // 1. Try multi-passkey list
+      const data = localStorage.getItem(`markspace_passkeys_${username}`);
       if (data) {
-        return JSON.parse(data) as PasskeyRegistrationResult;
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) {
+          return parsed as PasskeyRegistrationResult[];
+        }
+      }
+
+      // 2. Migration from legacy single-passkey storage
+      const legacy = localStorage.getItem(`markspace_passkey_${username}`);
+      if (legacy) {
+        const parsedLegacy = JSON.parse(legacy) as PasskeyRegistrationResult;
+        const migrated: PasskeyRegistrationResult = {
+          ...parsedLegacy,
+          id: parsedLegacy.credentialId || crypto.randomUUID(),
+          name: parsedLegacy.name || this.getDefaultPasskeyName(),
+        };
+        const list = [migrated];
+        localStorage.setItem(`markspace_passkeys_${username}`, JSON.stringify(list));
+        return list;
       }
     } catch (_) {}
-    return null;
+    return [];
   }
 
   /**
-   * Register a new Passkey credential bound to the user account.
-   * Supports Google Password Manager, iCloud Keychain, 1Password, Windows Hello, and Security Keys.
+   * Get primary/first stored Passkey credential info for backward compatibility
+   */
+  public static getStoredCredential(username: string): PasskeyRegistrationResult | null {
+    const list = this.getStoredCredentials(username);
+    return list.length > 0 ? list[0] : null;
+  }
+
+  /**
+   * Register a new Passkey credential and bind to the user account
    */
   public static async registerPasskey(
     username: string,
-    userId?: string
+    userId?: string,
+    customName?: string
   ): Promise<PasskeyRegistrationResult> {
     if (!this.isSupported()) {
       throw new Error('WebAuthn / Passkeys are not supported in this browser.');
@@ -143,20 +197,68 @@ export class PasskeyCryptoService {
     }
 
     const rawIdHex = this.bufferToHex(credential.rawId);
+    const existingList = this.getStoredCredentials(username);
+
+    // Default label: e.g. "Chrome on Windows" or "Passkey 2"
+    const passkeyName =
+      customName?.trim() ||
+      (existingList.length === 0
+        ? this.getDefaultPasskeyName()
+        : `${this.getDefaultPasskeyName()} (${existingList.length + 1})`);
+
     const result: PasskeyRegistrationResult = {
+      id: credential.id,
       credentialId: credential.id,
       rawIdHex,
+      name: passkeyName,
       type: credential.type,
       createdAt: Date.now(),
+      lastUsedAt: Date.now(),
     };
 
+    // Check if duplicate credentialId exists; if so, update, otherwise append
+    const updatedList = existingList.some((c) => c.credentialId === credential.id)
+      ? existingList.map((c) => (c.credentialId === credential.id ? result : c))
+      : [...existingList, result];
+
+    localStorage.setItem(`markspace_passkeys_${username}`, JSON.stringify(updatedList));
     localStorage.setItem(`markspace_passkey_${username}`, JSON.stringify(result));
+
     return result;
   }
 
   /**
+   * Rename a registered Passkey
+   */
+  public static renamePasskey(username: string, credentialId: string, newName: string): boolean {
+    if (!username || !credentialId || !newName.trim()) return false;
+    const list = this.getStoredCredentials(username);
+    const updated = list.map((c) =>
+      c.credentialId === credentialId ? { ...c, name: newName.trim() } : c
+    );
+    localStorage.setItem(`markspace_passkeys_${username}`, JSON.stringify(updated));
+    return true;
+  }
+
+  /**
+   * Delete a registered Passkey
+   */
+  public static deletePasskey(username: string, credentialId: string): boolean {
+    if (!username || !credentialId) return false;
+    const list = this.getStoredCredentials(username);
+    const updated = list.filter((c) => c.credentialId !== credentialId);
+    localStorage.setItem(`markspace_passkeys_${username}`, JSON.stringify(updated));
+    if (updated.length > 0) {
+      localStorage.setItem(`markspace_passkey_${username}`, JSON.stringify(updated[0]));
+    } else {
+      localStorage.removeItem(`markspace_passkey_${username}`);
+    }
+    return true;
+  }
+
+  /**
    * Authenticate with Passkey and deterministically derive the Passkey Vault Key (PVK).
-   * Strictly enforces that Passkey verification succeeds.
+   * Supports any of the user's bound Passkeys.
    */
   public static async authenticateAndDeriveKey(
     username: string,
@@ -166,19 +268,15 @@ export class PasskeyCryptoService {
       throw new Error('WebAuthn / Passkeys are not supported in this browser.');
     }
 
-    const stored = this.getStoredCredential(username);
+    const storedList = this.getStoredCredentials(username);
     const challenge = crypto.getRandomValues(new Uint8Array(32));
     const encoder = new TextEncoder();
     const prfSalt = encoder.encode(`markspace-passkey-salt:${salt}`);
 
-    const allowCredentials: PublicKeyCredentialDescriptor[] = stored
-      ? [
-          {
-            id: this.hexToBuffer(stored.rawIdHex) as any,
-            type: 'public-key',
-          },
-        ]
-      : [];
+    const allowCredentials: PublicKeyCredentialDescriptor[] = storedList.map((cred) => ({
+      id: this.hexToBuffer(cred.rawIdHex) as any,
+      type: 'public-key',
+    }));
 
     const requestOptions: PublicKeyCredentialRequestOptions = {
       challenge,
@@ -216,7 +314,7 @@ export class PasskeyCryptoService {
     if (prfResults && prfResults instanceof ArrayBuffer) {
       entropyBytes = new Uint8Array(prfResults);
     } else {
-      // High-entropy deterministic derivation: HMAC-SHA256 over signature, authenticatorData and user-salt
+      // High-entropy deterministic derivation: SHA256 over signature, authenticatorData and user-salt
       const signatureBytes = new Uint8Array(response.signature);
       const authDataBytes = new Uint8Array(response.authenticatorData);
       const combinedBuffer = new Uint8Array(
@@ -252,16 +350,27 @@ export class PasskeyCryptoService {
       ['wrapKey', 'unwrapKey', 'encrypt', 'decrypt']
     );
 
-    // Save credential metadata
-    if (!stored) {
-      const rawIdHex = this.bufferToHex(assertion.rawId);
+    // Update lastUsedAt timestamp on matching credential or register newly discovered credential
+    const rawIdHex = this.bufferToHex(assertion.rawId);
+    const existingIndex = storedList.findIndex(
+      (c) => c.credentialId === assertion.id || c.rawIdHex === rawIdHex
+    );
+
+    if (existingIndex >= 0) {
+      storedList[existingIndex].lastUsedAt = Date.now();
+      localStorage.setItem(`markspace_passkeys_${username}`, JSON.stringify(storedList));
+    } else {
       const newCred: PasskeyRegistrationResult = {
+        id: assertion.id,
         credentialId: assertion.id,
         rawIdHex,
+        name: this.getDefaultPasskeyName(),
         type: assertion.type,
         createdAt: Date.now(),
+        lastUsedAt: Date.now(),
       };
-      localStorage.setItem(`markspace_passkey_${username}`, JSON.stringify(newCred));
+      const updated = [...storedList, newCred];
+      localStorage.setItem(`markspace_passkeys_${username}`, JSON.stringify(updated));
     }
 
     return { key: derivedPvk, credentialId: assertion.id };

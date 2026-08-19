@@ -21,6 +21,7 @@ export const koKR: typeof enUS = {
   deleting: '삭제 중...',
   cancel: '취소',
   confirm: '확인',
+  save: '저장',
   confirmDelete: '정말 삭제하시겠습니까?',
 
   // Authentication & Bento Showcase
@@ -180,6 +181,10 @@ export const koKR: typeof enUS = {
   passkeyRegisteredSuccess: 'Passkey가 성공적으로 등록되고 기기에 바인딩되었습니다!',
   updatePasskey: '기기 재바인딩',
   registerPasskey: 'Passkey 등록',
+  addPasskey: '새 Passkey 추가',
+  createdOn: '생성일',
+  confirmDeletePasskey: '이 Passkey를 삭제하시겠습니까?',
+  confirmDeleteLastPasskey: '유일하게 등록된 Passkey입니다. 삭제 시 금고를 열려면 8단어 복구 문구가 필요합니다. 계속하시겠습니까?',
   setupPasskeyTitle: '기기 Passkey 바인딩',
   setupPasskeyDesc: '금고를 생성하거나 잠금 해제하기 전에 먼저 Passkey를 기기에 바인딩하세요.',
   supportedPasskeyProviders: '크로스 플랫폼 및 클라우드 동기화 Passkey 지원',

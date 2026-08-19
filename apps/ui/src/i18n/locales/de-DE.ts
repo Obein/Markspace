@@ -21,6 +21,7 @@ export const deDE: typeof enUS = {
   deleting: 'Wird gelöscht...',
   cancel: 'Abbrechen',
   confirm: 'Bestätigen',
+  save: 'Speichern',
   confirmDelete: 'Möchten Sie dies wirklich löschen?',
 
   // Authentication & Bento Showcase
@@ -180,6 +181,10 @@ export const deDE: typeof enUS = {
   passkeyRegisteredSuccess: 'Passkey erfolgreich registriert und an dieses Gerät gebunden!',
   updatePasskey: 'Gerät neu binden',
   registerPasskey: 'Passkey registrieren',
+  addPasskey: 'Neuen Passkey hinzufügen',
+  createdOn: 'Erstellt am',
+  confirmDeletePasskey: 'Möchten Sie diesen Passkey wirklich löschen?',
+  confirmDeleteLastPasskey: 'Dies ist Ihr einziger registrierter Passkey. Wenn Sie ihn löschen, benötigen Sie Ihre 8-Wörter-Wiederherstellungsphrase. Fortfahren?',
   setupPasskeyTitle: 'Geräte-Passkey einrichten',
   setupPasskeyDesc: 'Erstellen Sie einen Hardware-Passkey, bevor Sie Tresore erstellen oder entsperren.',
   supportedPasskeyProviders: 'Plattformübergreifende & Cloud-synchronisierte Passkeys',

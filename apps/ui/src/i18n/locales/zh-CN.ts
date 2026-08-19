@@ -20,7 +20,8 @@ export const zhCN: typeof enUS = {
   delete: '删除',
   deleting: '删除中...',
   cancel: '取消',
-  confirm: '确认',
+  confirm: '确定',
+  save: '保存',
   confirmDelete: '确定要删除吗？',
 
   // Authentication & Bento Showcase
@@ -180,6 +181,10 @@ export const zhCN: typeof enUS = {
   passkeyRegisteredSuccess: 'Passkey 已成功注册并绑定至当前设备！',
   updatePasskey: '重新绑定当前设备',
   registerPasskey: '注册绑定 Passkey',
+  addPasskey: '添加新 Passkey',
+  createdOn: '创建于',
+  confirmDeletePasskey: '确定要删除此 Passkey 吗？',
+  confirmDeleteLastPasskey: '这是您当前绑定的唯一 Passkey。若删除，您需要使用 8 词助记词恢复解锁数据库。确定继续吗？',
   setupPasskeyTitle: '绑定设备 Passkey',
   setupPasskeyDesc: '创建或解锁加密数据库前，请首先在当前设备绑定 Passkey。',
   supportedPasskeyProviders: '全平台与云端同步 Passkey 支持',

@@ -21,6 +21,7 @@ export const esES: typeof enUS = {
   deleting: 'Eliminando...',
   cancel: 'Cancelar',
   confirm: 'Confirmar',
+  save: 'Guardar',
   confirmDelete: '¿Estás seguro de que deseas eliminar?',
 
   // Authentication & Bento Showcase
@@ -180,6 +181,10 @@ export const esES: typeof enUS = {
   passkeyRegisteredSuccess: '¡Passkey registrada y vinculada a este dispositivo con éxito!',
   updatePasskey: 'Volver a vincular dispositivo',
   registerPasskey: 'Registrar Passkey',
+  addPasskey: 'Agregar Nueva Passkey',
+  createdOn: 'Creado el',
+  confirmDeletePasskey: '¿Está seguro de que desea eliminar esta Passkey?',
+  confirmDeleteLastPasskey: 'Esta es su única Passkey registrada. Si la elimina, necesitará su frase de recuperación de 8 palabras. ¿Continuar?',
   setupPasskeyTitle: 'Configurar Passkey del Dispositivo',
   setupPasskeyDesc: 'Cree una Passkey de hardware antes de crear o desbloquear bóvedas cifradas.',
   supportedPasskeyProviders: 'Passkeys multiplataforma y sincronizadas en la nube',

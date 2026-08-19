@@ -21,6 +21,7 @@ export const jaJP: typeof enUS = {
   deleting: '削除中...',
   cancel: 'キャンセル',
   confirm: '確認',
+  save: '保存',
   confirmDelete: '本当に削除しますか？',
 
   // Authentication & Bento Showcase
@@ -180,6 +181,10 @@ export const jaJP: typeof enUS = {
   passkeyRegisteredSuccess: 'Passkeyが正常に登録され、デバイスにバインドされました！',
   updatePasskey: 'デバイスを再バインド',
   registerPasskey: 'Passkeyを登録',
+  addPasskey: '新規Passkeyを追加',
+  createdOn: '作成日',
+  confirmDeletePasskey: 'このPasskeyを削除してもよろしいですか？',
+  confirmDeleteLastPasskey: 'これは登録されている唯一のPasskeyです。削除すると、保管庫のロック解除に8語の復元フレーズが必要になります。続行しますか？',
   setupPasskeyTitle: 'デバイスPasskeyのバインド',
   setupPasskeyDesc: '保管庫を作成またはロック解除する前に、まずPasskeyをバインドしてください。',
   supportedPasskeyProviders: 'クロスプラットフォーム＆クラウド同期Passkey対応',
