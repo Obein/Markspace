@@ -16,7 +16,7 @@
 			"database_name": "markspace-db",
 			// The database_id is generated when you create a D1 database in the Cloudflare dashboard.
 			// You can find it in the "Settings" tab of your database.
-			"database_id": "1fa26445-d9d1-4ac8-9e1d-a1566ce0ac8a",
+			"database_id": "3437fa71-7efd-48c3-bd1b-0204d07cb631",
 			"migrations_dir": "migrations"
 		}
 	],
