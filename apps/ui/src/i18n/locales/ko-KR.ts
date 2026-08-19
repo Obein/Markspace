@@ -59,14 +59,14 @@ export const koKR: typeof enUS = {
   bentoEdgeDesc: '전 세계 300개 이상의 도시에 분산된 Cloudflare D1 분산 SQL 및 R2 객체 스토리지 기반 초저지연 실시간 스트리밍.',
   bentoEdgeTag: '< 15ms 지연 시간',
   
-  bentoMfaTitle: '다단계 인증 (MFA)',
-  bentoMfaSub: '즉시 2단계 인증 · OTP',
-  bentoMfaDesc: 'RFC 6238 표준 TOTP 인증 프로토콜 기본 지원. 30초 동적 토큰 회전. Google OTP, 1Password, Apple 키체인과 완벽 호환.',
-  bentoMfaTag: 'RFC 6238 TOTP',
+  bentoMfaTitle: 'Passkey 및 다단계 인증 (MFA)',
+  bentoMfaSub: 'WebAuthn 생체 인증 · 클라우드 동기화',
+  bentoMfaDesc: 'WebAuthn / FIDO2 표준을 지원하여 Touch ID, Windows Hello, Face ID, YubiKey, Google Password Manager, iCloud 키체인과 완벽하게 통합됩니다.',
+  bentoMfaTag: 'FIDO2 & TOTP',
   
   bentoOprfTitle: 'OPRF 블라인드 평가',
   bentoOprfSub: '타원곡선 영지식 보안 게이트',
-  bentoOprfDesc: 'NIST P-256 타원곡선 기반 블라인드 포인트 평가. 클라이언트에서 PIN을 블라인드 처리하여 전송하므로 서버는 평문을 알지 않고도 인증을 완료합니다.',
+  bentoOprfDesc: 'NIST P-256 타원곡선 기반 블라인드 포인트 평가. 복구 문구를 블라인드 처리하여 전송하므로 서버는 평문을 알지 않고도 인증을 완료합니다.',
   bentoOprfTag: '영지식 보안',
   
   bentoVersionControlTitle: '버전 관리',

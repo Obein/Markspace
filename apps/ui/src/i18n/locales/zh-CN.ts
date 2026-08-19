@@ -59,14 +59,14 @@ export const zhCN: typeof enUS = {
   bentoEdgeDesc: '依托 Cloudflare 全球 300+ 边缘节点网络。文件元数据由 Cloudflare D1 分布式 SQL 引擎毫秒级查询，加密文件由 R2 对象存储实时流式传输。',
   bentoEdgeTag: '< 15ms 全球低延迟',
   
-  bentoMfaTitle: '多因素身份验证 (MFA)',
-  bentoMfaSub: '即时双重认证 · 身份验证器',
-  bentoMfaDesc: '原生支持 RFC 6238 TOTP 标准协议，30 秒动态令牌轮转。完美兼容 Google Authenticator、1Password 或 Apple 钥匙串，畅享极速安全登录。',
-  bentoMfaTag: 'RFC 6238 TOTP',
+  bentoMfaTitle: 'Passkeys 硬件凭据与 MFA',
+  bentoMfaSub: 'WebAuthn 硬件生物识别 · 云端同步',
+  bentoMfaDesc: '全面支持 WebAuthn / FIDO2 标准，支持 Touch ID、Windows Hello、Face ID、YubiKey、Google 密码管理工具与 iCloud 钥匙串，结合 RFC 6238 TOTP 构筑多重安全防线。',
+  bentoMfaTag: 'FIDO2 & TOTP',
   
   bentoOprfTitle: 'OPRF 椭圆曲线盲化',
   bentoOprfSub: '椭圆曲线零知识防护门禁',
-  bentoOprfDesc: '基于 NIST P-256 椭圆曲线的盲点评估。客户端在传输前对 PIN 进行盲化，服务端完全不接触明文即可完成验证，从根源杜绝字典爆破与中间人窃取。',
+  bentoOprfDesc: '基于 NIST P-256 椭圆曲线的盲点评估。客户端在传输前对助记词凭据进行盲化，服务端完全不接触明文即可完成验证，从根源杜绝字典爆破与中间人窃取。',
   bentoOprfTag: 'Zero-Knowledge',
   
   bentoVersionControlTitle: '版本控制',

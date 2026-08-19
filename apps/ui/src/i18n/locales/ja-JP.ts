@@ -59,14 +59,14 @@ export const jaJP: typeof enUS = {
   bentoEdgeDesc: '世界 300 以上の都市に展開する Cloudflare エッジネットワーク。D1 分散 SQL によるミリ秒単位のメタデータクエリと R2 オブジェクトストレージによるリアルタイム配信。',
   bentoEdgeTag: '< 15ms グローバル低遅延',
   
-  bentoMfaTitle: '多要素認証 (MFA)',
-  bentoMfaSub: '即時 2FA · Authenticator',
-  bentoMfaDesc: 'RFC 6238 TOTP 標準プロトコルをネイティブサポート。30 秒の動的トークン更新。Google Authenticator、1Password、Apple キーチェーンと完全互換。',
-  bentoMfaTag: 'RFC 6238 TOTP',
+  bentoMfaTitle: 'Passkey & 多要素認証 (MFA)',
+  bentoMfaSub: 'WebAuthn 生体認証 · クラウド同期',
+  bentoMfaDesc: 'WebAuthn / FIDO2 標準を全面サポート。Touch ID、Windows Hello、Face ID、YubiKey、Google Password Manager、iCloud キーチェーンとシームレスに統合。',
+  bentoMfaTag: 'FIDO2 & TOTP',
   
   bentoOprfTitle: 'OPRF 楕円曲線ブラインド検証',
   bentoOprfSub: '楕円曲線ゼロ知識保護ゲート',
-  bentoOprfDesc: 'NIST P-256 楕円曲線に基づくブラインドポイント評価。PIN をブラインド化して送信するため、サーバーは平文を知ることなく安全に検証を完了します。',
+  bentoOprfDesc: 'NIST P-256 楕円曲線に基づくブラインドポイント評価。復元フレーズをブラインド化して送信するため、サーバーは平文を知ることなく安全に検証を完了します。',
   bentoOprfTag: 'Zero-Knowledge',
   
   bentoVersionControlTitle: 'バージョン管理',

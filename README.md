@@ -39,7 +39,7 @@ English | [简体中文](README-zh-CN.md) | [正體中文](README-zh-TW.md)
 | **Sync Granularity** | ⚠️ Monolithic JSON or proprietary delta stream | ❌ Full-file Git blob rewrite or heavy commit trees | **✅ FastCDC (512B–4KB) Content-Defined CAS Chunking** |
 | **Bandwidth Efficiency** | ❌ High overhead with metadata/asset re-uploads | ⚠️ Git object packing overhead on small changes | **✅ >90% bandwidth saved (only delta chunks uploaded)** |
 | **Version History & Rollback** | ⚠️ Cloud-managed snapshots; opaque retention | ⚠️ Git merge conflicts & branch divergence | **✅ Cryptographic Merkle DAG Immutable Version Tree** |
-| **Credential & PIN Security** | ❌ Plaintext password / server-side hash | ⚠️ Basic PAT / SSH keys stored in plaintext | **✅ NIST P-256 OPRF Blind Gate + RFC 9449 DPoP + TOTP** |
+| **Credential & Passkey Security** | ❌ Plaintext password / server-side hash | ⚠️ Basic PAT / SSH keys stored in plaintext | **✅ WebAuthn FIDO2 Passkeys + NIST P-256 OPRF Blind Gate + TOTP** |
 | **Storage & Transfer Overhead** | ⚠️ Base64 encoding inflates data by 33.3% | ❌ Git LFS / large binary sync bottleneck | **✅ 0% Overhead Raw Binary (`application/octet-stream`)** |
 | **Local Cache & Reconstruction** | ⚠️ Limited offline caching | ⚠️ Heavy disk footprint with `.git` histories | **✅ IndexedDB client-side sub-millisecond block cache** |
 | **Infrastructure & Deployment** | ❌ Proprietary closed-source vendor lock-in | ⚠️ Self-managed Git server / VPS maintenance | **✅ 100% Serverless Cloudflare Global Edge (Workers + D1 + R2)** |
@@ -57,7 +57,7 @@ English | [简体中文](README-zh-CN.md) | [正體中文](README-zh-TW.md)
 |                   [ Bento Auth & Zero-Trust Security Portal ]                     |
 |                                                                                   |
 |           • 3D Bento Grid Showcase with dynamic focal dispersion                  |
-|           • OPRF Blind Gate (NIST P-256) & RFC 6238 TOTP Authenticator           |
+|           • WebAuthn FIDO2 Passkeys, OPRF Blind Gate (NIST P-256) & TOTP          |
 |           • FastCDC & Merkle DAG live architecture visualization                  |
 |           • Rotating ambient afterglow on pitch-black OLED canvas                 |
 |                                                                                   |
@@ -135,9 +135,11 @@ English | [简体中文](README-zh-CN.md) | [正體中文](README-zh-TW.md)
 - **Immutable Revision Manifests**: Every save event constructs a lightweight, encrypted `FileManifest` referencing ordered Chunk IDs and parent manifest IDs, computing a cryptographic Merkle Root Hash.
 - **Point-in-Time Non-Destructive Rollback**: Supports instant visual inspection and one-click rollback to any historical commit in the Merkle tree with zero server-side computation.
 
-### 🚪 OPRF Blind Credential Gate & Multi-Factor Security
-- **NIST P-256 Elliptic Curve OPRF**: Client blinds PIN credentials before transmission; the server evaluates the challenge oblivious to plaintext, completely mitigating offline dictionary and credential-stuffing attacks.
-- **BIP-39 Mnemonic Recovery Key**: Generates an 8-word BIP-39 recovery mnemonic card for each vault, allowing secure PIN resets without server involvement.
+### 🔑 Hardware Passkeys (WebAuthn / FIDO2) & OPRF Disaster Recovery
+- **Zero-Knowledge Hardware-Bound Passkeys**: Enforces WebAuthn / FIDO2 authentication across Touch ID, Windows Hello, Face ID, YubiKey, Google Password Manager, Apple iCloud Keychain, and 1Password. Generates high-entropy (256-bit) Passkey Vault Keys (PVK) via deterministic WebAuthn PRF or signature entropy.
+- **Multi-Passkey User Management**: Users can bind and manage multiple Passkeys on different devices within the User Profile Console, complete with custom labels and device icons.
+- **NIST P-256 Elliptic Curve OPRF Blind Gate**: Client blinds mnemonic recovery secrets before transmission; the server evaluates the challenge oblivious to plaintext, completely eliminating server-side brute-force and dictionary attacks.
+- **8-Word BIP-39 Mnemonic Disaster Recovery**: Cold recovery phrase generated during vault creation with support for both spaces and Dash (`-`) tokenization, enabling instant offline disaster recovery.
 - **RFC 6238 TOTP Multi-Factor Authentication**: Integrated 30-second rotating security tokens compatible with Google Authenticator, 1Password, and Apple Keychain.
 - **RFC 9449 DPoP & Nonce Anti-Replay**: Cryptographic challenge nonces and DPoP device token bindings with automatic circuit breakers.
 

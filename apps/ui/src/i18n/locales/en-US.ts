@@ -57,14 +57,14 @@ export const enUS = {
   bentoEdgeDesc: 'Powered by Cloudflare global edge fabric across 300+ cities worldwide. Tree metadata is queried via distributed Cloudflare D1 SQL, with encrypted blobs streamed via Cloudflare R2 object storage.',
   bentoEdgeTag: '< 15ms Global Latency',
   
-  bentoMfaTitle: 'Multi-Factor Authentication (MFA)',
-  bentoMfaSub: 'Instant 2FA · Authenticator',
-  bentoMfaDesc: 'Multi-Factor Authentication (MFA) with 30-second rotating security tokens. Pair with Google Authenticator, 1Password, or Apple Keychain for passwordless instant access.',
-  bentoMfaTag: 'RFC 6238 TOTP',
+  bentoMfaTitle: 'Passkeys & Multi-Factor (MFA)',
+  bentoMfaSub: 'WebAuthn · Cloud Synced',
+  bentoMfaDesc: 'Hardware-bound Passkeys (WebAuthn / FIDO2) with biometric Touch ID, Windows Hello, Face ID, YubiKey, Google Password Manager, and iCloud Keychain. Zero-knowledge PRF key derivation.',
+  bentoMfaTag: 'FIDO2 & TOTP',
   
   bentoOprfTitle: 'OPRF Blind Verification',
   bentoOprfSub: 'Elliptic Curve Zero-Knowledge Gate',
-  bentoOprfDesc: 'Blinded Point evaluation on NIST P-256 curve. Client blinds the PIN before sending, server evaluates it oblivious to plaintext, protecting against dictionary and brute-force attacks.',
+  bentoOprfDesc: 'Blinded Point evaluation on NIST P-256 curve. Client blinds the recovery secret before sending, server evaluates it oblivious to plaintext, protecting against dictionary and brute-force attacks.',
   bentoOprfTag: 'Zero-Knowledge',
   
   bentoVersionControlTitle: 'Version Control',

@@ -59,14 +59,14 @@ export const viVN: typeof enUS = {
   bentoEdgeDesc: 'Vận hành trên mạng lưới hơn 300 thành phố của Cloudflare. Siêu dữ liệu truy vấn bằng D1 SQL phân tán và truyền tệp mã hóa qua R2 Storage theo thời gian thực.',
   bentoEdgeTag: '< 15ms Độ Trễ',
   
-  bentoMfaTitle: 'Xác Thực Đa Yếu Tố (MFA)',
-  bentoMfaSub: '2FA Tức Thì · Trình Xác Thực',
-  bentoMfaDesc: 'Giao thức tiêu chuẩn RFC 6238 TOTP với chu kỳ xoay vòng mã 30 giây. Tương thích hoàn toàn với Google Authenticator, 1Password và Apple Keychain.',
-  bentoMfaTag: 'RFC 6238 TOTP',
+  bentoMfaTitle: 'Passkey & Xác Thực Đa Yếu Tố (MFA)',
+  bentoMfaSub: 'WebAuthn · Đồng bộ đám mây',
+  bentoMfaDesc: 'Passkey liên kết phần cứng (WebAuthn / FIDO2) với Touch ID, Windows Hello, Face ID, YubiKey, Google Password Manager và Chuỗi khóa iCloud.',
+  bentoMfaTag: 'FIDO2 & TOTP',
   
   bentoOprfTitle: 'Đánh Giá Ẩn OPRF',
   bentoOprfSub: 'Cổng bảo mật Zero-Knowledge đường cong Elliptic',
-  bentoOprfDesc: 'Đánh giá điểm mù trên đường cong NIST P-256. Máy khách làm mờ mã PIN trước khi gửi, máy chủ xác thực an toàn tuyệt đối mà không cần biết mật mã gốc.',
+  bentoOprfDesc: 'Đánh giá điểm mù trên đường cong NIST P-256. Máy khách làm mờ cụm từ khôi phục trước khi gửi, máy chủ xác thực an toàn tuyệt đối mà không cần biết mật mã gốc.',
   bentoOprfTag: 'Zero-Knowledge',
   
   bentoVersionControlTitle: 'Quản Lý Phiên Bản',

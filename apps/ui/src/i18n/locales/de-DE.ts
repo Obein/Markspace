@@ -59,14 +59,14 @@ export const deDE: typeof enUS = {
   bentoEdgeDesc: 'Verteilt über 300+ Städte weltweit mit Cloudflare D1 SQL und R2 Object Storage für verzögerungsfreie Echtzeitübertragung.',
   bentoEdgeTag: '< 15ms Latenz',
   
-  bentoMfaTitle: 'Multi-Faktor-Authentifizierung (MFA)',
-  bentoMfaSub: 'Sofortige 2FA · Authenticator',
-  bentoMfaDesc: 'RFC 6238 TOTP-Standardprotokoll mit 30-Sekunden-Token-Rotation. Kompatibel mit Google Authenticator, 1Password und Apple Keychain.',
-  bentoMfaTag: 'RFC 6238 TOTP',
+  bentoMfaTitle: 'Passkeys & Multi-Faktor (MFA)',
+  bentoMfaSub: 'WebAuthn · Cloud-synchronisiert',
+  bentoMfaDesc: 'Hardware-gebundene Passkeys (WebAuthn / FIDO2) mit Touch ID, Windows Hello, Face ID, YubiKey, Google Password Manager und iCloud Keychain.',
+  bentoMfaTag: 'FIDO2 & TOTP',
   
   bentoOprfTitle: 'OPRF-Blindevaluierung',
   bentoOprfSub: 'Zero-Knowledge-Schutz mit elliptischen Kurven',
-  bentoOprfDesc: 'Blind-Point-Validierung auf der NIST P-256-Kurve. Der Client blendet die PIN vor dem Senden aus; der Server validiert ohne Klartextkenntnis.',
+  bentoOprfDesc: 'Blind-Point-Validierung auf der NIST P-256-Kurve. Der Client blendet die Wiederherstellungsphrase vor dem Senden aus; der Server validiert ohne Klartextkenntnis.',
   bentoOprfTag: 'Zero-Knowledge',
   
   bentoVersionControlTitle: 'Versionskontrolle',
