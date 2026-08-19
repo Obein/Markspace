@@ -184,6 +184,8 @@ export const esES: typeof enUS = {
   darkTheme: 'Tema oscuro',
   lightTheme: 'Tema Claro',
   untitledNote: 'Nota Sin Título',
+  scrollToTop: 'Ir al principio',
+  scrollToBottom: 'Ir al final',
 
   // Toasts & Messages
   loadVaultFailed: 'Error al cargar el árbol de archivos. Compruebe su conexión.',

@@ -184,6 +184,8 @@ export const viVN: typeof enUS = {
   darkTheme: 'Giao diện tối',
   lightTheme: 'Giao Diện Sáng',
   untitledNote: 'Ghi Chú Không Tên',
+  scrollToTop: 'Cuộn lên đầu',
+  scrollToBottom: 'Cuộn xuống cuối',
 
   // Toasts & Messages
   loadVaultFailed: 'Không thể tải danh sách tệp. Vui lòng kiểm tra kết nối.',

@@ -184,6 +184,8 @@ export const zhTW: typeof enUS = {
   darkTheme: '深色模式',
   lightTheme: '淺色模式',
   untitledNote: '無標題筆記',
+  scrollToTop: '回到頂部',
+  scrollToBottom: '滾到底部',
 
   // Toasts & Messages
   loadVaultFailed: '載入檔案列表失敗，請檢查網路設定。',

@@ -184,6 +184,8 @@ export const jaJP: typeof enUS = {
   darkTheme: 'ダークテーマ',
   lightTheme: 'ライトテーマ',
   untitledNote: '無題のノート',
+  scrollToTop: 'トップへスクロール',
+  scrollToBottom: '最下部へスクロール',
 
   // Toasts & Messages
   loadVaultFailed: 'ファイルツリーの読み込みに失敗しました。ネットワークを確認してください。',

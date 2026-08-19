@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { FileText } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { FileText, ChevronUp, ChevronDown } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useI18n } from '../../i18n/i18nContext';
 import { VisualTableEditor } from '../VisualTableEditor';
 import { EditorCanvasProps } from './EditorCanvas.types';
 import {
@@ -106,13 +107,75 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   // Hook: Real-time Markdown live parsing & Mermaid rendering
   const { previewHtml } = useMarkdownPreview(content, category, previewService);
 
-  // Hook: Synchronized Dual-Column Scrolling
+  // Hook: Synchronized Dual-Column Scrolling (Split View)
   const {
     scrollContainerRef,
     previewScrollRef,
     handleEditorScroll,
     handlePreviewScroll,
   } = useSyncScroll();
+
+  // Dedicated Persistent Scroll Refs for Single-Pane Modes
+  const singleEditorScrollRef = useRef<HTMLDivElement>(null);
+  const singlePreviewScrollRef = useRef<HTMLDivElement>(null);
+
+  // Reset scroll position to top when active file changes
+  useEffect(() => {
+    if (singleEditorScrollRef.current) singleEditorScrollRef.current.scrollTop = 0;
+    if (singlePreviewScrollRef.current) singlePreviewScrollRef.current.scrollTop = 0;
+    if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+    if (previewScrollRef.current) previewScrollRef.current.scrollTop = 0;
+  }, [activeFile?.id, scrollContainerRef, previewScrollRef]);
+
+  const { t } = useI18n();
+
+  // Scroll to Top Handler
+  const handleScrollToTop = useCallback(() => {
+    if (category !== 'markdown') return;
+
+    if (isSplitView) {
+      scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      previewScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (isPreview) {
+      singlePreviewScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      singleEditorScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [category, isSplitView, isPreview, scrollContainerRef, previewScrollRef]);
+
+  // Scroll to Bottom Handler
+  const handleScrollToBottom = useCallback(() => {
+    if (category !== 'markdown') return;
+
+    if (isSplitView) {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTo({
+          top: scrollContainerRef.current.scrollHeight,
+          behavior: 'smooth',
+        });
+      }
+      if (previewScrollRef.current) {
+        previewScrollRef.current.scrollTo({
+          top: previewScrollRef.current.scrollHeight,
+          behavior: 'smooth',
+        });
+      }
+    } else if (isPreview) {
+      if (singlePreviewScrollRef.current) {
+        singlePreviewScrollRef.current.scrollTo({
+          top: singlePreviewScrollRef.current.scrollHeight,
+          behavior: 'smooth',
+        });
+      }
+    } else {
+      if (singleEditorScrollRef.current) {
+        singleEditorScrollRef.current.scrollTo({
+          top: singleEditorScrollRef.current.scrollHeight,
+          behavior: 'smooth',
+        });
+      }
+    }
+  }, [category, isSplitView, isPreview, scrollContainerRef, previewScrollRef]);
 
   // Hook: Editor formatting, line selection, and Visual Table Editor integration
   const {
@@ -288,11 +351,13 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           </div>
         )}
 
-        {/* Markdown Single Pane Edit Mode */}
-        {category === 'markdown' && !isSplitView && !isPreview && (
+        {/* Markdown Single Pane Edit Mode (Persistent DOM) */}
+        {category === 'markdown' && !isSplitView && (
           <div
-            ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto relative w-full h-full font-editor-mono font-mono text-sm leading-6"
+            ref={singleEditorScrollRef}
+            className={`flex-1 overflow-y-auto relative w-full h-full font-editor-mono font-mono text-sm leading-6 ${
+              !isPreview ? 'block' : 'hidden'
+            }`}
           >
             <div className={topToolbarSpacingClass} />
 
@@ -328,19 +393,45 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           </div>
         )}
 
-        {/* Markdown Single Pane Preview Mode */}
-        {category === 'markdown' && !isSplitView && isPreview && (
-          <MarkdownPreviewPane
-            previewRef={scrollContainerRef}
-            previewHtml={previewHtml}
-            onScroll={() => {}}
-            topToolbarSpacingClass={topToolbarSpacingClass}
-            bottomCapsuleSpacingClass={bottomCapsuleSpacingClass}
-            isSplitView={false}
-            isFullWidth={isFullWidth}
-          />
+        {/* Markdown Single Pane Preview Mode (Persistent DOM) */}
+        {category === 'markdown' && !isSplitView && (
+          <div className={`flex-1 w-full h-full overflow-hidden ${isPreview ? 'flex flex-col' : 'hidden'}`}>
+            <MarkdownPreviewPane
+              previewRef={singlePreviewScrollRef}
+              previewHtml={previewHtml}
+              onScroll={() => {}}
+              topToolbarSpacingClass={topToolbarSpacingClass}
+              bottomCapsuleSpacingClass={bottomCapsuleSpacingClass}
+              isSplitView={false}
+              isFullWidth={isFullWidth}
+            />
+          </div>
         )}
       </div>
+
+      {/* Elevator Floating Scroll Controls (Scroll to Top / Bottom) */}
+      {category === 'markdown' && (
+        <div className="absolute bottom-7 right-5 sm:right-6 z-30 flex flex-col gap-2 select-none pointer-events-auto">
+          <button
+            type="button"
+            onClick={handleScrollToTop}
+            className="w-9 h-9 rounded-full glass-capsule backdrop-blur-[10px] flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/10 transition-colors shadow-lg border border-black/10 dark:border-white/10 cursor-pointer"
+            title={t('scrollToTop') || 'Scroll to top'}
+            aria-label={t('scrollToTop') || 'Scroll to top'}
+          >
+            <ChevronUp className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleScrollToBottom}
+            className="w-9 h-9 rounded-full glass-capsule backdrop-blur-[10px] flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/10 transition-colors shadow-lg border border-black/10 dark:border-white/10 cursor-pointer"
+            title={t('scrollToBottom') || 'Scroll to bottom'}
+            aria-label={t('scrollToBottom') || 'Scroll to bottom'}
+          >
+            <ChevronDown className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Visual Table Editor Modal */}
       {isVisualTableOpen && activeTableRange && (

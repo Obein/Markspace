@@ -182,6 +182,8 @@ export const enUS = {
   darkTheme: 'Dark Theme',
   lightTheme: 'Light Theme',
   untitledNote: 'Untitled Note',
+  scrollToTop: 'Scroll to top',
+  scrollToBottom: 'Scroll to bottom',
 
   // Toasts & Messages
   loadVaultFailed: 'Failed to load vault tree. Please check network settings.',

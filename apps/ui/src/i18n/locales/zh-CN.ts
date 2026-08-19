@@ -184,6 +184,8 @@ export const zhCN: typeof enUS = {
   darkTheme: '暗黑主题',
   lightTheme: '浅色模式',
   untitledNote: '无标题笔记',
+  scrollToTop: '回到顶部',
+  scrollToBottom: '滚到底部',
 
   // Toasts & Messages
   loadVaultFailed: '加载文件列表失败，请检查网络设置。',

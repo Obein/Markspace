@@ -184,6 +184,8 @@ export const koKR: typeof enUS = {
   darkTheme: '다크 테마',
   lightTheme: '라이트 모드',
   untitledNote: '제목 없는 노트',
+  scrollToTop: '맨 위로 이동',
+  scrollToBottom: '맨 아래로 이동',
 
   // Toasts & Messages
   loadVaultFailed: '파일 트리를 불러오지 못했습니다. 네트워크 설정을 확인하세요.',

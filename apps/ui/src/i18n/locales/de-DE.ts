@@ -184,6 +184,8 @@ export const deDE: typeof enUS = {
   darkTheme: 'Dunkles Design',
   lightTheme: 'Helles Design',
   untitledNote: 'Unbenannte Notiz',
+  scrollToTop: 'Nach oben scrollen',
+  scrollToBottom: 'Nach unten scrollen',
 
   // Toasts & Messages
   loadVaultFailed: 'Fehler beim Laden der Dateiliste. Bitte Netzwerkeinstellungen prüfen.',

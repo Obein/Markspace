@@ -176,6 +176,9 @@ export class Router {
     this.addRoute('GET', '/api/v1/vault/manifests/:id', true, false, (container, ctx) =>
       container.vaultController.getManifest(ctx)
     );
+    this.addRoute('GET', '/api/v1/vault/manifests/:id/history', true, false, (container, ctx) =>
+      container.vaultController.getManifestHistory(ctx)
+    );
     this.addRoute('GET', '/api/v1/vault/nodes/:id/manifests', true, false, (container, ctx) =>
       container.vaultController.getManifestHistory(ctx)
     );
