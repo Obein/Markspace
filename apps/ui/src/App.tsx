@@ -30,7 +30,7 @@ export const AppContent: React.FC = () => {
 
   const { t } = useI18n();
   const { toasts, showToast, dismissToast } = useToast();
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme, accentColor, setAccentColor } = useTheme();
 
   // Auto-Lock Hook for Inactivity Timeout (1 - 60 min)
   const {
@@ -209,6 +209,8 @@ export const AppContent: React.FC = () => {
         onToggleAutoLock={setAutoLockEnabled}
         autoLockMinutes={autoLockMinutes}
         onChangeAutoLockMinutes={setAutoLockMinutes}
+        accentColor={accentColor}
+        onSelectAccentColor={setAccentColor}
       />
 
       {/* Step 3.5: Dedicated System Administration Modal */}

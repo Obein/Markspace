@@ -186,6 +186,13 @@ export const zhTW: typeof enUS = {
   untitledNote: '無標題筆記',
   scrollToTop: '回到頂部',
   scrollToBottom: '滾到底部',
+  themeColor: '主題色',
+  accentBlue: '經典藍',
+  accentEmerald: '翡翠綠',
+  accentViolet: '星空紫',
+  accentAmber: '琥珀金',
+  accentRose: '玫瑰紅',
+  accentCyan: '碧海青',
 
   // Toasts & Messages
   loadVaultFailed: '載入檔案列表失敗，請檢查網路設定。',

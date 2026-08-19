@@ -271,6 +271,49 @@
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
+/* KaTeX Math light theme overrides */
+:root:not(.dark) .katex,
+.light .katex,
+:root:not(.dark) .katex-display-block,
+.light .katex-display-block {
+  color: #18181b !important;
+}
+
+:root:not(.dark) .katex-display-block,
+.light .katex-display-block {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Table Light Theme Overrides */
+:root:not(.dark) .markdown-preview table,
+.light .markdown-preview table {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+:root:not(.dark) .markdown-preview thead,
+.light .markdown-preview thead {
+  background: rgba(0, 0, 0, 0.05);
+  color: #09090b;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+:root:not(.dark) .markdown-preview tr,
+.light .markdown-preview tr {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+:root:not(.dark) .markdown-preview tr:hover,
+.light .markdown-preview tr:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+:root:not(.dark) .markdown-preview td,
+.light .markdown-preview td {
+  color: #27272a;
+}
+
 /* Mermaid Diagrams Typography - Unified Noto Sans across sequenceDiagram, graph TD, flowchart, and all SVG nodes */
 .mermaid,
 .mermaid svg,

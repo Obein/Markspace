@@ -34,12 +34,12 @@ export class MarkdownPreviewService implements IPreviewService {
       // 3. Syntax Highlighted Code Block using HighlightService
       const lang = language || 'text';
       const highlighted = this.highlightService.highlightCode(text, lang);
-      return `<div class="lezer-code-block font-editor-mono font-mono text-xs my-4 rounded-xl border border-white/10 bg-zinc-950/80 overflow-hidden shadow-lg"><div class="px-4 py-1.5 bg-white/5 border-b border-white/10 flex items-center justify-between text-[11px] text-zinc-400 font-mono"><span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 uppercase font-semibold text-[10px]">${escapeHtml(lang)}</span><span class="text-[10px] text-zinc-500 font-mono">Syntax Highlight</span></div><pre class="p-4 overflow-x-auto text-zinc-100 leading-relaxed font-editor-mono font-mono"><code>${highlighted}</code></pre></div>`;
+      return `<pre class="my-4 p-4 rounded-xl border border-black/10 dark:border-white/10 bg-[#f4f4f5] dark:bg-[#09090b] overflow-x-auto shadow-sm dark:shadow-md"><code class="font-editor-mono font-mono text-xs leading-relaxed text-zinc-900 dark:text-zinc-100">${highlighted}</code></pre>`;
     };
 
     // Table with container
     this.customRenderer.table = (token: Tokens.Table) => {
-      let thead = '<thead class="bg-white/10 text-blue-300 border-b border-white/10"><tr>';
+      let thead = '<thead class="bg-black/5 dark:bg-white/10 text-zinc-900 dark:text-blue-300 border-b border-black/10 dark:border-white/10"><tr>';
       token.header.forEach((cell) => {
         const cellText = this.customRenderer.parser.parseInline(cell.tokens || []);
         thead += `<th class="px-4 py-2.5 text-left font-semibold">${cellText}</th>`;
@@ -48,16 +48,16 @@ export class MarkdownPreviewService implements IPreviewService {
 
       let tbody = '<tbody>';
       token.rows.forEach((row) => {
-        tbody += '<tr class="border-b border-white/5 hover:bg-white/5 transition">';
+        tbody += '<tr class="border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition">';
         row.forEach((cell) => {
           const cellText = this.customRenderer.parser.parseInline(cell.tokens || []);
-          tbody += `<td class="px-4 py-2 text-zinc-200">${cellText}</td>`;
+          tbody += `<td class="px-4 py-2 text-zinc-800 dark:text-zinc-200">${cellText}</td>`;
         });
         tbody += '</tr>';
       });
       tbody += '</tbody>';
 
-      return `<div class="overflow-x-auto my-4"><table class="w-full text-xs font-preview-body font-sans border-collapse border border-white/10 rounded-xl overflow-hidden shadow-lg">${thead}${tbody}</table></div>`;
+      return `<div class="overflow-x-auto my-4"><table class="w-full text-xs font-preview-body font-sans border-collapse border border-black/10 dark:border-white/10 rounded-xl overflow-hidden shadow-sm dark:shadow-md bg-white/60 dark:bg-black/20">${thead}${tbody}</table></div>`;
     };
   }
 
@@ -277,7 +277,7 @@ export function normalizeMermaidCode(code: string): string {
 
 function renderMermaidContainer(code: string): string {
   const encoded = encodeURIComponent(code.trim());
-  return `<div class="mermaid-container my-6 flex justify-center overflow-x-auto p-4 rounded-2xl bg-white/5 border border-white/10 shadow-lg"><div class="mermaid-diagram-code text-xs text-zinc-400 font-mono flex items-center gap-2" data-mermaid-code="${encoded}"><span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span><span>Loading Mermaid Diagram...</span></div></div>`;
+  return `<div class="mermaid-container my-6 flex justify-center overflow-x-auto p-4 rounded-2xl bg-black/[0.02] dark:bg-white/5 border border-black/10 dark:border-white/10 shadow-sm dark:shadow-lg"><div class="mermaid-diagram-code text-xs text-zinc-600 dark:text-zinc-400 font-mono flex items-center gap-2" data-mermaid-code="${encoded}"><span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span><span>Loading Mermaid Diagram...</span></div></div>`;
 }
 
 function renderKatexDisplay(math: string): string {
@@ -287,9 +287,9 @@ function renderKatexDisplay(math: string): string {
       throwOnError: false,
       output: 'htmlAndMathml',
     });
-    return `<div class="katex-display-block my-4 flex justify-center overflow-x-auto p-4 rounded-xl bg-white/5 border border-white/10 shadow-md text-white">${html}</div>`;
+    return `<div class="katex-display-block my-4 flex justify-center overflow-x-auto p-4 rounded-xl bg-black/[0.03] dark:bg-white/5 border border-black/10 dark:border-white/10 shadow-sm dark:shadow-md text-zinc-900 dark:text-white">${html}</div>`;
   } catch {
-    return `<div class="katex-display-block text-red-400 p-2 text-xs font-mono">${escapeHtml(math)}</div>`;
+    return `<div class="katex-display-block text-red-600 dark:text-red-400 p-2 text-xs font-mono">${escapeHtml(math)}</div>`;
   }
 }
 

@@ -186,6 +186,13 @@ export const jaJP: typeof enUS = {
   untitledNote: '無題のノート',
   scrollToTop: 'トップへスクロール',
   scrollToBottom: '最下部へスクロール',
+  themeColor: 'テーマカラー',
+  accentBlue: 'サファイアブルー',
+  accentEmerald: 'エメラルドグリーン',
+  accentViolet: 'コズミックバイオレット',
+  accentAmber: 'アンバーゴールド',
+  accentRose: 'ローズレッド',
+  accentCyan: 'ティールシアン',
 
   // Toasts & Messages
   loadVaultFailed: 'ファイルツリーの読み込みに失敗しました。ネットワークを確認してください。',

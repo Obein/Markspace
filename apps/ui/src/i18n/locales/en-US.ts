@@ -184,6 +184,13 @@ export const enUS = {
   untitledNote: 'Untitled Note',
   scrollToTop: 'Scroll to top',
   scrollToBottom: 'Scroll to bottom',
+  themeColor: 'Theme Color',
+  accentBlue: 'Sapphire Blue',
+  accentEmerald: 'Emerald Green',
+  accentViolet: 'Cosmic Violet',
+  accentAmber: 'Amber Gold',
+  accentRose: 'Rose Red',
+  accentCyan: 'Teal Cyan',
 
   // Toasts & Messages
   loadVaultFailed: 'Failed to load vault tree. Please check network settings.',

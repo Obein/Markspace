@@ -186,6 +186,13 @@ export const deDE: typeof enUS = {
   untitledNote: 'Unbenannte Notiz',
   scrollToTop: 'Nach oben scrollen',
   scrollToBottom: 'Nach unten scrollen',
+  themeColor: 'Design-Farbe',
+  accentBlue: 'Saphirblau',
+  accentEmerald: 'Smaragdgrün',
+  accentViolet: 'Kosmisches Violett',
+  accentAmber: 'Bernsteingold',
+  accentRose: 'Rosenrot',
+  accentCyan: 'Türkisblau',
 
   // Toasts & Messages
   loadVaultFailed: 'Fehler beim Laden der Dateiliste. Bitte Netzwerkeinstellungen prüfen.',

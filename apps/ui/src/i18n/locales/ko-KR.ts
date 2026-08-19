@@ -186,6 +186,13 @@ export const koKR: typeof enUS = {
   untitledNote: '제목 없는 노트',
   scrollToTop: '맨 위로 이동',
   scrollToBottom: '맨 아래로 이동',
+  themeColor: '테마 색상',
+  accentBlue: '사파이어 블루',
+  accentEmerald: '에메랄드 그린',
+  accentViolet: '코스믹 바이올렛',
+  accentAmber: '앰버 골드',
+  accentRose: '로즈 레드',
+  accentCyan: '틸 시안',
 
   // Toasts & Messages
   loadVaultFailed: '파일 트리를 불러오지 못했습니다. 네트워크 설정을 확인하세요.',

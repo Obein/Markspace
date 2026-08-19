@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, ShieldCheck, LogOut, Globe, FileText, Loader2, ChevronRight, ChevronDown, Lock, Copy, Check, AlertTriangle } from 'lucide-react';
+import { X, ShieldCheck, LogOut, Globe, Palette, FileText, Loader2, ChevronRight, ChevronDown, Lock, Copy, Check, AlertTriangle } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { ACCENT_COLOR_OPTIONS } from '../../hooks/useTheme';
 import { LANGUAGE_OPTIONS, Language, useI18n } from '../../i18n/i18nContext';
 import { AuditLogResponse } from '../../interfaces/IApiClient';
 import { TotpSetupSection } from './TotpSetupSection';
@@ -13,6 +14,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onToggleAutoLock,
   autoLockMinutes = 15,
   onChangeAutoLockMinutes,
+  accentColor = 'blue',
+  onSelectAccentColor,
 }) => {
   const { userId, username, role, logoutAccount, apiClient } = useApp();
   const { language, setLanguage, t } = useI18n();
@@ -228,6 +231,44 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               </div>
             </div>
           )}
+        </div>
+
+        {/* Theme Accent Color Selection Section */}
+        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-medium text-zinc-200">
+              <Palette className="w-4 h-4 text-blue-400" />
+              <span>{t('themeColor')}</span>
+            </div>
+            <span className="text-[10px] text-zinc-400 font-mono font-semibold">
+              {t(ACCENT_COLOR_OPTIONS.find((c) => c.id === accentColor)?.labelKey as any) ||
+                ACCENT_COLOR_OPTIONS.find((c) => c.id === accentColor)?.name}
+            </span>
+          </div>
+
+          {/* Color Palette Swatch Grid */}
+          <div className="grid grid-cols-6 gap-2">
+            {ACCENT_COLOR_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => onSelectAccentColor && onSelectAccentColor(opt.id)}
+                className={`relative flex flex-col items-center justify-center p-2 rounded-xl border transition-all cursor-pointer group ${
+                  accentColor === opt.id
+                    ? 'border-white/50 bg-white/15 shadow-md scale-105'
+                    : 'border-white/5 bg-black/20 hover:bg-white/10 hover:border-white/20'
+                }`}
+                title={t(opt.labelKey as any) || opt.name}
+              >
+                <div
+                  className="w-6 h-6 rounded-full shadow-md flex items-center justify-center transition-transform group-hover:scale-110"
+                  style={{ backgroundColor: opt.hex }}
+                >
+                  {accentColor === opt.id && <Check className="w-3.5 h-3.5 text-white drop-shadow" />}
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Language Selection Section */}

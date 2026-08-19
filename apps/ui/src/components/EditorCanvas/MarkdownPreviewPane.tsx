@@ -41,7 +41,8 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
       if (mermaidNodes.length === 0) return;
 
       try {
-        const mermaid = await getMermaid();
+        const isDark = document.documentElement.classList.contains('dark');
+        const mermaid = await getMermaid(isDark);
         if (!isMounted) return;
 
         mermaidNodes.forEach((element, idx) => {
@@ -65,7 +66,7 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
             .catch((err) => {
               console.warn('Mermaid rendering error:', err);
               if (isMounted && element) {
-                element.innerHTML = `<div class="p-3 bg-red-500/10 border border-red-500/30 text-red-300 text-xs rounded-xl font-mono text-center">Mermaid Syntax Error: ${err?.message || 'Invalid diagram format'}</div>`;
+                element.innerHTML = `<div class="p-3 bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-300 text-xs rounded-xl font-mono text-center">Mermaid Syntax Error: ${err?.message || 'Invalid diagram format'}</div>`;
                 element.setAttribute('data-processed', 'true');
               }
             });

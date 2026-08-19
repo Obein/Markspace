@@ -186,6 +186,13 @@ export const zhCN: typeof enUS = {
   untitledNote: '无标题笔记',
   scrollToTop: '回到顶部',
   scrollToBottom: '滚到底部',
+  themeColor: '主题色',
+  accentBlue: '经典蓝',
+  accentEmerald: '翡翠绿',
+  accentViolet: '星空紫',
+  accentAmber: '琥珀金',
+  accentRose: '玫瑰红',
+  accentCyan: '碧海青',
 
   // Toasts & Messages
   loadVaultFailed: '加载文件列表失败，请检查网络设置。',

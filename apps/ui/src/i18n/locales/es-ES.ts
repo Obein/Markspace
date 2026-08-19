@@ -186,6 +186,13 @@ export const esES: typeof enUS = {
   untitledNote: 'Nota Sin Título',
   scrollToTop: 'Ir al principio',
   scrollToBottom: 'Ir al final',
+  themeColor: 'Color del tema',
+  accentBlue: 'Azul zafiro',
+  accentEmerald: 'Verde esmeralda',
+  accentViolet: 'Violeta cósmico',
+  accentAmber: 'Oro ámbar',
+  accentRose: 'Rojo rosa',
+  accentCyan: 'Cian azulado',
 
   // Toasts & Messages
   loadVaultFailed: 'Error al cargar el árbol de archivos. Compruebe su conexión.',

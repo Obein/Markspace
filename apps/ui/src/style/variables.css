@@ -22,42 +22,85 @@
     --font-preview-heading: 'Noto Serif', serif;
     /* Noto Sans Body & UI */
     --font-preview-body: 'Noto Sans', sans-serif;
+
+    /* Default Blue Accent Palette */
+    --accent-primary: #3b82f6;
+    --accent-primary-hover: #2563eb;
+    --accent-primary-light: #60a5fa;
+    --accent-primary-dark: #1d4ed8;
+    --accent-primary-rgb: 59, 130, 246;
   }
 
   [data-lang="zh-CN"] {
-    /* Monaspace for ASCII/Code + Noto Sans Mono CJK SC for Chinese */
     --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK SC', 'Noto Sans Mono', 'Noto Sans SC', monospace;
-    /* Noto Serif SC 衬线体 */
     --font-preview-heading: 'Noto Serif SC', 'Noto Serif', serif;
-    /* Noto Sans SC 非衬线体 */
     --font-preview-body: 'Noto Sans SC', 'Noto Sans', sans-serif;
   }
 
   [data-lang="zh-TW"] {
-    /* Monaspace for ASCII/Code + Noto Sans Mono CJK TC for Traditional Chinese */
     --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK TC', 'Noto Sans Mono', 'Noto Sans TC', monospace;
-    /* Noto Serif TC 襯線體 */
     --font-preview-heading: 'Noto Serif TC', 'Noto Serif', serif;
-    /* Noto Sans TC 非襯線體 */
     --font-preview-body: 'Noto Sans TC', 'Noto Sans', sans-serif;
   }
 
   [data-lang="ja-JP"] {
-    /* Monaspace for ASCII/Code + Noto Sans Mono CJK JP for Japanese */
     --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK JP', 'Noto Sans Mono', 'Noto Sans JP', monospace;
-    /* Noto Serif JP 明朝体 */
     --font-preview-heading: 'Noto Serif JP', 'Noto Serif', serif;
-    /* Noto Sans JP ゴシック体 */
     --font-preview-body: 'Noto Sans JP', 'Noto Sans', sans-serif;
   }
 
   [data-lang="ko-KR"] {
-    /* Monaspace for ASCII/Code + Noto Sans Mono CJK KR for Korean */
     --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK KR', 'Noto Sans Mono', 'Noto Sans KR', monospace;
-    /* Noto Serif KR 명조体 */
     --font-preview-heading: 'Noto Serif KR', 'Noto Serif', serif;
-    /* Noto Sans KR 고딕体 */
     --font-preview-body: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  }
+
+  [data-accent="blue"] {
+    --accent-primary: #3b82f6;
+    --accent-primary-hover: #2563eb;
+    --accent-primary-light: #60a5fa;
+    --accent-primary-dark: #1d4ed8;
+    --accent-primary-rgb: 59, 130, 246;
+  }
+
+  [data-accent="emerald"] {
+    --accent-primary: #10b981;
+    --accent-primary-hover: #059669;
+    --accent-primary-light: #34d399;
+    --accent-primary-dark: #047857;
+    --accent-primary-rgb: 16, 185, 129;
+  }
+
+  [data-accent="violet"] {
+    --accent-primary: #8b5cf6;
+    --accent-primary-hover: #7c3aed;
+    --accent-primary-light: #a78bfa;
+    --accent-primary-dark: #6d28d9;
+    --accent-primary-rgb: 139, 92, 246;
+  }
+
+  [data-accent="amber"] {
+    --accent-primary: #f59e0b;
+    --accent-primary-hover: #d97706;
+    --accent-primary-light: #fbbf24;
+    --accent-primary-dark: #b45309;
+    --accent-primary-rgb: 245, 158, 11;
+  }
+
+  [data-accent="rose"] {
+    --accent-primary: #f43f5e;
+    --accent-primary-hover: #e11d48;
+    --accent-primary-light: #fb7185;
+    --accent-primary-dark: #be123c;
+    --accent-primary-rgb: 244, 63, 94;
+  }
+
+  [data-accent="cyan"] {
+    --accent-primary: #06b6d4;
+    --accent-primary-hover: #0891b2;
+    --accent-primary-light: #22d3ee;
+    --accent-primary-dark: #0e7490;
+    --accent-primary-rgb: 6, 182, 212;
   }
 
   .dark,

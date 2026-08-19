@@ -186,6 +186,13 @@ export const viVN: typeof enUS = {
   untitledNote: 'Ghi Chú Không Tên',
   scrollToTop: 'Cuộn lên đầu',
   scrollToBottom: 'Cuộn xuống cuối',
+  themeColor: 'Màu chủ đề',
+  accentBlue: 'Xanh lam',
+  accentEmerald: 'Xanh ngọc lục bảo',
+  accentViolet: 'Tím vũ trụ',
+  accentAmber: 'Vàng hổ phách',
+  accentRose: 'Đỏ hoa hồng',
+  accentCyan: 'Xanh lơ biển',
 
   // Toasts & Messages
   loadVaultFailed: 'Không thể tải danh sách tệp. Vui lòng kiểm tra kết nối.',

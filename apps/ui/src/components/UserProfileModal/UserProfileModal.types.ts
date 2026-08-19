@@ -1,3 +1,5 @@
+import { AccentColor } from '../../hooks/useTheme';
+
 export interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -5,5 +7,7 @@ export interface UserProfileModalProps {
   onToggleAutoLock?: (enabled: boolean) => void;
   autoLockMinutes?: number;
   onChangeAutoLockMinutes?: (minutes: number) => void;
+  accentColor?: AccentColor;
+  onSelectAccentColor?: (color: AccentColor) => void;
 }
 
