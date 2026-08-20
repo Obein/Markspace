@@ -72,9 +72,55 @@ export class FileTreeBuilder {
   static detectCategory(filename: string, mimeType?: string): 'markdown' | 'image' | 'audio' | 'video' | 'binary' {
     const ext = filename.split('.').pop()?.toLowerCase() || '';
     if (ext === 'md' || ext === 'markdown' || ext === 'txt') return 'markdown';
-    if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(ext) || mimeType?.startsWith('image/')) return 'image';
-    if (['mp3', 'wav', 'ogg', 'aac', 'flac'].includes(ext) || mimeType?.startsWith('audio/')) return 'audio';
-    if (['mp4', 'webm', 'mkv', 'mov', 'avi'].includes(ext) || mimeType?.startsWith('video/')) return 'video';
+    if (
+      ['webp', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'bmp', 'ico', 'tiff', 'avif'].includes(ext) ||
+      mimeType?.startsWith('image/')
+    ) {
+      return 'image';
+    }
+    if (
+      ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'].includes(ext) ||
+      mimeType?.startsWith('audio/')
+    ) {
+      return 'audio';
+    }
+    if (
+      ['mp4', 'webm', 'mkv', 'mov', 'avi'].includes(ext) ||
+      mimeType?.startsWith('video/')
+    ) {
+      return 'video';
+    }
     return 'binary';
+  }
+
+  static detectMimeType(filename: string, fallbackMime?: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase() || '';
+    const mimeMap: Record<string, string> = {
+      webp: 'image/webp',
+      png: 'image/png',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      gif: 'image/gif',
+      svg: 'image/svg+xml',
+      bmp: 'image/bmp',
+      ico: 'image/x-icon',
+      avif: 'image/avif',
+      mp3: 'audio/mpeg',
+      wav: 'audio/wav',
+      ogg: 'audio/ogg',
+      aac: 'audio/aac',
+      flac: 'audio/flac',
+      m4a: 'audio/mp4',
+      mp4: 'video/mp4',
+      webm: 'video/webm',
+      mov: 'video/quicktime',
+      mkv: 'video/x-matroska',
+      md: 'text/markdown',
+      markdown: 'text/markdown',
+      txt: 'text/plain',
+    };
+    if (mimeMap[ext]) return mimeMap[ext];
+    if (fallbackMime && fallbackMime !== 'application/octet-stream') return fallbackMime;
+    return 'application/octet-stream';
   }
 }

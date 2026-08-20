@@ -58,10 +58,10 @@ export function useFileUpload({
         setIsUploadingFiles(true);
         for (const file of fileList) {
           try {
-            // Use the shared detectCategory utility so that webp, png, gif, svg,
-            // mp4, mp3, etc. are all correctly classified rather than falling
-            // through to 'binary'. MIME type is passed as a secondary signal.
+            // Use the shared detectCategory and detectMimeType utilities so that webp, png, gif, svg,
+            // mp4, mp3, etc. are all correctly classified rather than falling through to 'binary'.
             const category = FileTreeBuilder.detectCategory(file.name, file.type || undefined);
+            const resolvedMime = FileTreeBuilder.detectMimeType(file.name, file.type || undefined);
 
             const ext = `.${file.name.split('.').pop() || ''}`;
             const baseName = file.name.replace(/\.[^/.]+$/, '');
@@ -90,14 +90,14 @@ export function useFileUpload({
               isDirectory: false,
               encryptedDek: wrappedDek,
               size: file.size,
-              mimeType: file.type || 'application/octet-stream',
+              mimeType: resolvedMime,
               category,
             });
 
             await apiClient.updateVaultNodeContent(
               createdNode.id,
               uploadPayload,
-              file.type || 'application/octet-stream',
+              resolvedMime,
               wrappedDek
             );
 
@@ -107,7 +107,7 @@ export function useFileUpload({
               filename,
               path,
               category,
-              mimeType: file.type || 'application/octet-stream',
+              mimeType: resolvedMime,
               size: file.size,
               content: textContent,
               blobUrl,
@@ -131,7 +131,14 @@ export function useFileUpload({
           setActiveContent(newFileItems[0].content);
           setSelectedWordCount(0);
           setSelectedCharCount(0);
+          if (activeVaultId) {
+            localStorage.setItem(`markspace_last_active_file_${activeVaultId}`, newFileItems[0].id);
+          }
+          showToast(t('saved'), 'success');
         }
+      } catch (err) {
+        console.error('Failed to upload files', err);
+        showToast(t('uploadFileFailed'), 'error');
       } finally {
         setIsUploadingFiles(false);
       }
@@ -139,8 +146,8 @@ export function useFileUpload({
     [
       cmk,
       isUploadingFiles,
-      getUniqueFilename,
       cryptoService,
+      getUniqueFilename,
       apiClient,
       activeVaultId,
       setFiles,

@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
 import { VaultFileItem } from '../../interfaces/INoteModels';
 import { ChunkSyncService } from '../../services/ChunkSyncService';
+import { FileTreeBuilder } from '../../utils/FileTreeBuilder';
 
 export interface UseVaultFileLoaderOptions {
   activeVaultId: string;
@@ -68,15 +69,18 @@ export function useVaultFileLoader({
             continue;
           }
 
+          const nodeFilename = node.path.split('/').pop() || node.name;
+          const resolvedCategory = FileTreeBuilder.detectCategory(nodeFilename, node.mimeType);
+          const resolvedMime = FileTreeBuilder.detectMimeType(nodeFilename, node.mimeType);
+
           if (node.size === 0) {
-            const nodeFilename = node.path.split('/').pop() || node.name;
             decryptedList.push({
               id: node.id,
               name: nodeFilename,
               filename: nodeFilename,
               path: node.path,
-              category: node.category,
-              mimeType: node.mimeType,
+              category: resolvedCategory,
+              mimeType: resolvedMime,
               size: 0,
               content: '',
               blobUrl: '',
@@ -94,7 +98,7 @@ export function useVaultFileLoader({
             let contentText = '';
             let blobUrl = '';
 
-            if (node.category === 'markdown' && node.activeManifestId) {
+            if (resolvedCategory === 'markdown' && node.activeManifestId) {
               try {
                 const { contentText: docContent } = await ChunkSyncService.reconstructDocument(
                   apiClient,
@@ -112,25 +116,23 @@ export function useVaultFileLoader({
               const { body, encryptedDek } = await apiClient.getVaultNodeContent(node.id);
               if (body.byteLength === 0) {
                 contentText = '';
-              } else if (node.category === 'markdown') {
+              } else if (resolvedCategory === 'markdown') {
                 const dek = await cryptoService.unwrapDEK(encryptedDek || node.encryptedDek, cmk);
                 contentText = await cryptoService.decryptText(body, dek);
               } else {
-                const blob = new Blob([body], { type: node.mimeType });
+                const blob = new Blob([body], { type: resolvedMime });
                 blobUrl = URL.createObjectURL(blob);
                 contentText = blobUrl;
               }
             }
-
-            const nodeFilename = node.path.split('/').pop() || node.name;
 
             decryptedList.push({
               id: node.id,
               name: nodeFilename,
               filename: nodeFilename,
               path: node.path,
-              category: node.category,
-              mimeType: node.mimeType,
+              category: resolvedCategory,
+              mimeType: resolvedMime,
               size: node.size,
               content: contentText,
               blobUrl,
@@ -148,14 +150,13 @@ export function useVaultFileLoader({
             } else {
               console.error(`Failed to decrypt file content for node ${node.id}`, err);
             }
-            const nodeFilename = node.path.split('/').pop() || node.name;
             decryptedList.push({
               id: node.id,
               name: nodeFilename,
               filename: nodeFilename,
               path: node.path,
-              category: node.category,
-              mimeType: node.mimeType,
+              category: resolvedCategory,
+              mimeType: resolvedMime,
               size: node.size,
               content: '',
               blobUrl: '',
@@ -190,14 +191,16 @@ export function useVaultFileLoader({
     return () => {
       isSubscribed = false;
     };
-  }, [isAuthenticated, isVaultUnlocked, cmk, apiClient, cryptoService, activeVaultId, showToast, t]);
-
-  // Reset active files in memory when unauthenticated or vault is locked
-  useEffect(() => {
-    if (!isAuthenticated || !isVaultUnlocked || !cmk) {
-      setFiles([]);
-    }
-  }, [isAuthenticated, isVaultUnlocked, cmk]);
+  }, [
+    isAuthenticated,
+    isVaultUnlocked,
+    cmk,
+    activeVaultId,
+    apiClient,
+    cryptoService,
+    showToast,
+    t,
+  ]);
 
   return {
     files,
