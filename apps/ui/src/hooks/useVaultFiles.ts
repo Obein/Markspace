@@ -51,10 +51,26 @@ export function useVaultFiles({
     showToast,
     onInitialFilesLoaded: (decryptedList) => {
       const fileOnlyList = decryptedList.filter((f) => f.mimeType !== 'inode/directory');
-      if (fileOnlyList.length > 0) {
-        setActiveFileId(fileOnlyList[0].id);
-        setActiveTitle(fileOnlyList[0].filename);
-        setActiveContent(fileOnlyList[0].content);
+      const lastSavedFileId = activeVaultId
+        ? localStorage.getItem(`markspace_last_active_file_${activeVaultId}`)
+        : null;
+
+      const targetFile = lastSavedFileId
+        ? fileOnlyList.find((f) => f.id === lastSavedFileId)
+        : null;
+
+      if (targetFile) {
+        setActiveFileId(targetFile.id);
+        setActiveTitle(targetFile.filename);
+        setActiveContent(targetFile.content);
+      } else {
+        // Last opened file does not exist or no last file was saved
+        setActiveFileId(null);
+        setActiveTitle('');
+        setActiveContent('');
+        if (activeVaultId) {
+          localStorage.removeItem(`markspace_last_active_file_${activeVaultId}`);
+        }
       }
     },
   });
@@ -112,8 +128,11 @@ export function useVaultFiles({
   const handleSelectFile = useCallback(
     (id: string) => {
       handleSelectFileFromBuffer(id, files);
+      if (activeVaultId && id) {
+        localStorage.setItem(`markspace_last_active_file_${activeVaultId}`, id);
+      }
     },
-    [handleSelectFileFromBuffer, files]
+    [handleSelectFileFromBuffer, files, activeVaultId]
   );
 
   return {

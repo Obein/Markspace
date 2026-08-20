@@ -80,10 +80,16 @@ export function useFileDeletion({
             setActiveFileId(remainingInVault[0].id);
             setActiveTitle(remainingInVault[0].filename);
             setActiveContent(remainingInVault[0].content);
+            if (activeVaultId) {
+              localStorage.setItem(`markspace_last_active_file_${activeVaultId}`, remainingInVault[0].id);
+            }
           } else {
             setActiveFileId(null);
             setActiveTitle('');
             setActiveContent('');
+            if (activeVaultId) {
+              localStorage.removeItem(`markspace_last_active_file_${activeVaultId}`);
+            }
           }
           setSelectedWordCount(0);
           setSelectedCharCount(0);

@@ -104,6 +104,10 @@ export function useFileCreation({
       setActiveContent(defaultContent);
       setSelectedWordCount(0);
       setSelectedCharCount(0);
+
+      if (activeVaultId) {
+        localStorage.setItem(`markspace_last_active_file_${activeVaultId}`, newFile.id);
+      }
     } catch (err) {
       console.error('Failed to create note in Object Storage', err);
       showToast(err instanceof Error ? err.message : t('createNoteFailed'), 'error');
