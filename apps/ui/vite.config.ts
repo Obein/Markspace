@@ -11,6 +11,9 @@ export default defineConfig({
       plugins: [tailwindcss(), autoprefixer()],
     },
   },
+  worker: {
+    format: 'es',
+  },
   server: {
     port: 5173,
     proxy: {
