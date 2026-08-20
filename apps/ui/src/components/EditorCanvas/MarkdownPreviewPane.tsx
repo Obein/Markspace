@@ -10,6 +10,7 @@ interface MarkdownPreviewPaneProps {
   bottomCapsuleSpacingClass: string;
   isSplitView?: boolean;
   isFullWidth?: boolean;
+  isVisible?: boolean;
 }
 
 export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
@@ -20,17 +21,20 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
   bottomCapsuleSpacingClass,
   isSplitView = false,
   isFullWidth = false,
+  isVisible = true,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Directly render any Mermaid diagrams asynchronously whenever previewHtml is mounted or updated
+  // Directly render any Mermaid diagrams asynchronously whenever previewHtml is mounted/updated and pane is visible
   useEffect(() => {
+    if (!isVisible) return;
+
     const container = containerRef.current;
     if (!container) return;
 
     let isMounted = true;
 
-    // Microtask timeout to ensure dangerouslySetInnerHTML is fully committed to DOM
+    // Small delay to ensure dangerouslySetInnerHTML is committed to DOM and container is rendered with dimensions
     const timeoutId = setTimeout(async () => {
       if (!isMounted) return;
 
@@ -90,7 +94,7 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [previewHtml]);
+  }, [previewHtml, isVisible]);
 
   return (
     <div

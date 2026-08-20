@@ -355,6 +355,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               bottomCapsuleSpacingClass={bottomCapsuleSpacingClass}
               isSplitView={true}
               isFullWidth={isFullWidth}
+              isVisible={true}
             />
           </div>
         )}
@@ -412,6 +413,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               bottomCapsuleSpacingClass={bottomCapsuleSpacingClass}
               isSplitView={false}
               isFullWidth={isFullWidth}
+              isVisible={isPreview}
             />
           </div>
         )}
