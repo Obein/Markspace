@@ -192,18 +192,23 @@ export const AppContent: React.FC = () => {
       {!isAuthenticated && !isInitializingAuth && <AuthModal />}
 
       {/* Step 2: Data Vault Unlock Modal */}
-      {(isAuthenticated || (isInitializingAuth && Boolean(username))) && (!isVaultUnlocked || isUnlockModalOpen) && (
-        <UnlockModal
-          vaults={vaults}
-          activeVaultId={activeVaultId}
-          onSelectVault={handleSelectVaultInModals}
-          onOpenProfile={openProfile}
-          onCreateVault={handleCreateVault}
-          onDeleteVault={handleDeleteVault}
-          onUnlockVaultWithPasskey={handleUnlockVaultWithPasskey}
-          onUnlockVaultWithRecovery={handleUnlockVaultWithRecovery}
-        />
-      )}
+      {(isAuthenticated || (isInitializingAuth && Boolean(username))) &&
+        (!isVaultUnlocked || isUnlockModalOpen) &&
+        !isProfileOpen &&
+        !isAdminOpen &&
+        !isVaultSettingsOpen &&
+        !isHistoryOpen && (
+          <UnlockModal
+            vaults={vaults}
+            activeVaultId={activeVaultId}
+            onSelectVault={handleSelectVaultInModals}
+            onOpenProfile={openProfile}
+            onCreateVault={handleCreateVault}
+            onDeleteVault={handleDeleteVault}
+            onUnlockVaultWithPasskey={handleUnlockVaultWithPasskey}
+            onUnlockVaultWithRecovery={handleUnlockVaultWithRecovery}
+          />
+        )}
 
       {/* Step 3: User Profile & Security Settings Modal */}
       <UserProfileModal

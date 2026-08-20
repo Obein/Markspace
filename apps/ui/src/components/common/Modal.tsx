@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | 'full';
@@ -45,16 +45,75 @@ export const Modal: React.FC<ModalProps> = ({
   closeOnBackdropClick = true,
   children,
 }) => {
-  // Listen for Escape key
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
+
+  // ── Focus Management: Trap focus inside modal, autofocus, & restore on close ──
   useEffect(() => {
     if (!isOpen) return;
+
+    // Remember previously focused element to restore upon closing
+    previousActiveElementRef.current = document.activeElement as HTMLElement | null;
+
+    const modalEl = modalRef.current;
+    if (modalEl) {
+      // Find first interactive element or focus container
+      const focusable = modalEl.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length > 0) {
+        focusable[0].focus();
+      } else {
+        modalEl.focus();
+      }
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape to close
       if (e.key === 'Escape') {
+        e.preventDefault();
         onClose();
+        return;
+      }
+
+      // Tab focus trapping
+      if (e.key === 'Tab' && modalEl) {
+        const focusable = modalEl.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const firstElement = focusable[0];
+        const lastElement = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement || document.activeElement === modalEl) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      // Restore focus to previously active element
+      if (
+        previousActiveElementRef.current &&
+        typeof previousActiveElementRef.current.focus === 'function'
+      ) {
+        previousActiveElementRef.current.focus();
+      }
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -67,9 +126,13 @@ export const Modal: React.FC<ModalProps> = ({
         }
       }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 dark:bg-black/80 backdrop-blur-lg cursor-pointer"
+      role="dialog"
+      aria-modal="true"
     >
       <div
-        className={`w-full ${sizeClasses[size]} p-6 sm:p-8 glass-panel rounded-glass-lg border border-black/10 dark:border-white/10 text-zinc-900 dark:text-white shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto cursor-default flex flex-col ${className}`}
+        ref={modalRef}
+        tabIndex={-1}
+        className={`w-full ${sizeClasses[size]} p-6 sm:p-8 glass-panel rounded-glass-lg border border-black/10 dark:border-white/10 text-zinc-900 dark:text-white shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto cursor-default flex flex-col focus:outline-none ${className}`}
       >
         {/* Close Button */}
         {showCloseButton && (
