@@ -30,7 +30,7 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
 
     let isMounted = true;
 
-    // Small microtask timeout to ensure dangerouslySetInnerHTML is committed to DOM
+    // Microtask timeout to ensure dangerouslySetInnerHTML is fully committed to DOM
     const timeoutId = setTimeout(async () => {
       if (!isMounted) return;
 
@@ -45,36 +45,46 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
         const mermaid = await getMermaid(isDark);
         if (!isMounted) return;
 
-        mermaidNodes.forEach((element, idx) => {
-          const id = `mermaid_${idx}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+        // Render sequentially to prevent concurrent DOM collision inside Mermaid
+        for (let idx = 0; idx < mermaidNodes.length; idx++) {
+          if (!isMounted) break;
+          const element = mermaidNodes[idx];
+          if (element.getAttribute('data-processed') === 'true') continue;
+
           const encoded = element.getAttribute('data-mermaid-code');
           const rawCode = encoded ? decodeURIComponent(encoded) : (element.textContent || '');
           const cleanCode = normalizeMermaidCode(rawCode);
 
-          mermaid
-            .render(id, cleanCode)
-            .then(({ svg, bindFunctions }) => {
-              if (isMounted && element) {
-                element.innerHTML = svg;
-                element.setAttribute('data-processed', 'true');
-                element.className = 'w-full flex justify-center overflow-x-auto';
-                if (bindFunctions) {
-                  bindFunctions(element);
-                }
+          if (!cleanCode) continue;
+
+          const id = `mm_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 7)}`;
+
+          try {
+            const { svg, bindFunctions } = await mermaid.render(id, cleanCode);
+            if (isMounted && element) {
+              element.innerHTML = svg;
+              element.setAttribute('data-processed', 'true');
+              element.className = 'w-full flex justify-center overflow-x-auto';
+              if (bindFunctions) {
+                bindFunctions(element);
               }
-            })
-            .catch((err) => {
-              console.warn('Mermaid rendering error:', err);
-              if (isMounted && element) {
-                element.innerHTML = `<div class="p-3 bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-300 text-xs rounded-xl font-mono text-center">Mermaid Syntax Error: ${err?.message || 'Invalid diagram format'}</div>`;
-                element.setAttribute('data-processed', 'true');
-              }
-            });
-        });
+            }
+          } catch (err: any) {
+            console.warn('Mermaid rendering error:', err);
+            // Clean up any stray temp element created by Mermaid on failure
+            const stray = document.getElementById(id);
+            if (stray) stray.remove();
+
+            if (isMounted && element) {
+              element.innerHTML = `<div class="p-3 bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-300 text-xs rounded-xl font-mono text-center">Mermaid Syntax Error: ${err?.message || 'Invalid diagram format'}</div>`;
+              element.setAttribute('data-processed', 'true');
+            }
+          }
+        }
       } catch (loadErr) {
         console.warn('Failed to dynamically load Mermaid engine', loadErr);
       }
-    }, 20);
+    }, 40);
 
     return () => {
       isMounted = false;
@@ -108,15 +118,10 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
             ? 'w-full max-w-none px-6 sm:px-10'
             : 'w-full max-w-4xl mx-auto px-6 sm:px-8'
         }`}
-      >
-        <div
-          dangerouslySetInnerHTML={{
-            __html: previewHtml,
-          }}
-        />
-      </div>
+        dangerouslySetInnerHTML={{ __html: previewHtml }}
+      />
 
-      {/* Dynamic Bottom Status Capsule Spacing */}
+      {/* Dynamic Bottom Capsule Spacing */}
       <div className={bottomCapsuleSpacingClass} />
     </div>
   );

@@ -42,7 +42,6 @@ export const LineGutter: React.FC<LineGutterProps> = ({
         height: `${heightMap.totalHeight}px`,
         minHeight: '100%',
       }}
-      aria-hidden="true"
     >
       {heightMap.coordinates.map((coord) => {
         const i = coord.lineIndex;
@@ -78,13 +77,14 @@ export const LineGutter: React.FC<LineGutterProps> = ({
                   }}
                   className="w-5 h-5 sm:w-auto sm:h-auto p-0 sm:px-1.5 sm:py-0.5 rounded bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-[10px] font-sans font-medium shadow-md shadow-primaryColor-500/30 border border-primaryColor-400/30 transition-all cursor-pointer whitespace-nowrap flex items-center justify-center sm:gap-1 backdrop-blur-sm hover:scale-105 active:scale-95"
                   title={t('visualTableEditor') || 'Visual Table Editor'}
+                  aria-label={t('visualTableEditor') || 'Visual Table Editor'}
                 >
                   <TableIcon className="w-3 h-3 shrink-0" />
                   <span className="hidden sm:inline">{t('convertToVisualTable') || 'Visual Edit'}</span>
                 </button>
               </div>
             )}
-            <span>{coord.lineNumber}</span>
+            <span aria-hidden="true">{coord.lineNumber}</span>
           </div>
         );
       })}
