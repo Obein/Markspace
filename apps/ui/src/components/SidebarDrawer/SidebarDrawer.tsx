@@ -1,25 +1,22 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import { ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
-import { VaultFileItem } from '../../interfaces/INoteModels';
 import { FileTreeBuilder } from '../../utils/FileTreeBuilder';
-import { SidebarDrawerProps, ContextMenuState } from './SidebarDrawer.types';
+import { SidebarDrawerProps } from './SidebarDrawer.types';
 import { VaultHeader } from './VaultHeader';
 import { ActionToolbar } from './ActionToolbar';
 import { SearchBar } from './SearchBar';
 import { FileTreeItem } from './FileTreeItem';
 import { ContextMenu } from './ContextMenu';
+import { useSidebarMobileGestures } from './hooks/useSidebarMobileGestures';
+import { useSidebarFileTreeInteractions } from './hooks/useSidebarFileTreeInteractions';
 
 /**
  * SidebarDrawer — Composition Root
  *
- * Responsive behaviour:
- * - md+ (≥768 px): push-layout. Sidebar occupies a flex-shrink-0 slot (w-72/w-80 expanded, w-3.5 collapsed).
- * - <md (mobile):
- *   • Collapsed: outer layout slot takes w-3.5 so the editor is pushed right and never overlapped by the exposed edge.
- *     Sidebar has no handle, only exposes the 14px frosted glass edge.
- *   • Expanded: sliding fixed overlay with backdrop-blur and semi-transparent backdrop.
- *   • Touch gestures: edge-swipe-right (<60px from screen edge) to open, swipe-left anywhere to collapse.
+ * Responsive layout:
+ * - md+ (desktop): sliding glass aside with tab collapse handle
+ * - <md (mobile): fixed sliding overlay with backdrop blur
  */
 export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
   files,
@@ -46,122 +43,45 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
 }) => {
   const { t } = useI18n();
 
-  // ── Mobile detection ─────────────────────────────────────────────────────────
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth < 768 : false
-  );
+  const { isMobile, isCollapsed, setIsCollapsed, handleMobileSelectFile } =
+    useSidebarMobileGestures({
+      activeFileId,
+      isLoadingVaultTree,
+      onSelectFile,
+    });
 
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile) setIsCollapsed(true);
-    };
-    window.addEventListener('resize', handleResize, { passive: true });
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // ── Sidebar collapse ─────────────────────────────────────────────────────────
-  // Default collapsed on mobile if a file is already active, otherwise open; expanded on desktop.
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      return Boolean(activeFileId);
-    }
-    return false;
+  const {
+    isFolderInputOpen,
+    setIsFolderInputOpen,
+    newFolderName,
+    setNewFolderName,
+    expandedFolders,
+    toggleFolder,
+    dragOverFolderPath,
+    handleNodeDragStart,
+    handleFolderDragOverNode,
+    handleFolderDropNode,
+    contextMenu,
+    setContextMenu,
+    confirmDeleteNodeId,
+    setConfirmDeleteNodeId,
+    handleContextMenu,
+    handleTouchStart,
+    handleTouchEndOrMove,
+    editingNodeId,
+    editingName,
+    setEditingName,
+    handleRenameStart,
+    handleRenameSubmit,
+    handleCreateFolder,
+  } = useSidebarFileTreeInteractions({
+    onCreateFolder,
+    onMoveFileToDirectory,
+    onRenameNode,
   });
-
-  // Auto-expand sidebar on mobile if entering the main interface with no active file
-  const prevVaultTreeLoadingRef = useRef(isLoadingVaultTree);
-  useEffect(() => {
-    if (!isMobile) return;
-
-    // When vault tree finishes loading and there is no active file, auto-open sidebar on mobile
-    if (prevVaultTreeLoadingRef.current && !isLoadingVaultTree) {
-      if (!activeFileId) {
-        setIsCollapsed(false);
-      }
-    }
-    prevVaultTreeLoadingRef.current = isLoadingVaultTree;
-  }, [isMobile, isLoadingVaultTree, activeFileId]);
-
-  // ── Inline folder creation form ──────────────────────────────────────────────
-  const [isFolderInputOpen, setIsFolderInputOpen] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
-
-  // ── File tree interaction ────────────────────────────────────────────────────
-  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
-  const [dragOverFolderPath, setDragOverFolderPath] = useState<string | null>(null);
-
-  // ── Inline rename ────────────────────────────────────────────────────────────
-  const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
-
-  // ── Context menu ─────────────────────────────────────────────────────────────
-  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
-  const [confirmDeleteNodeId, setConfirmDeleteNodeId] = useState<string | null>(null);
-
-  // Long-press detection timer for touch devices
-  const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // ── Touch swipe gestures for mobile (swipe right from edge to open, swipe left to close) ──
-  const touchStartXRef = useRef<number | null>(null);
-  const touchStartYRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!isMobile) return;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length !== 1) return;
-      touchStartXRef.current = e.touches[0].clientX;
-      touchStartYRef.current = e.touches[0].clientY;
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (touchStartXRef.current === null || touchStartYRef.current === null) return;
-      if (e.changedTouches.length !== 1) return;
-
-      const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
-      const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
-
-      // Only trigger if horizontal swipe is dominant
-      if (Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
-        if (isCollapsed) {
-          // Swiping right starting within 60px of the screen left edge -> Open drawer
-          if (touchStartXRef.current < 60 && deltaX > 40) {
-            setIsCollapsed(false);
-          }
-        } else {
-          // Swiping left anywhere when expanded -> Close drawer
-          if (deltaX < -40) {
-            setIsCollapsed(true);
-          }
-        }
-      }
-
-      touchStartXRef.current = null;
-      touchStartYRef.current = null;
-    };
-
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
-
-    return () => {
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [isMobile, isCollapsed]);
 
   const treeNodes = FileTreeBuilder.buildTree(files);
 
-  // ── Folder expand / collapse ─────────────────────────────────────────────────
-  const toggleFolder = (path: string) => {
-    setExpandedFolders((prev) => ({
-      ...prev,
-      [path]: prev[path] === false ? true : false,
-    }));
-  };
-
-  // ── Drag-and-drop (sidebar-level drop zone) ──────────────────────────────────
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -174,94 +94,6 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
       onAddFiles(e.dataTransfer.files);
     }
   };
-
-  // ── Tree node drag-and-drop ──────────────────────────────────────────────────
-  const handleNodeDragStart = (e: React.DragEvent, fileId: string) => {
-    e.dataTransfer.setData('text/plain', fileId);
-  };
-
-  const handleFolderDragOverNode = (e: React.DragEvent, folderPath: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragOverFolderPath(folderPath);
-  };
-
-  const handleFolderDropNode = (e: React.DragEvent, targetFolderPath: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragOverFolderPath(null);
-    const draggedFileId = e.dataTransfer.getData('text/plain');
-    if (draggedFileId) {
-      onMoveFileToDirectory(draggedFileId, targetFolderPath);
-    }
-  };
-
-  // ── Context menu (right-click) ───────────────────────────────────────────────
-  const handleContextMenu = (
-    e: React.MouseEvent,
-    nodeId: string,
-    nodeName: string,
-    nodePath: string,
-    isDirectory: boolean,
-    fileItem?: VaultFileItem
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setConfirmDeleteNodeId(null);
-    setContextMenu({ x: e.clientX, y: e.clientY, nodeId, nodeName, nodePath, isDirectory, fileItem });
-  };
-
-  // ── Context menu (long-press / touch) ────────────────────────────────────────
-  const handleTouchStart = (
-    e: React.TouchEvent,
-    nodeId: string,
-    nodeName: string,
-    nodePath: string,
-    isDirectory: boolean,
-    fileItem?: VaultFileItem
-  ) => {
-    const { clientX: touchX, clientY: touchY } = e.touches[0];
-    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
-    touchTimerRef.current = setTimeout(() => {
-      setConfirmDeleteNodeId(null);
-      setContextMenu({ x: touchX, y: touchY, nodeId, nodeName, nodePath, isDirectory, fileItem });
-    }, 550);
-  };
-
-  const handleTouchEndOrMove = () => {
-    if (touchTimerRef.current) {
-      clearTimeout(touchTimerRef.current);
-      touchTimerRef.current = null;
-    }
-  };
-
-  // ── Inline rename ────────────────────────────────────────────────────────────
-  const handleRenameStart = (nodeId: string, initialName: string) => {
-    setEditingNodeId(nodeId);
-    setEditingName(initialName);
-  };
-
-  const handleRenameSubmit = (nodeId: string, newName: string) => {
-    if (onRenameNode && newName.trim()) {
-      onRenameNode(nodeId, newName.trim());
-    }
-    setEditingNodeId(null);
-  };
-
-  // ── Create folder ────────────────────────────────────────────────────────────
-  const handleCreateFolder = (name: string) => {
-    onCreateFolder(name);
-    setNewFolderName('');
-  };
-
-  // ── Mobile: collapse sidebar after selecting a file ──────────────────────────
-  const handleMobileSelectFile = useCallback(
-    (fileId: string) => {
-      onSelectFile(fileId);
-      if (isMobile) setIsCollapsed(true);
-    },
-    [onSelectFile, isMobile]
-  );
 
   // ── Shared inner panel ───────────────────────────────────────────────────────
   const panelContent = (
@@ -331,14 +163,14 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             onSelectFile={handleMobileSelectFile}
             onToggleFolder={toggleFolder}
             onRenameSubmit={handleRenameSubmit}
-            onCancelRename={() => setEditingNodeId(null)}
+            onCancelRename={() => {}}
             onEditingNameChange={setEditingName}
             onContextMenu={handleContextMenu}
             onTouchStart={handleTouchStart}
             onTouchEndOrMove={handleTouchEndOrMove}
             onNodeDragStart={handleNodeDragStart}
             onFolderDragOverNode={handleFolderDragOverNode}
-            onFolderDragLeaveNode={() => setDragOverFolderPath(null)}
+            onFolderDragLeaveNode={() => {}}
             onFolderDropNode={handleFolderDropNode}
           />
         )}
@@ -387,13 +219,6 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
 
   return (
     <>
-      {/* ════════════════════════════════════════════════════════════════════
-          MOBILE OVERLAY LAYER
-          Rendered as direct Fragment children so they participate in the
-          root stacking context. Fixed overlay with backdrop blur.
-          On mobile, no handle is shown; only the exposed side sliver is visible.
-          ════════════════════════════════════════════════════════════════════ */}
-
       {/* Mobile: backdrop (closes sidebar on tap) */}
       {isMobile && !isCollapsed && (
         <div
@@ -421,13 +246,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
         </aside>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════
-          LAYOUT SLOT (Mobile & Desktop)
-          - When collapsed (mobile & desktop): occupies w-3.5 to push the editor
-            rightwards, ensuring the editor never overlaps with the collapsed peek.
-          - When expanded on mobile: remains w-3.5 so editor does not resize.
-          - When expanded on desktop: expands to w-72/w-80.
-          ════════════════════════════════════════════════════════════════════ */}
+      {/* Layout Slot (Mobile & Desktop) */}
       <div
         className={`relative h-full shrink-0 transition-all duration-300 ease-in-out z-20 ${
           isCollapsed ? 'w-3.5' : 'w-3.5 md:w-72 md:lg:w-80'
@@ -446,7 +265,6 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             if (isCollapsed) setIsCollapsed(false);
           }}
         >
-          {/* Desktop Chrome Tab-style Collapse Handle */}
           {collapseHandle}
           {panelContent}
         </aside>

@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { FileText, ChevronUp, ChevronDown } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { useI18n } from '../../i18n/i18nContext';
 import { VisualTableEditor } from '../VisualTableEditor';
 import { EditorCanvasProps } from './EditorCanvas.types';
 import {
@@ -19,7 +18,12 @@ import { MarkdownPreviewPane } from './MarkdownPreviewPane';
 import { MediaPreview } from './MediaPreview';
 import { EditorCodeArea } from './EditorCodeArea';
 import { FindReplaceBar } from './FindReplaceBar';
+import { ScrollElevatorControls } from './ScrollElevatorControls';
 
+/**
+ * EditorCanvas
+ * Main document canvas for editing markdown notes and previewing media files.
+ */
 export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   activeFile,
   title,
@@ -101,13 +105,17 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       }
       handleEditorKeyDown(e);
     },
-    [findReplace, handleEditorKeyDown]
+    [handleEditorKeyDown, findReplace]
   );
 
-  // Hook: Real-time Markdown live parsing & Mermaid rendering
-  const { previewHtml } = useMarkdownPreview(content, category, previewService);
+  // Hook: Markdown HTML preview rendering
+  const { previewHtml } = useMarkdownPreview(
+    content,
+    category,
+    previewService
+  );
 
-  // Hook: Synchronized Dual-Column Scrolling (Split View)
+  // Hook: Split-view synchronous scroll
   const {
     scrollContainerRef,
     previewScrollRef,
@@ -115,7 +123,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     handlePreviewScroll,
   } = useSyncScroll();
 
-  // Dedicated Persistent Scroll Refs for Single-Pane Modes
+  // Single Pane Viewport Scroll Refs
   const singleEditorScrollRef = useRef<HTMLDivElement>(null);
   const singlePreviewScrollRef = useRef<HTMLDivElement>(null);
 
@@ -126,8 +134,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
     if (previewScrollRef.current) previewScrollRef.current.scrollTop = 0;
   }, [activeFile?.id, scrollContainerRef, previewScrollRef]);
-
-  const { t } = useI18n();
 
   // Scroll to Top Handler
   const handleScrollToTop = useCallback(() => {
@@ -205,8 +211,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   }
 
   const hasFormattingToolbar = category === 'markdown' && (!isPreview || isSplitView);
-  // On mobile the FormattingToolbar is at the bottom, so the top spacer is always
-  // title-only height (h-20). On md+ the toolbar sits in the header bar, adding h-28.
   const topToolbarSpacingClass = hasFormattingToolbar ? 'h-20 md:h-28' : 'h-20';
   const bottomCapsuleSpacingClass = hasBottomCapsule ? 'h-24' : 'h-12';
 
@@ -223,7 +227,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           top: -99999,
           left: -99999,
           zIndex: -99,
-          overflow: 'hidden',      // ← constrains child divs to the measured width
+          overflow: 'hidden',
           boxSizing: 'border-box',
         }}
       >
@@ -235,7 +239,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               whiteSpace: 'pre-wrap',
               minHeight: '24px',
               boxSizing: 'border-box',
-              width: '100%',       // ← explicitly fill parent width
+              width: '100%',
             }}
           >
             {line === '' ? '\u00A0' : line}
@@ -270,7 +274,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         )}
       </div>
 
-      {/* Floating Find & Replace Panel */}
+      {/* Floating Find & Replace Toolbar */}
       <FindReplaceBar
         isOpen={findReplace.isOpen}
         isReplaceMode={findReplace.isReplaceMode}
@@ -295,9 +299,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         onClose={findReplace.closeFindReplace}
       />
 
-      {/* Editor Content Body */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Binary / Media / Non-Markdown Files */}
+      {/* Main Content Area */}
+      <div className="flex-1 relative flex overflow-hidden">
+        {/* Binary / Media File Preview (Images, Audio, Video, Generic Binary) */}
         {category !== 'markdown' && (
           <MediaPreview
             category={category}
@@ -307,22 +311,18 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           />
         )}
 
-        {/* Markdown Dual-Column Split View */}
+        {/* Markdown Split View Mode (Editor Left, Preview Right) */}
         {category === 'markdown' && isSplitView && (
-          <div
-            className={`flex-1 flex h-full overflow-hidden divide-x divide-black/10 dark:divide-white/10 transition-all duration-300 ${
-              isFullWidth ? 'w-full px-2 sm:px-4' : 'w-full max-w-7xl mx-auto px-2 sm:px-4'
-            }`}
-          >
-            {/* Left Column: Code Editor */}
+          <div className="flex-1 flex w-full h-full overflow-hidden divide-x divide-black/5 dark:divide-white/5">
+            {/* Left Column: Markdown Code Editor */}
             <div
               ref={scrollContainerRef}
               onScroll={handleEditorScroll}
-              className="w-1/2 h-full overflow-y-auto relative font-editor-mono font-mono text-sm leading-6"
+              className="w-1/2 h-full overflow-y-auto font-editor-mono font-mono text-sm leading-6 relative"
             >
               <div className={topToolbarSpacingClass} />
 
-              <div className="flex w-full min-h-[calc(100%-13rem)] px-2 sm:px-4">
+              <div className="flex px-4 sm:px-6 min-h-[calc(100%-13rem)]">
                 <LineGutter
                   heightMap={heightMap}
                   activeLineIndex={activeLineIndex}
@@ -330,6 +330,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   onSelectLine={handleSelectLine}
                   onOpenTableAtRange={handleOpenVisualTable}
                 />
+
                 <EditorCodeArea
                   textareaRef={textareaRef}
                   value={content}
@@ -420,30 +421,12 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       </div>
 
       {/* Elevator Floating Scroll Controls (Scroll to Top / Bottom) */}
-      {category === 'markdown' && (
-        <div className="absolute bottom-14 md:bottom-7 right-4 sm:right-6 z-30 flex flex-col gap-2 select-none pointer-events-auto">
-          <button
-            type="button"
-            onClick={handleScrollToTop}
-            className="w-9 h-9 rounded-full glass-capsule backdrop-blur-[10px] flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-[var(--accent-primary)] dark:hover:text-[var(--accent-primary-light)] hover:bg-black/5 dark:hover:bg-white/10 transition-colors shadow-lg border border-black/10 dark:border-white/10 cursor-pointer"
-            title={t('scrollToTop') || 'Scroll to top'}
-            aria-label={t('scrollToTop') || 'Scroll to top'}
-          >
-            <ChevronUp className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={handleScrollToBottom}
-            className="w-9 h-9 rounded-full glass-capsule backdrop-blur-[10px] flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-[var(--accent-primary)] dark:hover:text-[var(--accent-primary-light)] hover:bg-black/5 dark:hover:bg-white/10 transition-colors shadow-lg border border-black/10 dark:border-white/10 cursor-pointer"
-            title={t('scrollToBottom') || 'Scroll to bottom'}
-            aria-label={t('scrollToBottom') || 'Scroll to bottom'}
-          >
-            <ChevronDown className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+      <ScrollElevatorControls
+        onScrollToTop={handleScrollToTop}
+        onScrollToBottom={handleScrollToBottom}
+      />
 
-      {/* Mobile Formatting Toolbar — sticky to bottom of editor canvas (below md only) */}
+      {/* Mobile Formatting Toolbar (below md) */}
       {hasFormattingToolbar && (
         <div className="flex md:hidden absolute bottom-0 inset-x-0 z-30 pl-8 pr-3 pt-1 pb-1 glass-bar backdrop-blur-[10px] shadow-md pointer-events-auto">
           <FormattingToolbar
