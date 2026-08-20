@@ -35,7 +35,7 @@ export const LineGutter: React.FC<LineGutterProps> = ({
 
   return (
     <div
-      className="w-4 sm:w-20 pl-1.5 pr-2.5 text-right select-none font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-black/5 dark:border-white/5 relative will-change-transform"
+      className="w-4 sm:w-8 pl-1.5 pr-2.5 text-right select-none font-editor-mono font-mono text-xs leading-6 shrink-0 border-r border-black/5 dark:border-white/5 relative will-change-transform"
       style={{
         height: `${heightMap.totalHeight}px`,
         minHeight: '100%',
