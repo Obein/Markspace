@@ -69,6 +69,39 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
     }
   }, []);
 
+  // Swipe-down to close gesture on mobile capsule panel
+  const touchStartYRef = useRef<number | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
+
+  const handlePanelTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isMobile || !isMobileExpanded) return;
+      touchStartYRef.current = e.touches[0].clientY;
+      touchStartXRef.current = e.touches[0].clientX;
+    },
+    [isMobile, isMobileExpanded]
+  );
+
+  const handlePanelTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isMobile || !isMobileExpanded) return;
+      if (touchStartYRef.current === null || touchStartXRef.current === null) return;
+      if (e.changedTouches.length !== 1) return;
+
+      const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+      const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+
+      // Swiping down by > 30px with vertical dominance closes the capsule
+      if (deltaY > 30 && Math.abs(deltaY) > Math.abs(deltaX)) {
+        setIsMobileExpanded(false);
+      }
+
+      touchStartYRef.current = null;
+      touchStartXRef.current = null;
+    },
+    [isMobile, isMobileExpanded]
+  );
+
   useEffect(() => {
     if (isMobile && isMobileExpanded) {
       const timer = setTimeout(() => {
@@ -232,25 +265,27 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   // ── Mobile: animated floating capsule with constant-size corner-to-center translation ─────
   return (
     <>
-      {/* Backdrop overlay — only mounted when expanded to completely avoid touch blocking */}
+      {/* Backdrop overlay — elevated above sidebar (z-[65]) */}
       {isMobileExpanded && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] animate-in fade-in duration-200"
+          className="fixed inset-0 z-[65] bg-black/30 backdrop-blur-[2px] animate-in fade-in duration-200"
           onClick={() => setIsMobileExpanded(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* Animated container — maintains constant size, smoothly translates from bottom-left corner to bottom-center */}
+      {/* Animated container — elevated above sidebar (z-[70]), supports swipe-down to close */}
       <div
         ref={panelRef}
         onClick={!isMobileExpanded ? () => setIsMobileExpanded(true) : undefined}
+        onTouchStart={handlePanelTouchStart}
+        onTouchEnd={handlePanelTouchEnd}
         style={{
           transform: isMobileExpanded
             ? 'translate(calc(50vw - 50%), -1.5rem)'
             : 'translate(calc(-100% + 44px), calc(100% - 44px))',
         }}
-        className={`fixed bottom-0 left-0 z-50 w-[min(calc(100vw-2rem),360px)] p-3.5 rounded-2xl glass-capsule backdrop-blur-xl bg-white/95 dark:bg-[#18181e]/95 select-none shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] border border-black/10 dark:border-white/15 ${
+        className={`fixed bottom-0 left-0 z-[70] w-[min(calc(100vw-2rem),360px)] p-3.5 rounded-2xl glass-capsule backdrop-blur-xl bg-white/95 dark:bg-[#18181e]/95 select-none shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] border border-black/10 dark:border-white/15 ${
           !isMobileExpanded ? 'cursor-pointer hover:shadow-primaryColor-500/20 active:scale-95' : ''
         }`}
       >

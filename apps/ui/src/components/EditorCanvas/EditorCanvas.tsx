@@ -443,7 +443,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
       {/* Mobile Formatting Toolbar — sticky to bottom of editor canvas (below md only) */}
       {hasFormattingToolbar && (
-        <div className="flex md:hidden absolute bottom-0 inset-x-0 z-30 pl-12 pr-3 pt-1 pb-1 glass-bar backdrop-blur-[10px] shadow-md pointer-events-auto">
+        <div className="flex md:hidden absolute bottom-0 inset-x-0 z-30 pl-8 pr-3 pt-1 pb-1 glass-bar backdrop-blur-[10px] shadow-md pointer-events-auto">
           <FormattingToolbar
             onInsertFormatting={insertFormatting}
             onOpenVisualTable={handleOpenVisualTable}

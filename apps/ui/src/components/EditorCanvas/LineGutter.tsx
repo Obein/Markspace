@@ -66,7 +66,7 @@ export const LineGutter: React.FC<LineGutterProps> = ({
           >
             {/* Floating Visual Table Editor button on first row of table */}
             {tableAtLine && (
-              <div className="absolute left-1 top-0.5 z-30 flex items-center">
+              <div className="absolute left-0 top-0.5 z-30 flex items-center">
                 <button
                   type="button"
                   onClick={(e) => {
@@ -74,7 +74,7 @@ export const LineGutter: React.FC<LineGutterProps> = ({
                     e.stopPropagation();
                     onOpenTableAtRange(tableAtLine);
                   }}
-                  className="px-1.5 py-0.5 rounded bg-primaryColor-600/90 hover:bg-primaryColor-500 text-white text-[10px] font-sans font-medium shadow-md shadow-primaryColor-500/30 border border-primaryColor-400/30 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1"
+                  className="px-1.5 py-0.5 rounded bg-primaryColor-600/95 hover:bg-primaryColor-500 text-white text-[10px] font-sans font-medium shadow-md shadow-primaryColor-500/30 border border-primaryColor-400/30 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1 backdrop-blur-sm"
                   title={t('visualTableEditor') || 'Visual Table Editor'}
                 >
                   <span>{t('convertToVisualTable') || 'Visual Edit'}</span>
