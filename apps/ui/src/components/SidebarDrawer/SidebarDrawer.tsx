@@ -46,11 +46,43 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
 }) => {
   const { t } = useI18n();
 
-  // ── Sidebar collapse ─────────────────────────────────────────────────────────
-  // Default collapsed on mobile; expanded on desktop.
-  const [isCollapsed, setIsCollapsed] = useState(() =>
+  // ── Mobile detection ─────────────────────────────────────────────────────────
+  const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth < 768 : false
   );
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setIsCollapsed(true);
+    };
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // ── Sidebar collapse ─────────────────────────────────────────────────────────
+  // Default collapsed on mobile if a file is already active, otherwise open; expanded on desktop.
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return Boolean(activeFileId);
+    }
+    return false;
+  });
+
+  // Auto-expand sidebar on mobile if entering the main interface with no active file
+  const prevVaultTreeLoadingRef = useRef(isLoadingVaultTree);
+  useEffect(() => {
+    if (!isMobile) return;
+
+    // When vault tree finishes loading and there is no active file, auto-open sidebar on mobile
+    if (prevVaultTreeLoadingRef.current && !isLoadingVaultTree) {
+      if (!activeFileId) {
+        setIsCollapsed(false);
+      }
+    }
+    prevVaultTreeLoadingRef.current = isLoadingVaultTree;
+  }, [isMobile, isLoadingVaultTree, activeFileId]);
 
   // ── Inline folder creation form ──────────────────────────────────────────────
   const [isFolderInputOpen, setIsFolderInputOpen] = useState(false);
@@ -70,21 +102,6 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
 
   // Long-press detection timer for touch devices
   const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // ── Mobile detection ─────────────────────────────────────────────────────────
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth < 768 : false
-  );
-
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile) setIsCollapsed(true);
-    };
-    window.addEventListener('resize', handleResize, { passive: true });
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // ── Touch swipe gestures for mobile (swipe right from edge to open, swipe left to close) ──
   const touchStartXRef = useRef<number | null>(null);

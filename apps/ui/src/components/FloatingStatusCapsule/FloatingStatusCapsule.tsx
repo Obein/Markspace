@@ -229,7 +229,7 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
     );
   }
 
-  // ── Mobile: animated floating capsule with smooth continuous translation ─────
+  // ── Mobile: animated floating capsule with constant-size corner-to-center translation ─────
   return (
     <>
       {/* Backdrop overlay — only mounted when expanded to completely avoid touch blocking */}
@@ -241,34 +241,50 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
         />
       )}
 
-      {/* Animated container — seamlessly translates between corner and viewport center */}
+      {/* Animated container — maintains constant size, smoothly translates from bottom-left corner to bottom-center */}
       <div
         ref={panelRef}
         onClick={!isMobileExpanded ? () => setIsMobileExpanded(true) : undefined}
-        className={`fixed z-50 glass-capsule backdrop-blur-xl bg-white/90 dark:bg-[#18181e]/90 select-none shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
-          isMobileExpanded
-            ? 'bottom-6 left-1/2 -translate-x-1/2 w-[min(calc(100vw-2rem),360px)] p-3 rounded-2xl border border-black/10 dark:border-white/15'
-            : 'bottom-4 left-4 translate-x-0 w-10 h-10 p-0 rounded-2xl flex items-center justify-center cursor-pointer border border-black/10 dark:border-white/15 hover:scale-105 active:scale-95'
+        style={{
+          transform: isMobileExpanded
+            ? 'translate(calc(50vw - 50%), -1.5rem)'
+            : 'translate(calc(-100% + 44px), calc(100% - 44px))',
+        }}
+        className={`fixed bottom-0 left-0 z-50 w-[min(calc(100vw-2rem),360px)] p-3.5 rounded-2xl glass-capsule backdrop-blur-xl bg-white/95 dark:bg-[#18181e]/95 select-none shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] border border-black/10 dark:border-white/15 ${
+          !isMobileExpanded ? 'cursor-pointer hover:shadow-primaryColor-500/20 active:scale-95' : ''
         }`}
       >
-        {/* Collapsed state icon — smoothly fades out when expanding */}
+        {/* Top-right corner peek indicator / close toggle */}
         <div
-          className={`absolute inset-0 flex items-center justify-center gap-0.5 text-zinc-500 dark:text-zinc-400 transition-opacity duration-200 ${
-            isMobileExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          className={`absolute top-1 right-1 w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 dark:text-zinc-400 ${
+            !isMobileExpanded ? 'pointer-events-none' : 'hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer'
           }`}
+          onClick={
+            isMobileExpanded
+              ? (e) => {
+                  e.stopPropagation();
+                  setIsMobileExpanded(false);
+                }
+              : undefined
+          }
+          title={isMobileExpanded ? 'Close Menu' : 'Open Menu'}
         >
-          <ChevronUp className="w-4 h-4" />
+          <ChevronUp
+            className={`w-4 h-4 transition-transform duration-300 ${
+              isMobileExpanded ? 'rotate-180 text-zinc-400' : ''
+            }`}
+          />
           {isSaving && (
-            <span className="w-1.5 h-1.5 rounded-full bg-primaryColor-500 animate-ping" />
+            <span className="w-1.5 h-1.5 rounded-full bg-primaryColor-500 animate-ping absolute top-2 right-2" />
           )}
           {isSaveFailed && (
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse absolute top-2 right-2" />
           )}
         </div>
 
-        {/* Expanded state content — smoothly fades in as the container expands */}
+        {/* Menu Items Layout */}
         <div
-          className={`flex flex-wrap gap-x-3 gap-y-2 items-center text-xs text-zinc-800 dark:text-zinc-200 transition-opacity duration-200 ${
+          className={`flex flex-wrap gap-x-3 gap-y-2 items-center text-xs text-zinc-800 dark:text-zinc-200 pr-7 transition-opacity duration-200 ${
             isMobileExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
