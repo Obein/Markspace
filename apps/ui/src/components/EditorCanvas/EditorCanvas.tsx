@@ -205,7 +205,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   }
 
   const hasFormattingToolbar = category === 'markdown' && (!isPreview || isSplitView);
-  const topToolbarSpacingClass = hasFormattingToolbar ? 'h-28' : 'h-20';
+  // On mobile the FormattingToolbar is at the bottom, so the top spacer is always
+  // title-only height (h-20). On md+ the toolbar sits in the header bar, adding h-28.
+  const topToolbarSpacingClass = hasFormattingToolbar ? 'h-20 md:h-28' : 'h-20';
   const bottomCapsuleSpacingClass = hasBottomCapsule ? 'h-24' : 'h-12';
 
   return (
@@ -253,16 +255,18 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         />
 
         {hasFormattingToolbar && (
-          <FormattingToolbar
-            onInsertFormatting={insertFormatting}
-            onOpenVisualTable={handleOpenVisualTable}
-            onToggleFindReplace={() =>
-              findReplace.isOpen
-                ? findReplace.closeFindReplace()
-                : findReplace.openFind()
-            }
-            isFindOpen={findReplace.isOpen}
-          />
+          <div className="hidden md:flex">
+            <FormattingToolbar
+              onInsertFormatting={insertFormatting}
+              onOpenVisualTable={handleOpenVisualTable}
+              onToggleFindReplace={() =>
+                findReplace.isOpen
+                  ? findReplace.closeFindReplace()
+                  : findReplace.openFind()
+              }
+              isFindOpen={findReplace.isOpen}
+            />
+          </div>
         )}
       </div>
 
@@ -415,7 +419,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
       {/* Elevator Floating Scroll Controls (Scroll to Top / Bottom) */}
       {category === 'markdown' && (
-        <div className="absolute bottom-7 right-5 sm:right-6 z-30 flex flex-col gap-2 select-none pointer-events-auto">
+        <div className="absolute bottom-14 md:bottom-7 right-4 sm:right-6 z-30 flex flex-col gap-2 select-none pointer-events-auto">
           <button
             type="button"
             onClick={handleScrollToTop}
@@ -434,6 +438,22 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           >
             <ChevronDown className="w-4 h-4" />
           </button>
+        </div>
+      )}
+
+      {/* Mobile Formatting Toolbar — sticky to bottom of editor canvas (below md only) */}
+      {hasFormattingToolbar && (
+        <div className="flex md:hidden absolute bottom-0 inset-x-0 z-30 pl-12 pr-3 pt-1 pb-1 glass-bar backdrop-blur-[10px] shadow-md pointer-events-auto">
+          <FormattingToolbar
+            onInsertFormatting={insertFormatting}
+            onOpenVisualTable={handleOpenVisualTable}
+            onToggleFindReplace={() =>
+              findReplace.isOpen
+                ? findReplace.closeFindReplace()
+                : findReplace.openFind()
+            }
+            isFindOpen={findReplace.isOpen}
+          />
         </div>
       )}
 

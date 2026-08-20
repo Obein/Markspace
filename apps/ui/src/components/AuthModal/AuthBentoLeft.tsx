@@ -21,7 +21,7 @@ export const AuthBentoLeft: React.FC<AuthBentoLeftProps> = ({ isFormFocused }) =
       {/* OPRF Blind Verification (Disperses Up & Left) */}
       <BentoCard
         className={`flex-[1.2] min-h-0 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isFormFocused ? '-translate-x-[62%] -translate-y-[28%] opacity-40 blur-[0.5px]' : 'translate-0 opacity-100 blur-0'
+          isFormFocused ? 'lg:-translate-x-[62%] lg:-translate-y-[28%] lg:opacity-40 lg:blur-[0.5px]' : 'translate-0 opacity-100 blur-0'
         }`}
         heroTitle={<span className="text-2xl sm:text-3xl lg:text-4xl font-black text-white">OPRF Blind</span>}
         heroSubtitle={t('bentoOprfSub')}
@@ -38,7 +38,7 @@ export const AuthBentoLeft: React.FC<AuthBentoLeftProps> = ({ isFormFocused }) =
       {/* Version Control / Merkle DAG Commits (Disperses Down & Left) */}
       <BentoCard
         className={`flex-[0.8] min-h-0 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isFormFocused ? '-translate-x-[62%] translate-y-[28%] opacity-40 blur-[0.5px]' : 'translate-0 opacity-100 blur-0'
+          isFormFocused ? 'lg:-translate-x-[62%] lg:translate-y-[28%] lg:opacity-40 lg:blur-[0.5px]' : 'translate-0 opacity-100 blur-0'
         }`}
         heroTitle={<span className="text-2xl sm:text-3xl font-black text-white">{t('bentoVersionControlTitle')}</span>}
         heroSubtitle={t('bentoVersionControlSub')}

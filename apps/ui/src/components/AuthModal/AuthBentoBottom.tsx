@@ -26,7 +26,7 @@ export const AuthBentoBottom: React.FC<AuthBentoBottomProps> = ({ isFormFocused 
       {/* Bottom Left: RAM Shield (Span 3 - Compact Card) */}
       <BentoCard
         className={`col-span-1 md:col-span-3 h-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isFormFocused ? 'translate-y-[62%] -translate-x-[20%] opacity-40 blur-[0.5px]' : 'translate-0 opacity-100 blur-0'
+          isFormFocused ? 'lg:translate-y-[62%] lg:-translate-x-[20%] lg:opacity-40 lg:blur-[0.5px]' : 'translate-0 opacity-100 blur-0'
         }`}
         heroTitle={<span className="text-2xl sm:text-3xl font-black text-zinc-100">RAM Shield</span>}
         heroSubtitle={t('bentoMemorySub')}
@@ -42,7 +42,7 @@ export const AuthBentoBottom: React.FC<AuthBentoBottomProps> = ({ isFormFocused 
       {/* Bottom Center: Nonce Anti-Replay Gate (Span 5 - Wide Hero Card) */}
       <BentoCard
         className={`col-span-1 md:col-span-5 h-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isFormFocused ? 'translate-y-[68%] opacity-30 blur-[0.5px]' : 'translate-0 opacity-100 blur-0'
+          isFormFocused ? 'lg:translate-y-[68%] lg:opacity-30 lg:blur-[0.5px]' : 'translate-0 opacity-100 blur-0'
         }`}
         heroTitle={<span className="text-2xl sm:text-3xl lg:text-4xl font-black text-white">Anti-Replay Gate</span>}
         heroSubtitle={t('bentoNonceSub')}
@@ -59,7 +59,7 @@ export const AuthBentoBottom: React.FC<AuthBentoBottomProps> = ({ isFormFocused 
       {/* Bottom Right: Monaspace OLED Dark (Span 4 - Medium Card) */}
       <BentoCard
         className={`col-span-1 md:col-span-4 h-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isFormFocused ? 'translate-y-[62%] translate-x-[20%] opacity-40 blur-[0.5px]' : 'translate-0 opacity-100 blur-0'
+          isFormFocused ? 'lg:translate-y-[62%] lg:translate-x-[20%] lg:opacity-40 lg:blur-[0.5px]' : 'translate-0 opacity-100 blur-0'
         }`}
         heroTitle={<span className="text-2xl sm:text-3xl lg:text-4xl font-black text-white">Monaspace</span>}
         heroSubtitle={t('bentoTypographySub')}

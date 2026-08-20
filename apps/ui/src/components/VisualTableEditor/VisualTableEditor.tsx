@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Table as TableIcon, Check, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
 import { useApp } from '../../context/AppContext';
 import { TableAlignment, serializeToMarkdownTable } from '../../utils/TableConverter';
@@ -209,24 +209,11 @@ export const VisualTableEditor: React.FC<VisualTableEditorProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200 select-none">
       <div className="flex flex-col w-full max-w-5xl max-h-[88vh] glass-panel rounded-glass-lg border border-white/20 shadow-2xl overflow-hidden bg-[#09090B]/90">
-        {/* Top Header Bar */}
-        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between gap-4 bg-white/5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primaryColor-500/20 text-primaryColor-400 border border-primaryColor-500/30">
-              <TableIcon className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-white tracking-wide flex items-center gap-2">
-                <span>{t('visualTableEditor') || 'Visual Table Editor'}</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primaryColor-500/20 text-primaryColor-300 font-editor-mono font-mono">
-                  {headers.length} Cols × {rows.length} Rows
-                </span>
-              </h2>
-              <p className="text-xs text-zinc-400">
-                Interactive spreadsheet editing with formulas, row/column operations & real-time preview
-              </p>
-            </div>
-          </div>
+        {/* Top Header Bar — compact: cols×rows + cancel/confirm */}
+        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between gap-3 bg-white/5">
+          <span className="text-sm font-mono font-medium text-zinc-300 select-none">
+            {headers.length} Cols × {rows.length} Rows
+          </span>
 
           <div className="flex items-center gap-2">
             <button

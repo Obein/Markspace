@@ -1,11 +1,22 @@
-﻿import React from 'react';
-import { Lock, Sun, Moon } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Lock, Sun, Moon, ChevronUp } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
 import { FloatingStatusCapsuleProps } from './FloatingStatusCapsule.types';
 import { UserBadge } from './UserBadge';
 import { EditorActionControls } from './EditorActionControls';
 import { ViewModeControls } from './ViewModeControls';
 
+/**
+ * FloatingStatusCapsule
+ *
+ * Responsive behaviour:
+ * - sm+ (≥640 px): centred pill capsule, max-w calc(100vw-2rem), horizontal scroll.
+ * - <sm (mobile):
+ *   • Collapsed: a compact rounded square (40x40) at bottom-4 left-4.
+ *   • Expanded: seamlessly translates and blooms into the viewport center
+ *     (bottom-6 left-1/2 -translate-x-1/2) with multi-row layout.
+ *   • Backdrop only mounts when expanded to ensure zero touch interference when collapsed.
+ */
 export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   username,
   role,
@@ -38,17 +49,69 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
   const { t } = useI18n();
   const hasSelection = selectedCharCount > 0;
 
-  return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none px-5 py-2.5 glass-capsule backdrop-blur-[10px] rounded-capsule flex items-center gap-3 sm:gap-4 text-xs text-zinc-800 dark:text-zinc-200 transition-all hover:scale-[1.01] select-none pointer-events-auto whitespace-nowrap shadow-xl">
+  // ── Mobile detection ────────────────────────────────────────────────────────
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  );
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Collapse when clicking outside the expanded mobile panel
+  const handleOutsideClick = useCallback((e: MouseEvent | TouchEvent) => {
+    if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+      setIsMobileExpanded(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isMobile && isMobileExpanded) {
+      const timer = setTimeout(() => {
+        document.addEventListener('pointerdown', handleOutsideClick);
+      }, 100);
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('pointerdown', handleOutsideClick);
+      };
+    }
+    document.removeEventListener('pointerdown', handleOutsideClick);
+  }, [isMobile, isMobileExpanded, handleOutsideClick]);
+
+  // ── Shared inner content ─────────────────────────────────────────────────────
+  const innerContent = (
+    <>
       {/* User Profile & Role Link */}
-      <UserBadge username={username} role={role} onOpenProfile={onOpenProfile} onOpenAdmin={onOpenAdmin} />
+      <UserBadge
+        username={username}
+        role={role}
+        onOpenProfile={() => {
+          if (isMobile) setIsMobileExpanded(false);
+          onOpenProfile?.();
+        }}
+        onOpenAdmin={
+          onOpenAdmin
+            ? () => {
+                if (isMobile) setIsMobileExpanded(false);
+                onOpenAdmin();
+              }
+            : undefined
+        }
+      />
 
       {/* Only show Lock warning if Vault is Locked */}
       {!isVaultUnlocked && (
         <>
           <div className="w-px h-4 bg-black/10 dark:bg-white/10 shrink-0" />
           <button
-            onClick={onOpenUnlockModal}
+            onClick={() => {
+              if (isMobile) setIsMobileExpanded(false);
+              onOpenUnlockModal();
+            }}
             className="flex items-center gap-1.5 text-primaryColor-600 dark:text-primaryColor-300 hover:text-primaryColor-700 dark:hover:text-primaryColor-200 font-medium transition shrink-0 cursor-pointer"
             title="Click to enter Data Password and Unlock Vault"
           >
@@ -114,7 +177,14 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
 
           {/* Actions: History, Undo/Redo, Download, Delete */}
           <EditorActionControls
-            onOpenHistory={onOpenHistory}
+            onOpenHistory={
+              onOpenHistory
+                ? () => {
+                    if (isMobile) setIsMobileExpanded(false);
+                    onOpenHistory();
+                  }
+                : undefined
+            }
             onUndo={onUndo}
             onRedo={onRedo}
             canUndo={canUndo}
@@ -147,6 +217,64 @@ export const FloatingStatusCapsule: React.FC<FloatingStatusCapsuleProps> = ({
           <Moon className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400 shrink-0" />
         )}
       </button>
-    </div>
+    </>
+  );
+
+  // ── Desktop: original centred pill capsule ───────────────────────────────────
+  if (!isMobile) {
+    return (
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none px-5 py-2.5 glass-capsule backdrop-blur-[10px] rounded-capsule flex items-center gap-3 sm:gap-4 text-xs text-zinc-800 dark:text-zinc-200 transition-all hover:scale-[1.01] select-none pointer-events-auto whitespace-nowrap shadow-xl">
+        {innerContent}
+      </div>
+    );
+  }
+
+  // ── Mobile: animated floating capsule with smooth continuous translation ─────
+  return (
+    <>
+      {/* Backdrop overlay — only mounted when expanded to completely avoid touch blocking */}
+      {isMobileExpanded && (
+        <div
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] animate-in fade-in duration-200"
+          onClick={() => setIsMobileExpanded(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Animated container — seamlessly translates between corner and viewport center */}
+      <div
+        ref={panelRef}
+        onClick={!isMobileExpanded ? () => setIsMobileExpanded(true) : undefined}
+        className={`fixed z-50 glass-capsule backdrop-blur-xl bg-white/90 dark:bg-[#18181e]/90 select-none shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
+          isMobileExpanded
+            ? 'bottom-6 left-1/2 -translate-x-1/2 w-[min(calc(100vw-2rem),360px)] p-3 rounded-2xl border border-black/10 dark:border-white/15'
+            : 'bottom-4 left-4 translate-x-0 w-10 h-10 p-0 rounded-2xl flex items-center justify-center cursor-pointer border border-black/10 dark:border-white/15 hover:scale-105 active:scale-95'
+        }`}
+      >
+        {/* Collapsed state icon — smoothly fades out when expanding */}
+        <div
+          className={`absolute inset-0 flex items-center justify-center gap-0.5 text-zinc-500 dark:text-zinc-400 transition-opacity duration-200 ${
+            isMobileExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+        >
+          <ChevronUp className="w-4 h-4" />
+          {isSaving && (
+            <span className="w-1.5 h-1.5 rounded-full bg-primaryColor-500 animate-ping" />
+          )}
+          {isSaveFailed && (
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+          )}
+        </div>
+
+        {/* Expanded state content — smoothly fades in as the container expands */}
+        <div
+          className={`flex flex-wrap gap-x-3 gap-y-2 items-center text-xs text-zinc-800 dark:text-zinc-200 transition-opacity duration-200 ${
+            isMobileExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          {innerContent}
+        </div>
+      </div>
+    </>
   );
 };
