@@ -93,9 +93,30 @@
 
 :root:not(.dark) .markdown-preview .code-lang-tag,
 .light .markdown-preview .code-lang-tag {
-  background: rgba(0, 0, 0, 0.10);
-  color: #18181b;
+  background: rgba(0, 0, 0, 0.08);
+  color: #27272a;
   border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+:root:not(.dark) .markdown-preview .code-copy-btn,
+.light .markdown-preview .code-copy-btn {
+  color: #52525b;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+:root:not(.dark) .markdown-preview .code-copy-btn:hover,
+.light .markdown-preview .code-copy-btn:hover {
+  color: #09090b;
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+:root:not(.dark) .markdown-preview .code-copy-btn.copied,
+.light .markdown-preview .code-copy-btn.copied {
+  color: #059669;
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 :root:not(.dark) .markdown-preview pre code,

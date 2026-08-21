@@ -19,12 +19,12 @@
 }
 
 .markdown-preview .code-block-header {
-  padding: 0.4rem 0.85rem;
+  padding: 0.35rem 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
 }
 
 .markdown-preview .code-lang-tag {
@@ -32,14 +32,57 @@
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   padding: 0.12rem 0.5rem;
   border-radius: 0.35rem;
   background: rgba(255, 255, 255, 0.12);
   color: #f4f4f5;
-  border: 1px solid rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+}
+
+.markdown-preview .code-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 0.35rem;
+  font-family: var(--font-editor-mono, 'Monaspace Neon', monospace);
+  font-size: 11px;
+  font-weight: 500;
+  color: #a1a1aa;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.markdown-preview .code-copy-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-0.5px);
+}
+
+.markdown-preview .code-copy-btn:active {
+  transform: translateY(0.5px);
+}
+
+.markdown-preview .code-copy-btn.copied {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.markdown-preview .code-copy-btn.copied .copy-icon {
+  display: none !important;
+}
+
+.markdown-preview .code-copy-btn.copied .check-icon {
+  display: inline-block !important;
 }
 
 .markdown-preview pre {

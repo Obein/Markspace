@@ -35,12 +35,14 @@ export class MarkdownPreviewService implements IPreviewService {
       // 3. Syntax Highlighted Code Block using HighlightService
       const lang = language || 'text';
       const highlighted = this.highlightService.highlightCode(text, lang);
+      const displayLang = rawLanguage || 'code';
+      const encodedText = encodeURIComponent(text);
 
-      const langHeader = rawLanguage
-        ? `<div class="code-block-header"><span class="code-lang-tag">${escapeHtml(rawLanguage)}</span></div>`
-        : '';
+      const copyBtnSvg = `<svg class="w-3.5 h-3.5 copy-icon shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><svg class="w-3.5 h-3.5 check-icon shrink-0 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
 
-      return `<div class="code-block-wrapper">${langHeader}<pre><code class="font-editor-mono font-mono text-xs leading-relaxed text-zinc-900 dark:text-zinc-100">${highlighted}</code></pre></div>`;
+      const header = `<div class="code-block-header"><span class="code-lang-tag">${escapeHtml(displayLang)}</span><button type="button" class="code-copy-btn" data-copy-raw="${encodedText}" title="Copy" aria-label="Copy">${copyBtnSvg}</button></div>`;
+
+      return `<div class="code-block-wrapper">${header}<pre><code class="font-editor-mono font-mono text-xs leading-relaxed text-zinc-900 dark:text-zinc-100">${highlighted}</code></pre></div>`;
     };
 
     // Table with container

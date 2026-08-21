@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
+import { useI18n } from '../../i18n/i18nContext';
 import { normalizeMermaidCode } from '../../services/MarkdownPreviewService';
 import { renderMermaid } from '../../utils/mermaidLoader';
 
@@ -23,6 +24,7 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
   isFullWidth = false,
   isVisible = true,
 }) => {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Directly render any Mermaid diagrams whenever previewHtml is mounted/updated or DOM mutations occur
@@ -117,6 +119,37 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
     };
   }, [previewHtml, isVisible]);
 
+  // Click delegation handler for code block copy buttons
+  const handleContainerClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.code-copy-btn');
+      if (!btn) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const encoded = btn.getAttribute('data-copy-raw');
+      const codeToCopy = encoded ? decodeURIComponent(encoded) : '';
+      if (!codeToCopy) return;
+
+      navigator.clipboard.writeText(codeToCopy).then(() => {
+        btn.classList.add('copied');
+        const textSpan = btn.querySelector('.copy-text');
+        const copiedLabel = t('copied') || 'Copied!';
+        const defaultLabel = t('copy') || 'Copy';
+        if (textSpan) textSpan.textContent = copiedLabel;
+
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          if (textSpan) textSpan.textContent = defaultLabel;
+        }, 2000);
+      }).catch((err) => {
+        console.warn('Failed to copy code to clipboard:', err);
+      });
+    },
+    [t]
+  );
+
   return (
     <div
       ref={(el) => {
@@ -128,6 +161,7 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
         }
       }}
       onScroll={onScroll}
+      onClick={handleContainerClick}
       className={`${
         isSplitView ? 'w-1/2' : 'flex-1 w-full'
       } h-full overflow-y-auto font-preview-body font-sans text-sm leading-relaxed text-zinc-900 dark:text-zinc-100 relative transition-all duration-300`}
