@@ -1,0 +1,16 @@
+/* Markdown Preview KaTeX Math */
+.markdown-preview .katex {
+  font-size: 1.05em;
+  text-rendering: auto;
+}
+
+.markdown-preview .katex-display-block {
+  margin: 1.25rem 0;
+  padding: 0.85rem 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: center;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}

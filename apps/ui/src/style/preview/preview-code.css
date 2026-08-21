@@ -1,0 +1,60 @@
+/* Markdown Preview Code Elements & Code Blocks */
+.markdown-preview code {
+  font-family: var(--font-editor-mono, 'Monaspace Neon', monospace);
+  font-size: 0.85em;
+  background: rgba(var(--accent-primary-rgb, 59 130 246) / 0.12);
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  color: var(--accent-primary-light, #93c5fd);
+}
+
+.markdown-preview .code-block-wrapper {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0.75rem;
+  background: #09090b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.markdown-preview .code-block-header {
+  padding: 0.4rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.markdown-preview .code-lang-tag {
+  font-family: var(--font-editor-mono, 'Monaspace Neon', monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.5rem;
+  border-radius: 0.35rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f4f4f5;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.markdown-preview pre {
+  margin: 0;
+  padding: 1rem;
+  background: transparent;
+  border: none;
+  overflow-x: auto;
+}
+
+.markdown-preview pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: #f4f4f5;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}

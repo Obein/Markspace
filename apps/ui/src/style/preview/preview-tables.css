@@ -1,0 +1,43 @@
+/* Markdown Preview Tables */
+.markdown-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.markdown-preview thead {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.markdown-preview th {
+  padding: 0.6rem 0.85rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.markdown-preview td {
+  padding: 0.6rem 0.85rem;
+  color: #d4d4d8;
+}
+
+.markdown-preview tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color 0.15s ease;
+}
+
+.markdown-preview tr:last-child {
+  border-bottom: none;
+}
+
+.markdown-preview tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
