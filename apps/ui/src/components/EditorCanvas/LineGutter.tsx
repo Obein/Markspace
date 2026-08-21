@@ -24,7 +24,7 @@ interface LineGutterProps {
  * 1. Independent container with fixed width and cumulative height mapping.
  * 2. Every line number node is absolutely anchored at `top: coord.top px` with exact `height: coord.height px`.
  * 3. Eliminates all cumulative flow rounding drift, ensuring permanent 1:1 alignment with the editor textarea across all soft-wrapping rows.
- * 4. Places table visual editor action button completely to the left of the gutter to guarantee zero text obstruction.
+ * 4. Positions table visual editor action button safely at left-0 to guarantee it is never clipped by parent scroll container overflow boundaries.
  */
 export const LineGutter: React.FC<LineGutterProps> = ({
   heightMap,
@@ -65,9 +65,9 @@ export const LineGutter: React.FC<LineGutterProps> = ({
                 : 'text-zinc-400 dark:text-zinc-500 opacity-50 hover:opacity-100'
             }`}
           >
-            {/* Floating Visual Table Editor button — on mobile covers line number with icon only; on desktop sits to the left with text */}
+            {/* Floating Visual Table Editor button — safely anchored at left-0 to prevent overflow clipping */}
             {tableAtLine && (
-              <div className="absolute inset-y-0 -left-1 sm:left-auto sm:right-full sm:mr-1.5 flex items-center z-30">
+              <div className="absolute inset-y-0 left-0 flex items-center z-30">
                 <button
                   type="button"
                   onClick={(e) => {
@@ -75,7 +75,7 @@ export const LineGutter: React.FC<LineGutterProps> = ({
                     e.stopPropagation();
                     onOpenTableAtRange(tableAtLine);
                   }}
-                  className="w-5 h-5 sm:w-auto sm:h-auto p-0 sm:px-1.5 sm:py-0.5 rounded bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-[10px] font-sans font-medium shadow-md shadow-primaryColor-500/30 border border-primaryColor-400/30 transition-all cursor-pointer whitespace-nowrap flex items-center justify-center sm:gap-1 backdrop-blur-sm hover:scale-105 active:scale-95"
+                  className="w-5 h-5 sm:w-auto sm:h-5 p-0 sm:px-1.5 sm:py-0.5 rounded bg-primaryColor-600 hover:bg-primaryColor-500 text-white text-[10px] font-sans font-medium shadow-md shadow-primaryColor-500/30 border border-primaryColor-400/30 transition-all cursor-pointer whitespace-nowrap flex items-center justify-center sm:gap-1 backdrop-blur-sm hover:scale-105 active:scale-95"
                   title={t('visualTableEditor') || 'Visual Table Editor'}
                   aria-label={t('visualTableEditor') || 'Visual Table Editor'}
                 >

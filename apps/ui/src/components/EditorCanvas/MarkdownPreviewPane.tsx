@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { normalizeMermaidCode } from '../../services/MarkdownPreviewService';
-import { getMermaid } from '../../utils/mermaidLoader';
+import { renderMermaid } from '../../utils/mermaidLoader';
 
 interface MarkdownPreviewPaneProps {
   previewRef: React.RefObject<HTMLDivElement | null>;
@@ -25,18 +25,17 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Directly render any Mermaid diagrams asynchronously whenever previewHtml is mounted/updated and pane is visible
+  // Directly render any Mermaid diagrams whenever previewHtml is mounted/updated or DOM mutations occur
   useEffect(() => {
     if (!isVisible) return;
 
     const container = containerRef.current;
     if (!container) return;
 
-    let isMounted = true;
+    let isDisposed = false;
 
-    // Small delay to ensure dangerouslySetInnerHTML is committed to DOM and container is rendered with dimensions
-    const timeoutId = setTimeout(async () => {
-      if (!isMounted) return;
+    const renderDiagrams = async () => {
+      if (isDisposed || !container) return;
 
       const mermaidNodes = container.querySelectorAll<HTMLElement>(
         '.mermaid-diagram-code:not([data-processed="true"]), .mermaid:not([data-processed="true"])'
@@ -44,55 +43,77 @@ export const MarkdownPreviewPane: React.FC<MarkdownPreviewPaneProps> = ({
 
       if (mermaidNodes.length === 0) return;
 
-      try {
-        const isDark = document.documentElement.classList.contains('dark');
-        const mermaid = await getMermaid(isDark);
-        if (!isMounted) return;
+      const isDark = document.documentElement.classList.contains('dark');
 
-        // Render sequentially to prevent concurrent DOM collision inside Mermaid
-        for (let idx = 0; idx < mermaidNodes.length; idx++) {
-          if (!isMounted) break;
-          const element = mermaidNodes[idx];
-          if (element.getAttribute('data-processed') === 'true') continue;
+      for (let idx = 0; idx < mermaidNodes.length; idx++) {
+        if (isDisposed) break;
+        const initialElement = mermaidNodes[idx];
+        if (initialElement.getAttribute('data-processed') === 'true') continue;
 
-          const encoded = element.getAttribute('data-mermaid-code');
-          const rawCode = encoded ? decodeURIComponent(encoded) : (element.textContent || '');
-          const cleanCode = normalizeMermaidCode(rawCode);
+        const encoded = initialElement.getAttribute('data-mermaid-code');
+        const rawCode = encoded ? decodeURIComponent(encoded) : (initialElement.textContent || '');
+        const cleanCode = normalizeMermaidCode(rawCode);
 
-          if (!cleanCode) continue;
+        if (!cleanCode) continue;
 
-          const id = `mm_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 7)}`;
+        try {
+          const { svg, bindFunctions } = await renderMermaid(cleanCode, isDark);
 
-          try {
-            const { svg, bindFunctions } = await mermaid.render(id, cleanCode);
-            if (isMounted && element) {
-              element.innerHTML = svg;
-              element.setAttribute('data-processed', 'true');
-              element.className = 'w-full flex justify-center overflow-x-auto';
-              if (bindFunctions) {
-                bindFunctions(element);
-              }
-            }
-          } catch (err: any) {
-            console.warn('Mermaid rendering error:', err);
-            // Clean up any stray temp element created by Mermaid on failure
-            const stray = document.getElementById(id);
-            if (stray) stray.remove();
+          // Find the active target element in the live container DOM
+          // (robust against React re-render DOM node replacements during split-view typing)
+          const targetElement =
+            (initialElement.isConnected && container.contains(initialElement) ? initialElement : null) ||
+            (encoded
+              ? container.querySelector<HTMLElement>(
+                  `.mermaid-diagram-code[data-mermaid-code="${encoded}"]:not([data-processed="true"])`
+                )
+              : null);
 
-            if (isMounted && element) {
-              element.innerHTML = `<div class="p-3 bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-300 text-xs rounded-xl font-mono text-center">Mermaid Syntax Error: ${err?.message || 'Invalid diagram format'}</div>`;
-              element.setAttribute('data-processed', 'true');
+          if (targetElement && !isDisposed) {
+            targetElement.innerHTML = svg;
+            targetElement.setAttribute('data-processed', 'true');
+            targetElement.className = 'w-full flex justify-center overflow-x-auto';
+            if (bindFunctions) {
+              bindFunctions(targetElement);
             }
           }
+        } catch (err: any) {
+          console.warn('Mermaid rendering error:', err);
+          const targetElement =
+            (initialElement.isConnected && container.contains(initialElement) ? initialElement : null) ||
+            (encoded
+              ? container.querySelector<HTMLElement>(
+                  `.mermaid-diagram-code[data-mermaid-code="${encoded}"]:not([data-processed="true"])`
+                )
+              : null);
+
+          if (targetElement && !isDisposed) {
+            targetElement.innerHTML = `<div class="p-3 bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-300 text-xs rounded-xl font-mono text-center">Mermaid Syntax Error: ${err?.message || 'Invalid diagram format'}</div>`;
+            targetElement.setAttribute('data-processed', 'true');
+          }
         }
-      } catch (loadErr) {
-        console.warn('Failed to dynamically load Mermaid engine', loadErr);
       }
-    }, 40);
+    };
+
+    // 1. Initial render pass
+    renderDiagrams();
+
+    // 2. MutationObserver: automatically detect and process newly injected diagram nodes from dangerouslySetInnerHTML
+    const observer = new MutationObserver(() => {
+      if (
+        container.querySelector(
+          '.mermaid-diagram-code:not([data-processed="true"]), .mermaid:not([data-processed="true"])'
+        )
+      ) {
+        renderDiagrams();
+      }
+    });
+
+    observer.observe(container, { childList: true, subtree: true });
 
     return () => {
-      isMounted = false;
-      clearTimeout(timeoutId);
+      isDisposed = true;
+      observer.disconnect();
     };
   }, [previewHtml, isVisible]);
 
