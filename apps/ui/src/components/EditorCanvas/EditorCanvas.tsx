@@ -11,18 +11,18 @@ import {
   useEditorFormatting,
   useFindReplace,
 } from './hooks';
-import { EditorHeader } from './EditorHeader';
-import { FormattingToolbar } from './FormattingToolbar';
-import { LineGutter } from './LineGutter';
-import { MarkdownPreviewPane } from './MarkdownPreviewPane';
+import { EditorHeaderBar } from './EditorHeaderBar';
+import { LineMeasurementMirror } from './LineMeasurementMirror';
+import { EditorDualSplitPane } from './EditorDualSplitPane';
+import { EditorSinglePane } from './EditorSinglePane';
+import { EditorMobileBottomToolbar } from './EditorMobileBottomToolbar';
 import { MediaPreview } from './MediaPreview';
-import { EditorCodeArea } from './EditorCodeArea';
 import { FindReplaceBar } from './FindReplaceBar';
 import { ScrollElevatorControls } from './ScrollElevatorControls';
 
 /**
  * EditorCanvas
- * Main document canvas for editing markdown notes and previewing media files.
+ * Main document canvas orchestrator for markdown editing, live preview, and media display.
  */
 export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   activeFile,
@@ -216,65 +216,26 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
   return (
     <main className="flex-1 flex flex-col h-full bg-white/85 dark:bg-[#121216]/85 rounded-glass-lg border border-black/10 dark:border-white/10 relative overflow-hidden shadow-xl dark:shadow-2xl transition-colors">
-      {/* Hidden line measurement mirror */}
-      <div
-        ref={mirrorRef}
-        aria-hidden="true"
-        className="absolute opacity-0 pointer-events-none font-editor-mono font-mono text-[15px] leading-6"
-        style={{
-          visibility: 'hidden',
-          position: 'absolute',
-          top: -99999,
-          left: -99999,
-          zIndex: -99,
-          overflow: 'hidden',
-          boxSizing: 'border-box',
-        }}
-      >
-        {lines.map((line, i) => (
-          <div
-            key={i}
-            style={{
-              wordBreak: 'break-word',
-              whiteSpace: 'pre-wrap',
-              minHeight: '24px',
-              boxSizing: 'border-box',
-              width: '100%',
-            }}
-          >
-            {line === '' ? '\u00A0' : line}
-          </div>
-        ))}
-      </div>
+      {/* 1. Hidden line measurement mirror */}
+      <LineMeasurementMirror mirrorRef={mirrorRef} lines={lines} />
 
-      {/* Floating Frosted Glass Header & Toolbar */}
-      <div className="absolute top-0 inset-x-0 z-30 px-6 pt-3 pb-2.5 glass-bar backdrop-blur-[10px] border-b border-black/5 dark:border-white/10 flex flex-col justify-center space-y-2 shadow-md pointer-events-auto min-h-[52px]">
-        <EditorHeader
-          title={title}
-          onTitleChange={onTitleChange}
-          category={category}
-          isFullWidth={isFullWidth}
-          onToggleFullWidth={() => setIsFullWidth(!isFullWidth)}
-          showFullWidthToggle={category === 'markdown'}
-        />
+      {/* 2. Floating Frosted Glass Header & Desktop Formatting Toolbar */}
+      <EditorHeaderBar
+        title={title}
+        onTitleChange={onTitleChange}
+        category={category}
+        isFullWidth={isFullWidth}
+        onToggleFullWidth={() => setIsFullWidth(!isFullWidth)}
+        hasFormattingToolbar={hasFormattingToolbar}
+        onInsertFormatting={insertFormatting}
+        onOpenVisualTable={handleOpenVisualTable}
+        onToggleFindReplace={() =>
+          findReplace.isOpen ? findReplace.closeFindReplace() : findReplace.openFind()
+        }
+        isFindOpen={findReplace.isOpen}
+      />
 
-        {hasFormattingToolbar && (
-          <div className="hidden md:flex">
-            <FormattingToolbar
-              onInsertFormatting={insertFormatting}
-              onOpenVisualTable={handleOpenVisualTable}
-              onToggleFindReplace={() =>
-                findReplace.isOpen
-                  ? findReplace.closeFindReplace()
-                  : findReplace.openFind()
-              }
-              isFindOpen={findReplace.isOpen}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Floating Find & Replace Toolbar */}
+      {/* 3. Floating Find & Replace Toolbar */}
       <FindReplaceBar
         isOpen={findReplace.isOpen}
         isReplaceMode={findReplace.isReplaceMode}
@@ -299,9 +260,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         onClose={findReplace.closeFindReplace}
       />
 
-      {/* Main Content Area */}
+      {/* 4. Main Content Area */}
       <div className="flex-1 relative flex overflow-hidden">
-        {/* Binary / Media File Preview (Images, Audio, Video, Generic Binary) */}
+        {/* Binary / Media File Preview */}
         {category !== 'markdown' && (
           <MediaPreview
             category={category}
@@ -311,138 +272,76 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           />
         )}
 
-        {/* Markdown Split View Mode (Editor Left, Preview Right) */}
+        {/* Markdown Dual-Column Split View */}
         {category === 'markdown' && isSplitView && (
-          <div className="flex-1 flex w-full h-full overflow-hidden divide-x divide-black/5 dark:divide-white/5">
-            {/* Left Column: Markdown Code Editor */}
-            <div
-              ref={scrollContainerRef}
-              onScroll={handleEditorScroll}
-              className="w-1/2 h-full overflow-y-auto font-editor-mono font-mono text-sm leading-6 relative"
-            >
-              <div className={topToolbarSpacingClass} />
-
-              <div className="flex px-4 sm:px-6 min-h-[calc(100%-13rem)]">
-                <LineGutter
-                  heightMap={heightMap}
-                  activeLineIndex={activeLineIndex}
-                  documentTables={documentTables}
-                  onSelectLine={handleSelectLine}
-                  onOpenTableAtRange={handleOpenVisualTable}
-                />
-
-                <EditorCodeArea
-                  textareaRef={textareaRef}
-                  value={content}
-                  onChange={onContentChange}
-                  onSelectionChange={handleSelectionChange}
-                  onKeyDown={handleKeyDown}
-                  highlightService={highlightService}
-                  category={category}
-                  placeholder="Write your thoughts..."
-                  minContentHeight={heightMap.totalHeight}
-                />
-              </div>
-
-              <div className={bottomCapsuleSpacingClass} />
-            </div>
-
-            {/* Right Column: Markdown Rich Preview */}
-            <MarkdownPreviewPane
-              previewRef={previewScrollRef}
-              previewHtml={previewHtml}
-              onScroll={handlePreviewScroll}
-              topToolbarSpacingClass={topToolbarSpacingClass}
-              bottomCapsuleSpacingClass={bottomCapsuleSpacingClass}
-              isSplitView={true}
-              isFullWidth={isFullWidth}
-              isVisible={true}
-            />
-          </div>
+          <EditorDualSplitPane
+            scrollContainerRef={scrollContainerRef}
+            previewScrollRef={previewScrollRef}
+            handleEditorScroll={handleEditorScroll}
+            handlePreviewScroll={handlePreviewScroll}
+            topToolbarSpacingClass={topToolbarSpacingClass}
+            bottomCapsuleSpacingClass={bottomCapsuleSpacingClass}
+            heightMap={heightMap}
+            activeLineIndex={activeLineIndex}
+            documentTables={documentTables}
+            onSelectLine={handleSelectLine}
+            onOpenTableAtRange={handleOpenVisualTable}
+            textareaRef={textareaRef}
+            content={content}
+            onContentChange={onContentChange}
+            handleSelectionChange={handleSelectionChange}
+            handleKeyDown={handleKeyDown}
+            highlightService={highlightService}
+            category={category}
+            previewHtml={previewHtml}
+            isFullWidth={isFullWidth}
+          />
         )}
 
-        {/* Markdown Single Pane Edit Mode (Persistent DOM) */}
+        {/* Markdown Single Pane (Edit / Preview) */}
         {category === 'markdown' && !isSplitView && (
-          <div
-            ref={singleEditorScrollRef}
-            className={`flex-1 overflow-y-auto relative w-full h-full font-editor-mono font-mono text-sm leading-6 ${
-              !isPreview ? 'block' : 'hidden'
-            }`}
-          >
-            <div className={topToolbarSpacingClass} />
-
-            <div
-              className={`flex min-h-[calc(100%-13rem)] transition-all duration-300 ${
-                isFullWidth
-                  ? 'w-full px-4 sm:px-8'
-                  : 'w-full max-w-4xl mx-auto px-4 sm:px-6'
-              }`}
-            >
-              <LineGutter
-                heightMap={heightMap}
-                activeLineIndex={activeLineIndex}
-                documentTables={documentTables}
-                onSelectLine={handleSelectLine}
-                onOpenTableAtRange={handleOpenVisualTable}
-              />
-
-              <EditorCodeArea
-                textareaRef={textareaRef}
-                value={content}
-                onChange={onContentChange}
-                onSelectionChange={handleSelectionChange}
-                onKeyDown={handleKeyDown}
-                highlightService={highlightService}
-                category={category}
-                placeholder="Write your thoughts..."
-                minContentHeight={heightMap.totalHeight}
-              />
-            </div>
-
-            <div className={bottomCapsuleSpacingClass} />
-          </div>
-        )}
-
-        {/* Markdown Single Pane Preview Mode (Persistent DOM) */}
-        {category === 'markdown' && !isSplitView && (
-          <div className={`flex-1 w-full h-full overflow-hidden ${isPreview ? 'flex flex-col' : 'hidden'}`}>
-            <MarkdownPreviewPane
-              previewRef={singlePreviewScrollRef}
-              previewHtml={previewHtml}
-              onScroll={() => {}}
-              topToolbarSpacingClass={topToolbarSpacingClass}
-              bottomCapsuleSpacingClass={bottomCapsuleSpacingClass}
-              isSplitView={false}
-              isFullWidth={isFullWidth}
-              isVisible={isPreview}
-            />
-          </div>
+          <EditorSinglePane
+            singleEditorScrollRef={singleEditorScrollRef}
+            singlePreviewScrollRef={singlePreviewScrollRef}
+            isPreview={isPreview}
+            isFullWidth={isFullWidth}
+            topToolbarSpacingClass={topToolbarSpacingClass}
+            bottomCapsuleSpacingClass={bottomCapsuleSpacingClass}
+            heightMap={heightMap}
+            activeLineIndex={activeLineIndex}
+            documentTables={documentTables}
+            onSelectLine={handleSelectLine}
+            onOpenTableAtRange={handleOpenVisualTable}
+            textareaRef={textareaRef}
+            content={content}
+            onContentChange={onContentChange}
+            handleSelectionChange={handleSelectionChange}
+            handleKeyDown={handleKeyDown}
+            highlightService={highlightService}
+            category={category}
+            previewHtml={previewHtml}
+          />
         )}
       </div>
 
-      {/* Elevator Floating Scroll Controls (Scroll to Top / Bottom) */}
+      {/* 5. Elevator Floating Scroll Controls (Scroll to Top / Bottom) */}
       <ScrollElevatorControls
         onScrollToTop={handleScrollToTop}
         onScrollToBottom={handleScrollToBottom}
       />
 
-      {/* Mobile Formatting Toolbar (below md) */}
-      {hasFormattingToolbar && (
-        <div className="flex md:hidden absolute bottom-0 inset-x-0 z-30 pl-8 pr-3 pt-1 pb-1 glass-bar backdrop-blur-[10px] shadow-md pointer-events-auto">
-          <FormattingToolbar
-            onInsertFormatting={insertFormatting}
-            onOpenVisualTable={handleOpenVisualTable}
-            onToggleFindReplace={() =>
-              findReplace.isOpen
-                ? findReplace.closeFindReplace()
-                : findReplace.openFind()
-            }
-            isFindOpen={findReplace.isOpen}
-          />
-        </div>
-      )}
+      {/* 6. Sticky Mobile Formatting Toolbar (below md) */}
+      <EditorMobileBottomToolbar
+        hasFormattingToolbar={hasFormattingToolbar}
+        onInsertFormatting={insertFormatting}
+        onOpenVisualTable={handleOpenVisualTable}
+        onToggleFindReplace={() =>
+          findReplace.isOpen ? findReplace.closeFindReplace() : findReplace.openFind()
+        }
+        isFindOpen={findReplace.isOpen}
+      />
 
-      {/* Visual Table Editor Modal */}
+      {/* 7. Visual Table Editor Modal */}
       {isVisualTableOpen && activeTableRange && (
         <VisualTableEditor
           initialData={activeTableRange.parsed}
