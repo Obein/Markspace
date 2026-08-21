@@ -48,73 +48,45 @@
 
 ## 📸 介面預覽
 
-<div align="center">
+<p align="center">
+  <img src="docs/screenshot_markspace_bento_login.webp" alt="Bento 零信任安全展台與登入門禁" width="100%" />
+</p>
+<p align="center">
+  <em>Bento 零信任安全展台與登入門禁</em>
+</p>
 
-### Bento 零信任安全展台与登录门禁
-```
-+-----------------------------------------------------------------------------------+
-|                                                                                   |
-|                   [ Bento 零信任展台与安全认证面板 ]                               |
-|                                                                                   |
-|           • 3D 景深 Bento 展台，聚焦时 360° 放射状平移散开                        |
-|           • WebAuthn FIDO2 Passkeys 硬體憑證、OPRF 盲化門禁 (NIST P-256) 與 TOTP   |
-|           • FastCDC 动态切分与 Merkle DAG 拓扑技术规格动态展示                     |
-|           • 硬件加速极暗主题残影流动与纯黑 OLED 画布                               |
-|                                                                                   |
-+-----------------------------------------------------------------------------------+
-```
-> *图 1：零知识 Lunchbox 风格 Bento 展台与交互式密码学技术规格详情。*
-
-<br/>
-
-### 双栏工作区、KaTeX 数学排版与 Mermaid 动态图表
-```
-+-----------------------------------------------------------------------------------+
-|                                                                                   |
-|                 [ 分列 Markdown 编辑器与实时预览 ]                                 |
-|                                                                                   |
-|           • 实时双栏对照与增量同步渲染                                            |
-|           • 硬件加速 KaTeX 复杂数学公式排版                                       |
-|           • Mermaid 动态流程图、循序圖与状态机可视化                              |
-|           • Lezer AST 语法解析器与多语言高精度程式碼醒目提示                            |
-|                                                                                   |
-+-----------------------------------------------------------------------------------+
-```
-> *图 2：沉浸式 Markdown 编辑器配合科学级学术排版与语法醒目提示。*
-
-<br/>
-
-### 可视化电子試算表编辑器 (Visual Table Editor)
-```
-+-----------------------------------------------------------------------------------+
-|                                                                                   |
-|                 [ 可视化試算表编辑与实时公式计算引擎 ]                              |
-|                                                                                   |
-|           • Markdown 笔记内嵌入式电子試算表交互编辑                                 |
-|           • 内置实时函数公式计算引擎（SUM, AVG, COUNT, IF 等）                    |
-|           • 无损双向序列化为 GitHub Flavored Markdown (GFM) 标准試算表              |
-|                                                                                   |
-+-----------------------------------------------------------------------------------+
-```
-> *图 3：类 Excel 的所见即所得試算表操作与动态算术/函数评估。*
-
-<br/>
-
-### Merkle DAG 版本时光机与历史回滚
-```
-+-----------------------------------------------------------------------------------+
-|                                                                                   |
-|                 [ Merkle DAG 块级版本树与无损回退 ]                               |
-|                                                                                   |
-|           • FastCDC 内容感知差异化块级同步                                        |
-|           • Merkle DAG 不可篡改提交时间线与 SHA-256 根雜湊                        |
-|           • 浏览器本地 IndexedDB 块快取，0 網路毫秒级重组与历史对比                |
-|                                                                                   |
-+-----------------------------------------------------------------------------------+
-```
-> *图 4：基于加密雜湊的不可篡改历史记录与无损回溯。*
-
-</div>
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_edit_mode.webp" alt="編輯模式" width="100%" /><br />
+      <b>沉浸式編輯模式</b>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_preview_mode.webp" alt="預覽模式" width="100%" /><br />
+      <b>獨立預覽模式</b>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_dual-pane_latex.webp" alt="雙欄模式與 KaTeX 數學排版" width="100%" /><br />
+      <b>分列雙欄 KaTeX 數學排版</b>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_dual-pane_mermaid.webp" alt="雙欄模式與 Mermaid 圖表" width="100%" /><br />
+      <b>分列雙欄 Mermaid 動態圖表</b>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_table_visual_edit.webp" alt="視覺化試算表與即時公式編輯器" width="100%" /><br />
+      <b>視覺化試算表編輯器</b>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_version_history.webp" alt="Merkle DAG 版本時光機" width="100%" /><br />
+      <b>Merkle DAG 版本時光機與歷史回退</b>
+    </td>
+  </tr>
+</table>
 
 ---
 

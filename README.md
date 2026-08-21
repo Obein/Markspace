@@ -48,73 +48,45 @@ English | [简体中文](README-zh-CN.md) | [正體中文](README-zh-TW.md)
 
 ## 📸 Quick Look
 
-<div align="center">
+<p align="center">
+  <img src="docs/screenshot_markspace_bento_login.webp" alt="Bento Authentication & Zero-Trust Security Portal" width="100%" />
+</p>
+<p align="center">
+  <em>Bento Authentication & Zero-Trust Security Portal</em>
+</p>
 
-### Bento Authentication & Zero-Trust Security Portal
-```
-+-----------------------------------------------------------------------------------+
-|                                                                                   |
-|                   [ Bento Auth & Zero-Trust Security Portal ]                     |
-|                                                                                   |
-|           • 3D Bento Grid Showcase with dynamic focal dispersion                  |
-|           • WebAuthn FIDO2 Passkeys, OPRF Blind Gate (NIST P-256) & TOTP          |
-|           • FastCDC & Merkle DAG live architecture visualization                  |
-|           • Rotating ambient afterglow on pitch-black OLED canvas                 |
-|                                                                                   |
-+-----------------------------------------------------------------------------------+
-```
-> *Figure 1: Zero-knowledge lunchbox-style bento portal with interactive cryptographic details.*
-
-<br/>
-
-### Dual-Pane Workspace, KaTeX Typesetting & Mermaid AST Rendering
-```
-+-----------------------------------------------------------------------------------+
-|                                                                                   |
-|             [ Split-Pane Editor & Real-Time Live Preview ]                        |
-|                                                                                   |
-|           • Real-time split-pane live preview with incremental synchronization    |
-|           • Hardware-accelerated KaTeX mathematical formula rendering             |
-|           • Interactive dynamic Mermaid flowchart, sequence & AST diagrams        |
-|           • Lezer AST multi-language syntax highlighting                          |
-|                                                                                   |
-+-----------------------------------------------------------------------------------+
-```
-> *Figure 2: Distraction-free Markdown editor paired with scientific typesetting and syntax highlighting.*
-
-<br/>
-
-### Interactive WYSIWYG Visual Table Editor
-```
-+-----------------------------------------------------------------------------------+
-|                                                                                   |
-|                   [ Visual Table & Live Formula Editor ]                          |
-|                                                                                   |
-|           • Embedded spreadsheet grid inside Markdown notes                       |
-|           • Real-time formula computation engine (SUM, AVG, COUNT, IF, arithmetic)|
-|           • Lossless bidirectional serialization to GitHub Flavored Markdown (GFM)|
-|                                                                                   |
-+-----------------------------------------------------------------------------------+
-```
-> *Figure 3: Spreadsheet-like table manipulation with live arithmetic and formula evaluations.*
-
-<br/>
-
-### Merkle DAG Version History & Instant Rollback
-```
-+-----------------------------------------------------------------------------------+
-|                                                                                   |
-|                  [ Merkle DAG Version Tree & Delta Rollback ]                     |
-|                                                                                   |
-|           • FastCDC content-defined differential block synchronization            |
-|           • Merkle DAG immutable revision timeline with SHA-256 root hashes       |
-|           • Local IndexedDB block caching for zero-network instant reconstruction |
-|                                                                                   |
-+-----------------------------------------------------------------------------------+
-```
-> *Figure 4: Immutable cryptographic revision history and non-destructive timeline restoration.*
-
-</div>
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_edit_mode.webp" alt="Editor Mode" width="100%" /><br />
+      <b>Editor Mode</b>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_preview_mode.webp" alt="Preview Mode" width="100%" /><br />
+      <b>Preview Mode</b>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_dual-pane_latex.webp" alt="Dual-Pane KaTeX Typesetting" width="100%" /><br />
+      <b>Dual-Pane KaTeX Typesetting</b>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_dual-pane_mermaid.webp" alt="Dual-Pane Mermaid AST Diagrams" width="100%" /><br />
+      <b>Dual-Pane Mermaid AST Diagrams</b>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_table_visual_edit.webp" alt="Visual Table & Formula Editor" width="100%" /><br />
+      <b>WYSIWYG Visual Table Editor</b>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_version_history.webp" alt="Merkle DAG Version History" width="100%" /><br />
+      <b>Merkle DAG Version History & Rollback</b>
+    </td>
+  </tr>
+</table>
 
 ---
 
