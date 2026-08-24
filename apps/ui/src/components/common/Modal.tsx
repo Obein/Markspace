@@ -125,7 +125,7 @@ export const Modal: React.FC<ModalProps> = ({
           onClose();
         }
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 dark:bg-black/80 backdrop-blur-lg cursor-pointer"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/70 dark:bg-black/80 backdrop-blur-lg cursor-pointer"
       role="dialog"
       aria-modal="true"
     >

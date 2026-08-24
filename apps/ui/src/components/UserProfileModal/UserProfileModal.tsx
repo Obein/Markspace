@@ -46,7 +46,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 dark:bg-black/80 backdrop-blur-lg cursor-pointer"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/70 dark:bg-black/80 backdrop-blur-lg cursor-pointer"
     >
       <div className="w-full max-w-lg p-6 sm:p-8 glass-panel rounded-glass-lg border border-black/10 dark:border-white/10 text-zinc-900 dark:text-white shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto cursor-default">
         {/* Close Button */}
