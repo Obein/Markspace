@@ -94,7 +94,25 @@ export function useVisualTable({
       if (!activeTableRange) return;
       const before = content.substring(0, activeTableRange.startOffset);
       const after = content.substring(activeTableRange.endOffset);
-      const nextContent = before + newTableMd + after;
+
+      let formattedTable = newTableMd;
+      if (activeTableRange.tableMarkdown === '') {
+        const needLeadingNewline =
+          before.length > 0 && !before.endsWith('\n\n')
+            ? before.endsWith('\n')
+              ? '\n'
+              : '\n\n'
+            : '';
+        const needTrailingNewline =
+          after.length > 0 && !after.startsWith('\n\n')
+            ? after.startsWith('\n')
+              ? '\n'
+              : '\n\n'
+            : '';
+        formattedTable = needLeadingNewline + newTableMd + needTrailingNewline;
+      }
+
+      const nextContent = before + formattedTable + after;
       onContentChange(nextContent);
       setIsVisualTableOpen(false);
       setActiveTableRange(null);

@@ -134,19 +134,14 @@ export function findTableAtCursor(
     }
   }
 
-  // 2. Proximity match (if cursor is near the table boundaries)
+  // 2. Immediately adjacent boundary match (1 character offset)
   for (const tbl of tables) {
     if (
-      Math.abs(cursorOffset - tbl.startOffset) <= 15 ||
-      Math.abs(cursorOffset - tbl.endOffset) <= 15
+      cursorOffset >= tbl.startOffset - 1 &&
+      cursorOffset <= tbl.endOffset + 1
     ) {
       return tbl;
     }
-  }
-
-  // 3. Fallback if document only has a single table
-  if (tables.length === 1) {
-    return tables[0];
   }
 
   return null;
