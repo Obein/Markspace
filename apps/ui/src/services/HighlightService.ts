@@ -8,6 +8,7 @@ import { parser as cssParser } from '@lezer/css';
 import { Parser } from '@lezer/common';
 import { IHighlightService } from '../interfaces/IHighlightService';
 import { isMarkdownTableSeparator } from '../utils/TableConverter';
+import { customLanguageParsers, tryCustomHighlight } from './languages/languageRegistry';
 
 export class HighlightService implements IHighlightService {
   private parsers: Record<string, Parser>;
@@ -36,6 +37,7 @@ export class HighlightService implements IHighlightService {
       html,
       xml: html,
       css,
+      ...customLanguageParsers,
     };
 
     // Configure Markdown parser with GFM and nested fenced code block language parsers
@@ -56,6 +58,14 @@ export class HighlightService implements IHighlightService {
 
   public highlightCode(code: string, language: string = 'javascript'): string {
     const langKey = (language || 'javascript').toLowerCase().trim();
+
+    // 1. Direct fast-path for custom languages
+    const customResult = tryCustomHighlight(code, langKey);
+    if (customResult !== null) {
+      return customResult;
+    }
+
+    // 2. Lezer standard AST parsers for js, ts, python, json, html, css, markdown
     const parser =
       this.parsers[langKey] ||
       (langKey === 'markdown' || langKey === 'md' ? this.markdownParser : this.parsers['js']);

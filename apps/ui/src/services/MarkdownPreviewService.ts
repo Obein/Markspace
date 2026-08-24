@@ -2,6 +2,7 @@ import { marked, Renderer, Tokens } from 'marked';
 import katex from 'katex';
 import { IPreviewService } from '../interfaces/IPreviewService';
 import { IHighlightService } from '../interfaces/IHighlightService';
+import { getLanguageDisplayLabel } from './languages/languageRegistry';
 
 export class MarkdownPreviewService implements IPreviewService {
   private customRenderer: Renderer;
@@ -35,7 +36,7 @@ export class MarkdownPreviewService implements IPreviewService {
       // 3. Syntax Highlighted Code Block using HighlightService
       const lang = language || 'text';
       const highlighted = this.highlightService.highlightCode(text, lang);
-      const displayLang = rawLanguage || 'code';
+      const displayLang = getLanguageDisplayLabel(rawLanguage);
       const encodedText = encodeURIComponent(text);
 
       const copyBtnSvg = `<svg class="w-3.5 h-3.5 copy-icon shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><svg class="w-3.5 h-3.5 check-icon shrink-0 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
