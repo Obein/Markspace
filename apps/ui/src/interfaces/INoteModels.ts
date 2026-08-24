@@ -1,3 +1,5 @@
+import { VaultStorageConfig } from '../services/storage/ThirdPartyStorageTypes';
+
 export type FileCategory = 'markdown' | 'image' | 'audio' | 'video' | 'binary';
 
 export interface VaultInfo {
@@ -7,6 +9,7 @@ export interface VaultInfo {
   wrappedVmkByPasskey?: string;
   wrappedVmkByPin?: string;
   wrappedVmkByRecovery?: string;
+  storageConfig?: VaultStorageConfig;
   createdAt: number;
 }
 

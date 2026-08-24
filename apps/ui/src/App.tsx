@@ -84,6 +84,7 @@ export const AppContent: React.FC = () => {
     handleUnlockVaultWithRecovery,
     handleRenameVault,
     handleDeleteVault,
+    handleUpdateVaultStorageConfig,
   } = useVaults({
     username,
     t,
@@ -216,6 +217,7 @@ export const AppContent: React.FC = () => {
             onDeleteVault={handleDeleteVault}
             onUnlockVaultWithPasskey={handleUnlockVaultWithPasskey}
             onUnlockVaultWithRecovery={handleUnlockVaultWithRecovery}
+            onUpdateVaultStorageConfig={handleUpdateVaultStorageConfig}
           />
         )}
 

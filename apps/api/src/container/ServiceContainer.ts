@@ -21,6 +21,8 @@ import { VaultSecurityService } from '../services/VaultSecurityService';
 import { VaultService } from '../services/VaultService';
 import { Env } from '../types/env';
 
+import { D1UserStorageConfigRepository } from '../infrastructure/D1UserStorageConfigRepository';
+
 export class ServiceContainer {
   public readonly authController: AuthController;
   public readonly noteController: NoteController;
@@ -32,6 +34,7 @@ export class ServiceContainer {
   public readonly totpService: TotpService;
   public readonly vaultSecurityService: VaultSecurityService;
   public readonly auditLogRepository: D1AuditLogRepository;
+  public readonly userStorageConfigRepository: D1UserStorageConfigRepository;
 
   constructor(env: Env) {
     const userRepository = new D1UserRepository(env.DB);
@@ -39,6 +42,7 @@ export class ServiceContainer {
     const mediaRepository = new D1MediaRepository(env.DB);
     const vaultNodeRepository = new VaultNodeRepository(env.DB);
     this.auditLogRepository = new D1AuditLogRepository(env.DB);
+    this.userStorageConfigRepository = new D1UserStorageConfigRepository(env.DB);
 
     const storageService = new R2StorageService(env.BUCKET);
     const objectStorageService = new R2ObjectStorageService(env.BUCKET);
@@ -59,7 +63,8 @@ export class ServiceContainer {
     this.vaultController = new VaultController(
       vaultService,
       this.vaultSecurityService,
-      this.auditLogRepository
+      this.auditLogRepository,
+      this.userStorageConfigRepository
     );
     this.adminController = new AdminController(userRepository, this.auditLogRepository);
   }

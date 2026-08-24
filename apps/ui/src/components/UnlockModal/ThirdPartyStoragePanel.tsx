@@ -13,6 +13,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
+import { useApp } from '../../context/AppContext';
 import {
   StorageProviderType,
   VaultStorageConfig,
@@ -30,6 +31,7 @@ interface ThirdPartyStoragePanelProps {
   username: string | null;
   activeVaultId: string;
   onToast?: (msg: string, type?: 'error' | 'success' | 'info') => void;
+  onUpdateConfig?: (vaultId: string, config: VaultStorageConfig) => void;
 }
 
 const DEFAULT_S3_CONFIG: S3Config = {
@@ -62,8 +64,11 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
   username,
   activeVaultId,
   onToast,
+  onUpdateConfig,
 }) => {
   const { t } = useI18n();
+  const { apiClient, cmk, unlockedVaultKeys } = useApp();
+  const activeVaultKey = unlockedVaultKeys[activeVaultId] || cmk || null;
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Active sub-tab inside panel: 's3' | 'cloud_drive' | 'webdav'
@@ -88,7 +93,7 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
   const [testResult, setTestResult] = useState<StorageTestResult | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Reload config when activeVaultId or username changes
+  // Reload config when activeVaultId or username changes and sync with D1
   useEffect(() => {
     const loaded = ThirdPartyStorageManager.getVaultStorageConfig(username, activeVaultId);
     setConfig(loaded);
@@ -100,7 +105,27 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
     if (loaded.provider !== 'r2') {
       setActiveTab(loaded.provider);
     }
-  }, [username, activeVaultId]);
+
+    // Attempt remote D1 sync in background
+    if (apiClient && username && activeVaultId) {
+      ThirdPartyStorageManager.syncFromRemote(apiClient, username, activeVaultId, activeVaultKey).then(
+        (synced) => {
+          if (synced) {
+            setConfig(synced);
+            setS3Buffer(synced.s3 || DEFAULT_S3_CONFIG);
+            setCloudDriveBuffer(synced.cloudDrive || DEFAULT_CLOUD_DRIVE_CONFIG);
+            setWebdavBuffer(synced.webdav || DEFAULT_WEBDAV_CONFIG);
+            if (synced.provider !== 'r2') {
+              setActiveTab(synced.provider);
+            }
+            if (onUpdateConfig) {
+              onUpdateConfig(activeVaultId, synced);
+            }
+          }
+        }
+      );
+    }
+  }, [username, activeVaultId, apiClient, activeVaultKey]);
 
   const handleTestConnection = async () => {
     setIsTesting(true);
@@ -130,17 +155,26 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
     }
   };
 
-  const handleSaveAndEnable = () => {
+  const handleSaveAndEnable = async () => {
     setIsSaving(true);
     try {
       const targetProvider: StorageProviderType = activeTab;
-      const updated = ThirdPartyStorageManager.saveVaultStorageConfig(username, activeVaultId, {
-        provider: targetProvider,
-        s3: s3Buffer,
-        cloudDrive: cloudDriveBuffer,
-        webdav: webdavBuffer,
-      });
+      const updated = await ThirdPartyStorageManager.saveVaultStorageConfigEncrypted(
+        apiClient,
+        username,
+        activeVaultId,
+        {
+          provider: targetProvider,
+          s3: s3Buffer,
+          cloudDrive: cloudDriveBuffer,
+          webdav: webdavBuffer,
+        },
+        activeVaultKey
+      );
       setConfig(updated);
+      if (onUpdateConfig) {
+        onUpdateConfig(activeVaultId, updated);
+      }
       if (onToast) {
         onToast(t('storageSavedAndEnabled'), 'success');
       }
@@ -149,10 +183,17 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
     }
   };
 
-  const handleResetToR2 = () => {
-    const updated = ThirdPartyStorageManager.resetToR2(username, activeVaultId);
+  const handleResetToR2 = async () => {
+    const updated = await ThirdPartyStorageManager.resetToR2Encrypted(
+      apiClient,
+      username,
+      activeVaultId
+    );
     setConfig(updated);
     setTestResult(null);
+    if (onUpdateConfig) {
+      onUpdateConfig(activeVaultId, updated);
+    }
     if (onToast) {
       onToast(t('restoredToR2Toast'), 'info');
     }

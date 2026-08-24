@@ -1,4 +1,5 @@
 import { D1AuditLogRepository } from '../infrastructure/D1AuditLogRepository';
+import { D1UserStorageConfigRepository, UserStorageConfigRecord } from '../infrastructure/D1UserStorageConfigRepository';
 import { VaultSecurityService } from '../services/VaultSecurityService';
 import { VaultService } from '../services/VaultService';
 import { RequestContext } from '../types/http';
@@ -26,7 +27,8 @@ export class VaultController {
   constructor(
     private readonly vaultService: VaultService,
     private readonly vaultSecurityService: VaultSecurityService,
-    private readonly auditLogRepo: D1AuditLogRepository
+    private readonly auditLogRepo: D1AuditLogRepository,
+    private readonly storageConfigRepo?: D1UserStorageConfigRepository
   ) {
     this.oprfController = new VaultOprfController(this.vaultSecurityService, this.auditLogRepo);
     this.nodeController = new VaultNodeController(this.vaultService);
@@ -116,5 +118,114 @@ export class VaultController {
 
   public async getManifestHistory(ctx: RequestContext): Promise<Response> {
     return this.merkleController.getManifestHistory(ctx);
+  }
+
+  // ── Third-Party Storage Endpoints ──────────────────────────────────────────
+
+  public async getStorageConfig(ctx: RequestContext): Promise<Response> {
+    if (!ctx.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const vaultId = ctx.params.vaultId || 'default';
+    if (!this.storageConfigRepo) {
+      return new Response(JSON.stringify({ vaultId, provider: 'r2', encryptedConfig: null }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const config = await this.storageConfigRepo.getByVaultId(ctx.user.userId, vaultId);
+    if (!config) {
+      return new Response(
+        JSON.stringify({
+          vaultId,
+          provider: 'r2',
+          encryptedConfig: null,
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    return new Response(JSON.stringify(config), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public async saveStorageConfig(ctx: RequestContext): Promise<Response> {
+    if (!ctx.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const vaultId = ctx.params.vaultId || 'default';
+    const body = await ctx.request.json<{
+      provider: string;
+      encryptedConfig: string;
+      iv: string;
+      tag?: string;
+    }>();
+
+    if (!body || !body.provider || !body.encryptedConfig || !body.iv) {
+      return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!this.storageConfigRepo) {
+      return new Response(JSON.stringify({ error: 'Storage repository not configured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const now = Date.now();
+    const record: UserStorageConfigRecord = {
+      id: crypto.randomUUID(),
+      userId: ctx.user.userId,
+      vaultId,
+      provider: body.provider,
+      encryptedConfig: body.encryptedConfig,
+      iv: body.iv,
+      tag: body.tag,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await this.storageConfigRepo.upsert(record);
+
+    return new Response(JSON.stringify({ success: true, record }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public async deleteStorageConfig(ctx: RequestContext): Promise<Response> {
+    if (!ctx.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const vaultId = ctx.params.vaultId || 'default';
+    if (this.storageConfigRepo) {
+      await this.storageConfigRepo.delete(ctx.user.userId, vaultId);
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

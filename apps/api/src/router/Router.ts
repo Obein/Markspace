@@ -149,6 +149,17 @@ export class Router {
       container.vaultController.evaluateOprf(ctx)
     );
 
+    // 4.2 Third-Party Storage Endpoints (Protected)
+    this.addRoute('GET', '/api/v1/vaults/:vaultId/storage-config', true, false, (container, ctx) =>
+      container.vaultController.getStorageConfig(ctx)
+    );
+    this.addRoute('PUT', '/api/v1/vaults/:vaultId/storage-config', true, false, (container, ctx) =>
+      container.vaultController.saveStorageConfig(ctx)
+    );
+    this.addRoute('DELETE', '/api/v1/vaults/:vaultId/storage-config', true, false, (container, ctx) =>
+      container.vaultController.deleteStorageConfig(ctx)
+    );
+
     // 5. Version History & Merkle Manifest Endpoints (Protected)
     this.addRoute('GET', '/api/v1/vault/nodes/:id/versions', true, false, (container, ctx) =>
       container.vaultController.getNodeHistory(ctx)

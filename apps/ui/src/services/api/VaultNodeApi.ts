@@ -298,4 +298,55 @@ export class VaultNodeApi {
       method: 'POST',
     });
   }
+
+  async getStorageConfig(vaultId: string): Promise<{
+    vaultId: string;
+    provider: string;
+    encryptedConfig: string | null;
+    iv?: string;
+    tag?: string;
+  } | null> {
+    const headers = await this.transport.getHeaders('GET', `/vaults/${vaultId}/storage-config`);
+    const res = await fetch(`${this.transport.getBaseUrl()}/vaults/${vaultId}/storage-config`, {
+      method: 'GET',
+      credentials: 'include',
+      headers,
+    });
+    this.transport.updateNextNonceFromResponse(res);
+    if (!res.ok) {
+      if (res.status === 404) return null;
+      throw new Error(`Failed to get storage config: ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  async putStorageConfig(
+    vaultId: string,
+    payload: { provider: string; encryptedConfig: string; iv: string; tag?: string }
+  ): Promise<void> {
+    const headers = await this.transport.getHeaders('PUT', `/vaults/${vaultId}/storage-config`);
+    const res = await fetch(`${this.transport.getBaseUrl()}/vaults/${vaultId}/storage-config`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    this.transport.updateNextNonceFromResponse(res);
+    if (!res.ok) {
+      throw new Error(`Failed to save storage config: ${res.status}`);
+    }
+  }
+
+  async deleteStorageConfig(vaultId: string): Promise<void> {
+    const headers = await this.transport.getHeaders('DELETE', `/vaults/${vaultId}/storage-config`);
+    const res = await fetch(`${this.transport.getBaseUrl()}/vaults/${vaultId}/storage-config`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers,
+    });
+    this.transport.updateNextNonceFromResponse(res);
+    if (!res.ok) {
+      throw new Error(`Failed to delete storage config: ${res.status}`);
+    }
+  }
 }

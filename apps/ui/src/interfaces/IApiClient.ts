@@ -192,6 +192,17 @@ export interface IApiClient {
   fetchManifest(manifestId: string): Promise<ArrayBuffer>;
   getManifestHistory(nodeId: string): Promise<any[]>;
 
+  // Third-Party Storage Metadata API
+  getVaultStorageConfig(vaultId: string): Promise<{
+    vaultId: string;
+    provider: string;
+    encryptedConfig: string | null;
+    iv?: string;
+    tag?: string;
+  } | null>;
+  putVaultStorageConfig(vaultId: string, payload: { provider: string; encryptedConfig: string; iv: string; tag?: string }): Promise<void>;
+  deleteVaultStorageConfig(vaultId: string): Promise<void>;
+
   // Version Control API
   getNodeHistory(id: string): Promise<NodeVersionResponse[]>;
   getVersionContent(id: string, timestamp: number): Promise<{ body: ArrayBuffer; encryptedDek: string; commitHash: string }>;

@@ -289,4 +289,27 @@ export class ApiClient implements IApiClient {
   async adminCleanupIdleUsers(): Promise<{ destroyedCount: number; destroyedUsernames: string[]; message: string }> {
     return this.admin.adminCleanupIdleUsers();
   }
+
+  // --- Third-Party Storage Metadata API ---
+
+  async getVaultStorageConfig(vaultId: string): Promise<{
+    vaultId: string;
+    provider: string;
+    encryptedConfig: string | null;
+    iv?: string;
+    tag?: string;
+  } | null> {
+    return this.vaultNodes.getStorageConfig(vaultId);
+  }
+
+  async putVaultStorageConfig(
+    vaultId: string,
+    payload: { provider: string; encryptedConfig: string; iv: string; tag?: string }
+  ): Promise<void> {
+    return this.vaultNodes.putStorageConfig(vaultId, payload);
+  }
+
+  async deleteVaultStorageConfig(vaultId: string): Promise<void> {
+    return this.vaultNodes.deleteStorageConfig(vaultId);
+  }
 }

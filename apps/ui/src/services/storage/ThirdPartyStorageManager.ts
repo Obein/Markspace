@@ -10,11 +10,14 @@ import { S3StorageAdapter } from './adapters/S3StorageAdapter';
 import { WebDAVStorageAdapter } from './adapters/WebDAVStorageAdapter';
 import { CloudDriveStorageAdapter } from './adapters/CloudDriveStorageAdapter';
 
+import { StorageConfigCrypto } from '../../crypto/StorageConfigCrypto';
+import { IApiClient } from '../../interfaces/IApiClient';
+
 const STORAGE_PREFIX = 'markspace_vault_storage';
 
 export class ThirdPartyStorageManager {
   /**
-   * Loads the storage configuration for a specific vault and user.
+   * Loads the storage configuration for a specific vault and user from local cache.
    */
   public static getVaultStorageConfig(username: string | null, vaultId: string): VaultStorageConfig {
     const defaultR2Config: VaultStorageConfig = {
@@ -36,13 +39,72 @@ export class ThirdPartyStorageManager {
           vaultId,
         };
       }
+
+      // Check inside user's vaults array in localStorage
+      const userVaultsRaw = localStorage.getItem(`markspace_vaults_${username}`);
+      if (userVaultsRaw) {
+        const userVaults = JSON.parse(userVaultsRaw);
+        if (Array.isArray(userVaults)) {
+          const target = userVaults.find((v: any) => v.id === vaultId);
+          if (target && target.storageConfig) {
+            return {
+              ...defaultR2Config,
+              ...target.storageConfig,
+              vaultId,
+            };
+          }
+        }
+      }
     } catch (_) {}
 
     return defaultR2Config;
   }
 
   /**
-   * Saves the storage configuration for a specific vault and user.
+   * Fetches, decrypts, and synchronizes storage configuration from remote D1 database.
+   */
+  public static async syncFromRemote(
+    apiClient: IApiClient | null | undefined,
+    username: string | null,
+    vaultId: string,
+    vmk?: CryptoKey | null
+  ): Promise<VaultStorageConfig | null> {
+    if (!apiClient || !username || !vaultId) return null;
+
+    try {
+      const remote = await apiClient.getVaultStorageConfig(vaultId);
+      if (!remote) return null;
+
+      const provider = (remote.provider as StorageProviderType) || 'r2';
+      let decryptedDetails: Partial<VaultStorageConfig> = {};
+
+      if (remote.encryptedConfig && remote.iv) {
+        const key = vmk || (await StorageConfigCrypto.deriveFallbackKey(username, vaultId));
+        decryptedDetails = await StorageConfigCrypto.decryptConfig(
+          remote.encryptedConfig,
+          remote.iv,
+          key
+        );
+      }
+
+      const merged: VaultStorageConfig = {
+        ...this.getVaultStorageConfig(username, vaultId),
+        ...decryptedDetails,
+        provider,
+        vaultId,
+        updatedAt: Date.now(),
+      };
+
+      this.saveVaultStorageConfig(username, vaultId, merged);
+      return merged;
+    } catch (err) {
+      console.warn('Failed to sync or decrypt remote storage config:', err);
+      return null;
+    }
+  }
+
+  /**
+   * Saves the storage configuration for a specific vault and user locally.
    */
   public static saveVaultStorageConfig(
     username: string | null,
@@ -68,7 +130,72 @@ export class ThirdPartyStorageManager {
   }
 
   /**
-   * Resets the storage configuration back to Cloudflare R2 default.
+   * Encrypts and persists the storage configuration to both local storage and remote D1 database.
+   */
+  public static async saveVaultStorageConfigEncrypted(
+    apiClient: IApiClient | null | undefined,
+    username: string | null,
+    vaultId: string,
+    config: Partial<VaultStorageConfig>,
+    vmk?: CryptoKey | null
+  ): Promise<VaultStorageConfig> {
+    const updated = this.saveVaultStorageConfig(username, vaultId, config);
+
+    if (apiClient && username && vaultId) {
+      try {
+        const key = vmk || (await StorageConfigCrypto.deriveFallbackKey(username, vaultId));
+        const payloadToEncrypt = {
+          s3: updated.s3,
+          cloudDrive: updated.cloudDrive,
+          webdav: updated.webdav,
+        };
+
+        const { encryptedConfig, iv } = await StorageConfigCrypto.encryptConfig(
+          payloadToEncrypt,
+          key
+        );
+
+        await apiClient.putVaultStorageConfig(vaultId, {
+          provider: updated.provider,
+          encryptedConfig,
+          iv,
+        });
+      } catch (err) {
+        console.error('Failed to persist encrypted storage config to database:', err);
+      }
+    }
+
+    return updated;
+  }
+
+  /**
+   * Resets the storage configuration back to Cloudflare R2 default locally and in D1.
+   */
+  public static async resetToR2Encrypted(
+    apiClient: IApiClient | null | undefined,
+    username: string | null,
+    vaultId: string
+  ): Promise<VaultStorageConfig> {
+    const updated = this.saveVaultStorageConfig(username, vaultId, {
+      provider: 'r2',
+      s3: undefined,
+      cloudDrive: undefined,
+      webdav: undefined,
+    });
+
+    if (apiClient && username && vaultId) {
+      try {
+        await apiClient.deleteVaultStorageConfig(vaultId);
+      } catch (err) {
+        console.warn('Failed to delete remote storage config:', err);
+      }
+    }
+
+    return updated;
+  }
+
+  /**
+   * Resets the storage configuration back to Cloudflare R2 default (local only).
    */
   public static resetToR2(username: string | null, vaultId: string): VaultStorageConfig {
     return this.saveVaultStorageConfig(username, vaultId, {

@@ -4,6 +4,7 @@ import { MnemonicService } from '../crypto/MnemonicService';
 import { PasskeyCryptoService } from '../crypto/PasskeyCryptoService';
 import { TranslationKey } from '../i18n/i18nContext';
 import { VaultInfo } from '../interfaces/INoteModels';
+import { VaultStorageConfig } from '../services/storage/ThirdPartyStorageTypes';
 
 interface UseVaultsOptions {
   username: string | null;
@@ -306,6 +307,21 @@ export function useVaults({
     [vaults, username, activeVaultId, onDeleteVaultNodes, onVaultDeleted, setActiveVaultId, setVaultKey, showToast, t]
   );
 
+  const handleUpdateVaultStorageConfig = useCallback(
+    (vaultId: string, storageConfig: VaultStorageConfig) => {
+      setVaults((prev) => {
+        const next = prev.map((v) => (v.id === vaultId ? { ...v, storageConfig } : v));
+        if (username) {
+          try {
+            localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(next));
+          } catch (_) {}
+        }
+        return next;
+      });
+    },
+    [username]
+  );
+
   return {
     vaults,
     setVaults,
@@ -318,5 +334,6 @@ export function useVaults({
     handleResetVaultPin,
     handleRenameVault,
     handleDeleteVault,
+    handleUpdateVaultStorageConfig,
   };
 }

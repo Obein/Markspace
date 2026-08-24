@@ -27,6 +27,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
   onDeleteVault,
   onUnlockVaultWithPasskey,
   onUnlockVaultWithRecovery,
+  onUpdateVaultStorageConfig,
 }) => {
   const {
     setVaultKey,
@@ -273,6 +274,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
       <ThirdPartyStoragePanel
         username={username}
         activeVaultId={activeVault?.id || activeVaultId || 'default'}
+        onUpdateConfig={onUpdateVaultStorageConfig}
       />
     </div>
   </div>
