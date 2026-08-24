@@ -23,11 +23,11 @@
 
 ## 💡 何以 Markspace？
 
-- **更完善的零知識隱私**：基於瀏覽器原生非匯出 Web Crypto 金鑰（`extractable: false`），明文與金鑰不出用戶端記憶體沙箱。
-- **FastCDC 動態切分與 Merkle DAG 增量同步**：512B~4KB 內容感知微塊同步，僅傳輸修改塊（節省 >90% 頻寬），提供不可篡改版本樹與秒級回復。
-- **OPRF 盲化門禁與防重放安全**：NIST P-256 OPRF 盲校驗憑證、RFC 9449 DPoP 裝置綁定、挑戰 Nonce 與 RFC 6238 TOTP 雙重認證。
-- **一體化工程與科學排版套件**：原生整合 KaTeX 公式引擎、Mermaid 動態圖表 AST 與支援即時公式計算的可視化試算表。
-- **全球分散式邊緣 Serverless 架構**：100% 部署於 Cloudflare 全球邊緣網路（Workers + D1 + R2），零伺服器維運負擔，極速回應。
+- **更完善的零知识隐私**：基于浏览器原生非导出 Web Crypto 密钥（`extractable: false`），明文与密钥不出客户端内存沙箱。
+- **FastCDC 动态切分与 Merkle DAG 增量同步**：512B~4KB 内容感知微块同步，仅传输修改块（节省 >90% 带宽），提供不可篡改版本树与秒级回退。
+- **OPRF 盲化门禁与防重放安全**：NIST P-256 OPRF 盲校验凭据、RFC 9449 DPoP 设备绑定、挑战 Nonce 与 RFC 6238 TOTP 双重认证。
+- **一体化工程与科学排版套件**：原生集成 KaTeX 公式引擎、Mermaid 动态图表 AST 与支持实时公式计算的可视化表格。
+- **全球分布式边缘 Serverless 架构**：100% 部署于 Cloudflare 全球边缘网络（Workers + D1 + R2），零服务器运维负担，极速响应。
 
 <p align="center">
   <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Obein/Markspace">
@@ -37,59 +37,59 @@
 
 ---
 
-### ⚖️ 核心架構與特性對比
+### ⚖️ 核心架构与特性对比
 
-| 評估維度 / 特性能力 | 傳統雲端筆記 (Notion, 印象筆記) | 本地檔案 / Git 同步 (Obsidian + Git/Sync) | **Markspace** |
+| 评估维度 / 特性能力 | 传统云端笔记 (Notion, 印象笔记) | 本地文件 / Git 同步 (Obsidian + Git/Sync) | **Markspace** |
 | :--- | :--- | :--- | :--- |
-| **零知識隱私 (Zero-Knowledge)** | ❌ 伺服端可明文檢視所有筆記與附件 | ⚠️ 依賴外掛程式；憑證與金鑰多以明文存盤 | **✅ 更完善的零知識（Web Crypto 不可匯出金鑰）** |
-| **同步粒度 (Sync Granularity)** | ⚠️ 全量 JSON 覆蓋或專有 Delta 資料流 | ❌ Git 全量 Blob 重寫或繁重的 commit 樹 | **✅ FastCDC (512B–4KB) 內容感知微塊同步** |
-| **傳輸與頻寬利用率** | ❌ 每次修改均涉及較多冗餘中繼資料與上傳 | ⚠️ 小改動需產生並打包完整 Git objects | **✅ 節省 >90% 傳輸頻寬（僅傳輸增量差異塊）** |
-| **版本控制與歷史回復** | ⚠️ 雲端託管快照；保留策略與隱私不透明 | ⚠️ 容易出現 Git 分支衝突與合併故障 | **✅ 加密 Merkle DAG 不可篡改時間線與秒級回復** |
-| **憑證傳輸與認證安全** | ❌ 明文密碼傳輸 / 伺服端 Hash 儲存 | ⚠️ 個人存取權杖 (PAT) 或 SSH Key 存盤 | **✅ WebAuthn FIDO2 Passkeys + NIST P-256 OPRF 盲校驗 + TOTP** |
-| **二進位媒體儲存開銷** | ⚠️ 常見 Base64 編碼引入 33.3% 體積膨脹 | ❌ Git LFS 或大型二進位導致同步瓶頸 | **✅ 0% 額外開銷 Raw Binary 原生二進位流** |
-| **本地快取與秒級重構** | ⚠️ 離線快取受限 | ⚠️ `.git` 歷史目錄占用大量本機磁碟空間 | **✅ 瀏覽器 IndexedDB 微塊快取，亞毫秒還原** |
-| **基礎設施與部署成本** | ❌ 商業閉源鎖定，資料無法完全掌控 | ⚠️ 需自建/維護 Git 伺服器或購買專有雲 | **✅ 100% Serverless Cloudflare 邊緣部署 (D1+R2)** |
+| **零知识隐私 (Zero-Knowledge)** | ❌ 服务端可明文检视所有笔记与附件 | ⚠️ 依赖插件；凭证与密钥多以明文存盘 | **✅ 更完善的零知识（Web Crypto 不可导出密钥）** |
+| **同步粒度 (Sync Granularity)** | ⚠️ 全量 JSON 覆盖或专有 Delta 数据流 | ❌ Git 全量 Blob 重写或繁重的 commit 树 | **✅ FastCDC (512B–4KB) 内容感知微块同步** |
+| **传输与带宽利用率** | ❌ 每次修改均涉及较多冗余元数据与上传 | ⚠️ 小改动需生成并打包完整 Git objects | **✅ 节省 >90% 传输带宽（仅传输增量差异块）** |
+| **版本控制与历史回退** | ⚠️ 云端托管快照；保留策略与隐私不透明 | ⚠️ 容易出现 Git 分支冲突与合并故障 | **✅ 加密 Merkle DAG 不可篡改时间线与秒级回退** |
+| **凭证传输与认证安全** | ❌ 明文密码传输 / 服务端 Hash 存储 | ⚠️ 个人访问令牌 (PAT) 或 SSH Key 存盘 | **✅ WebAuthn FIDO2 Passkeys + NIST P-256 OPRF 盲校验 + TOTP** |
+| **二进制媒体存储开销** | ⚠️ 常见 Base64 编码引入 33.3% 体积膨胀 | ❌ Git LFS 或大型二进制导致同步瓶颈 | **✅ 0% 额外开销 Raw Binary 原生二进制流** |
+| **本地缓存与秒级重构** | ⚠️ 离线缓存受限 | ⚠️ `.git` 历史目录占用大量本地磁盘空间 | **✅ 浏览器 IndexedDB 微块缓存，亚毫秒还原** |
+| **基础设施与部署成本** | ❌ 商业闭源锁定，数据无法完全掌控 | ⚠️ 需自建/维护 Git 伺服器或购买专有云 | **✅ 100% Serverless Cloudflare 边缘部署 (D1+R2)** |
 
 ---
 
-## 📸 介面預覽
+## 📸 界面预览
 
 <p align="center">
-  <img src="docs/screenshot_markspace_bento_login.webp" alt="Bento 零信任安全展台與登入門禁" width="100%" />
+  <img src="docs/screenshot_markspace_bento_login.webp" alt="Bento 零信任安全展台与登录门禁" width="100%" />
 </p>
 <p align="center">
-  <em>Bento 零信任安全展台與登入門禁</em>
+  <em>Bento 零信任安全展台与登录门禁</em>
 </p>
 
 <table>
   <tr>
     <td width="50%" align="center">
-      <img src="docs/screenshot_markspace_edit_mode.webp" alt="編輯模式" width="100%" /><br />
-      <b>沉浸式編輯模式</b>
+      <img src="docs/screenshot_markspace_edit_mode.webp" alt="编辑模式" width="100%" /><br />
+      <b>沉浸式编辑模式</b>
     </td>
     <td width="50%" align="center">
-      <img src="docs/screenshot_markspace_preview_mode.webp" alt="預覽模式" width="100%" /><br />
-      <b>獨立預覽模式</b>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" align="center">
-      <img src="docs/screenshot_markspace_dual-pane_latex.webp" alt="雙欄模式與 KaTeX 數學排版" width="100%" /><br />
-      <b>分列雙欄 KaTeX 數學排版</b>
-    </td>
-    <td width="50%" align="center">
-      <img src="docs/screenshot_markspace_dual-pane_mermaid.webp" alt="雙欄模式與 Mermaid 圖表" width="100%" /><br />
-      <b>分列雙欄 Mermaid 動態圖表</b>
+      <img src="docs/screenshot_markspace_preview_mode.webp" alt="预览模式" width="100%" /><br />
+      <b>独立预览模式</b>
     </td>
   </tr>
   <tr>
     <td width="50%" align="center">
-      <img src="docs/screenshot_markspace_table_visual_edit.webp" alt="視覺化試算表與即時公式編輯器" width="100%" /><br />
-      <b>視覺化試算表編輯器</b>
+      <img src="docs/screenshot_markspace_dual-pane_latex.webp" alt="双栏模式与 KaTeX 数学排版" width="100%" /><br />
+      <b>分列双栏 KaTeX 数学排版</b>
     </td>
     <td width="50%" align="center">
-      <img src="docs/screenshot_markspace_version_history.webp" alt="Merkle DAG 版本時光機" width="100%" /><br />
-      <b>Merkle DAG 版本時光機與歷史回退</b>
+      <img src="docs/screenshot_markspace_dual-pane_mermaid.webp" alt="双栏模式与 Mermaid 图表" width="100%" /><br />
+      <b>分列双栏 Mermaid 动态图表</b>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_table_visual_edit.webp" alt="可视化表格与实时公式编辑器" width="100%" /><br />
+      <b>可视化电子表格编辑器</b>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_version_history.webp" alt="Merkle DAG 版本时光机" width="100%" /><br />
+      <b>Merkle DAG 版本时光机与历史回退</b>
     </td>
   </tr>
 </table>
@@ -99,98 +99,54 @@
 ## ✨ 核心特性
 
 ### 🧩 FastCDC 动态内容分块与差异增量同步
-- **细粒度自适应切分**：采用 64-bit Gear-hash 滚动雜湊自适应识别内容边界（`最小 512B`、`平均 1KB`、`最大 4KB`），彻底消除了固定分块带来的雪崩移位效应。
-- **差异块增量同步**：保存时自动探测伺服端缺失块，仅上传变更的 512B ~ 1KB 增量密文块与轻量 Manifest 清单，上行頻寬节省 90%+。
-- **IndexedDB 本地块快取**：已解密的块与 Manifest 清单在浏览器本地 IndexedDB 中进行毫秒级快取，历史版本检视与 Diff 对比 **0 網路请求极速重组**。
+- **细粒度自适应切分**：采用 64-bit Gear-hash 滚动哈希自适应识别内容边界（`最小 512B`、`平均 1KB`、`最大 4KB`），彻底消除了固定分块带来的雪崩移位效应。
+- **差异块增量同步**：保存时自动探测服务端缺失块，仅上传变更的 512B ~ 1KB 增量密文块与轻量 Manifest 清单，上行带宽节省 90%+。
+- **IndexedDB 本地块缓存**：已解密的块与 Manifest 清单在浏览器本地 IndexedDB 中进行毫秒级缓存，历史版本检视与 Diff 对比 **0 网络请求极速重组**。
 
 ### 🛡️ 确定性零知识盲块加密与 CAS 存储池
-- **非可导出金鑰安全执行**：直接使用 Web Crypto API 的不可匯出金鑰（`extractable: false`）执行原生 AES-256-GCM 运算，杜绝堆記憶體转储与冷启动泄露。
+- **非可导出密钥安全执行**：直接使用 Web Crypto API 的不可导出密钥（`extractable: false`）执行原生 AES-256-GCM 运算，杜绝堆内存转储与冷启动泄露。
 - **Vault 内部盲去重**：通过私有 $VMK$ 派生确定性 Chunk ID（$H = \text{SHA-256}(Chunk)$ 经由 $VMK$ 加密），同一 Vault 内相同内容自动去重。
-- **跨用户强加密隔离**：不同用户的私有 $VMK$ 完全隔离，相同明文生成截然不同的 Chunk ID 与密文，彻底免疫伺服端的频次分析与字典攻击。
-- **Raw Binary (0% 冗余) 存储**：彻底清除 Base64 编码带来的 33.3% 体积膨胀，原生采用 ArrayBuffer / Uint8Array 二進位流存储在 R2 中。
+- **跨用户强加密隔离**：不同用户的私有 $VMK$ 完全隔离，相同明文生成截然不同的 Chunk ID 与密文，彻底免疫服务端的频次分析与字典攻击。
+- **Raw Binary (0% 冗余) 存储**：彻底清除 Base64 编码带来的 33.3% 体积膨胀，原生采用 ArrayBuffer / Uint8Array 二进制流存储在 R2 中。
 
 ### 🌲 Merkle DAG 版本树与时间线回退
-- **不可篡改版本清单**：每次保存均建置轻量加密 Manifest 记录有序 Chunk 拓扑并计算 Merkle Root Hash，形成不可篡改的 DAG 版本树。
-- **点对点精确时间回滚**：支援任意历史版本的无损检视与一键回退，无需伺服端重新建置整个檔案。
+- **不可篡改版本清单**：每次保存均构建轻量加密 Manifest 记录有序 Chunk 拓扑并计算 Merkle Root Hash，形成不可篡改的 DAG 版本树。
+- **点对点精确时间回滚**：支持任意历史版本的无损检视与一键回退，无需服务端重新构建整个文件。
 
 ### 🔑 硬件级 Passkeys (WebAuthn / FIDO2) 与 OPRF 灾难恢复
-- **零知识硬體綁定 Passkeys**：全面支援 WebAuthn / FIDO2 硬體標準（Touch ID、Windows Hello、Face ID、YubiKey、Google 密碼管理工具、Apple iCloud 鑰匙圈與 1Password），透過 WebAuthn PRF 確定性衍生 256 位元高熵 Passkey Vault Key (PVK)。
-- **單一使用者多 Passkey 綁定與管理**：支援在個人中心集中檢視、重新命名與管理多個裝置/硬體安全金鑰。
-- **NIST P-256 橢圓曲線 OPRF 災難復原盲化門禁**：用戶端在傳輸前對助記詞憑證進行盲化運算，伺服端在不知曉明文的情況下完成校驗，徹底抵禦離線字典與撞庫爆破。
-- **8 詞 BIP-39 助記詞冷復原**：建立 Vault 時產生標準 8 詞助記詞，全面支援空格與連字號（`-`）分詞，提供極致離線容災。
-- **RFC 6238 TOTP 雙重認證**：支援 30 秒動態權杖輪轉，相容主流身分驗證器。
-- **RFC 9449 DPoP 與 Nonce 熔斷**：透過 6 位元組挑戰 Nonce 與裝置權杖即時綁定，重放嘗試立即觸發熔斷。
+- **零知识硬件绑定 Passkeys**：全面支持 WebAuthn / FIDO2 硬件标准（Touch ID、Windows Hello、Face ID、YubiKey、Google 密码管理工具、Apple iCloud 钥匙串与 1Password），通过 WebAuthn PRF 确定性派生 256 位高熵 Passkey Vault Key (PVK)。
+- **单用户多 Passkey 绑定与管理**：支持在个人中心集中查看、重命名与管理多个设备/硬件安全密钥。
+- **NIST P-256 椭圆曲线 OPRF 灾难恢复盲化门禁**：客户端在传输前对助记词凭据进行盲化计算，服务端在不知晓明文的情况下完成校验，彻底抵御离线字典与撞库爆破。
+- **8 词 BIP-39 助记词冷恢复**：创建 Vault 时生成标准 8 词助记词，全面支持空格与连字符（`-`）分词，提供极致离线容灾。
+- **RFC 6238 TOTP 双重认证**：支持 30 秒动态令牌轮转，兼容主流身份验证器。
+- **RFC 9449 DPoP 与 Nonce 熔断**：通过 6 字节挑战 Nonce 与设备令牌实时绑定，重放尝试立即触发熔断。
 
-### 👤 使用者政策、儲存配額與閒置自動銷毀
-- **Unix 規範憑證**：使用者名稱遵循 Unix 格式（`5–32` 字元，`/^[a-z_][a-z0-9_-]{4,31}$/`，僅限小寫字母、數字、底線與連字號，首字元為字母或底線），系統內全域唯一；密碼採用 Unix 格式（`12–128` 字元），不強制字元成分複雜度。
-- **全域唯一 User UUID**：每位使用者綁定唯一的 UUID 識別碼，支援控制台一鍵快捷複製。
-- **精細化儲存配額管控 (1MB – 1TB)**：非管�#### 1. 建置與路徑設定 (Build Settings)
-在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 匯入或設定專案時：
-- **根目錄 (Root Directory)**：`/` (專案根目錄)
-- **建置命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
-- **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
-- **靜態資產輸出目錄 (Build Output Directory)**：`apps/ui/dist`
-- **Worker 後端進入點**：`apps/api/src/index.ts`
+### 👤 用户政策、存储配额与闲置自动销毁
+- **Unix 规范凭据**：用户名遵循 Unix 格式（`5–32` 字符，`/^[a-z_][a-z0-9_-]{4,31}$/`，仅限小写字母、数字、下划线与短横线，首字符为字母或下划线），系统内全局唯一；密码采用 Unix 格式（`12–128` 字符），不强制字符成分复杂度。
+- **全局唯一 User UUID**：每位用户绑定唯一的 UUID 标识符，支持控制台一键快捷复制。
+- **精细化存储配额管控 (1MB – 1TB)**：非管理员用户默认拥有 `10MB` 存储配额，系统管理员可按需在 `1MB` 到 `1TB` 区间内调整全局默认或指定用户配额，分块与文件写入执行硬上限拦截。
+- **100 条审计日志保留上限**：每位用户的零信任安全与操作审计日志自动剪裁并最多保留最新 100 条记录，UI 显式声明。
+- **闲置账户生命周期销毁机制**：非管理员用户最后在线时间超过闲置阈值（默认 `1 个月`，支持管理员配置 `1 个月` 至 `1 年`，亦可关闭）将自动由 Worker Cron 定时任务彻底级联销毁用户与其全部 Vault 数据，UI 关键节点显式声明备份与自部署提示。
+- **系统管理员控制台**：支持系统管理员集中查看所有用户的 UUID、创建时间、最后在线时间、存储消耗、调整用户角色/配额，以及手动或定时触发闲置用户清理。
 
-#### 2. Cloudflare 資源綁定 (Bindings)
-進入 **Cloudflare 控制台** -> **Workers 和 Pages** -> **markspace** -> **設定 (Settings)** -> **綁定 (Bindings)**：
+### 📊 交互式可视化表格编辑器
+- **所见即所得表格网格**：在 Markdown 笔记中直接增删行列、调整对齐与单元格内容。
+- **实时公式引擎**：内置数学计算引擎，支持 `SUM`、`AVG`、`COUNT`、`MIN`、`MAX`、`IF` 及基础算术表达式。
+- **GFM 无损转换**：与标准 GitHub Flavored Markdown 表格语法无缝互转。
 
-| 綁定類型 (Binding Type) | 變數名稱 (Variable Name) | 綁定目標與說明 |
-| :--- | :--- | :--- |
-| **D1 資料庫** | `DB` | 綁定至 D1 資料庫：`markspace-db` |
-| **R2 儲存貯體** | `BUCKET` | 綁定至 R2 儲存貯體：`marksp#### 1. 建置與路徑設定 (Build Settings)
-在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 匯入或設定專案時：
-- **根目錄 (Root Directory)**：`/` (專案根目錄)
-- **建置命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
-- **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
-- **靜態資產輸出目錄 (Build Output Directory)**：`apps/ui/dist`
-- **Worker 後端進入點**：`apps/api/src/index.ts`
+### 📐 科学与工程排版套件
+- **KaTeX 数学公式引擎**：支持行内公式（`$...$`）与块级公式（`$$...$$`）的高性能渲染。
+- **Mermaid 动态图表 AST**：直接根据代码块生成流程图、时序图、类图与甘特图。
+- **Lezer 增量语法解析**：支持 Markdown、JavaScript、Python、CSS、HTML、JSON 等语言的高速语法高亮。
 
-#### 2. Cloudflare 資源綁定 (Bindings)
-進入 **Cloudflare 控制台** -> *#### 1. 建置與路徑設定 (Build Settings)
-在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 匯入或設定專案時：
-- **根目錄 (Root Directory)**：`/` (專案根目錄)
-- **建置命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
-- **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
-- **靜態資產輸出目錄 (Build Output Directory)**：`apps/ui/dist`
-- **Worker 後端進入點**：`apps/api/src/index.ts`
-
-#### 2. Cloudflare 資源綁定 (Bin#### 1. 建置與路徑設定 (Build Settings)
-在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 匯入或設定專案時：
-- **根目錄 (Root Directory)**：`/` (專案根目錄)
-- **建置命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
-- **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
-- **靜態資產輸出目錄 (Build Output Directory)**：`apps/ui/dist`
-- **Worker 後端進入點**：`apps/api/src/index.ts`
-
-#### 2. Cloudflare 資源綁定 (Bindings)
-進入 **Cloudflare 控制台** -> **Workers 和 Pages** -> **markspace** -> **設定 (Settings)** -> **綁定 (Bindings)**：
-
-| 綁定類型 (Binding Type) | 變數名稱 (Variable Name) | 綁定目標與說明 |
-| :--- | :--- | :--- |
-| **D1 資料庫** | `DB` | 綁定至 D1 資料庫：`markspace-db` |
-| **R2 儲存貯體** | `BUCKET` | 綁定至 R2 儲存貯體：`markspace-media-bucket` |
-| **靜態資產 (Static Assets)** | `ASSETS` | 透過 `wrangler.jsonc` 自動對應至 `apps/ui/dist` |
-
-> [!NOTE]
-> **資料庫初次初始化 (D1 Migrations)**：
-> 在 **Cloudflare 控制台** -> **儲存與資料庫** -> **D1** -> `markspace-db` -> **主控台 (Console)** 中執行 [`apps/api/migrations/0001_initial_schema.sql`](apps/api/migrations/0001_initial_schema.sql) 內的 SQL 陳述式，或在本機透過 Wrangler 執行 `npm run d1:migrate:prod`。
-
-#### 3. 環境變數與金鑰設定 (Variables and Secrets)
-進入 **設定 (Settings)** -> **變數與機密 (Variables and Secrets)**，新增以下必填設定（可透過 OpenSSL 命令列或任意密碼管理器 / 密碼產生器工具隨機產生）：
-
-| 名稱 (Name) | 類型 (Type) | 說明 (Description) | 產生命令/範例 |
-| :--- | :--- | :--- | :--- |
-| `JWT_SECRET` | **機密 (Secret / 加密)** | 使用者工作階段 JWT 鑑權簽章金鑰（建議 ≥32 字元高熵字串） | `openssl rand -base64 32` (或密碼產生器隨機字串) |
-| `MASTER_ENCRYPTION_KEY` | **機密 (Secret / 加密)** | 256 位元十六進位主金鑰（64 位 Hex 字元），用於 TOTP 與 OPRF 信封加密 | `openssl rand -hex 32` (或 64 位十六進位產生器) |
-| `ENVIRONMENT` | **變數 (Variable / 明文)** | 執行環境識別碼 | `production` |� OPRF 信封加密 | `openssl rand -hex 32` (或 64 位十六進位產生器) |
-| `ENVIRONMENT` | **變數 (Variable / 明文)** | 執行環境識別碼 | `production` |` (或 64 位十六進位產生器) |
-| `ENVIRONMENT` | **變數 (Variable / 明文)** | 執行環境識別碼 | `production` |TW`) | 🇺🇸 English (`en-US`) | 🇯🇵 日本語 (`ja-JP`)
+### 🌐 全要素国际化多语言 (i18n)
+- 原生支持 8 种主流语言无缝切换：
+  - 🇨🇳 简体中文 (`zh-CN`) | 🇭🇰/🇹🇼 正體中文 (`zh-TW`) | 🇺🇸 English (`en-US`) | 🇯🇵 日本語 (`ja-JP`)
   - 🇰🇷 한국어 (`ko-KR`) | 🇩🇪 Deutsch (`de-DE`) | 🇪🇸 Español (`es-ES`) | 🇻🇳 Tiếng Việt (`vi-VN`)
 
 ### 🎨 OLED 纯黑美学与排版
 - 针对纯黑 OLED 背景（`#050507`）调校的高对比度视觉体验。
-- 深度集成 **GitHub Monaspace Neon** 程式碼等宽字体与 **Noto 全语言多文种字族**。
+- 深度集成 **GitHub Monaspace Neon** 代码等宽字体与 **Noto 全语言多文种字族**。
 
 ---
 
@@ -198,30 +154,30 @@
 
 ```mermaid
 flowchart TB
-    subgraph Client ["客戶端 (Web Browser / WebCrypto & IndexedDB)"]
+    subgraph Client ["客户端 (Web Browser / WebCrypto & IndexedDB)"]
         PlainDoc["文档明文内容"] --> FastCDC["FastCDC 动态切分 (512B - 4KB)"]
-        FastCDC --> ProcessChunks["处理資料块 [A, B', C]"]
+        FastCDC --> ProcessChunks["处理数据块 [A, B', C]"]
         
         subgraph Crypto ["确定性零知识盲加密引擎"]
             ProcessChunks --> DetID["确定性 Chunk ID: Hex(SHA256(AES_VMK(H)))"]
             DetID --> SynthIV["合成 IV: SHA256('chunk-iv:' + ChunkID)[0..12]"]
-            SynthIV --> AESEnc["AES-256-GCM 原生二進位加密"]
+            SynthIV --> AESEnc["AES-256-GCM 原生二进制加密"]
         end
         
         AESEnc --> CheckMissing["1. 批量探测缺失块: POST /vault/chunks/check-missing"]
         AESEnc --> UploadDelta["2. 仅上传差异块: PUT /vault/chunks/:id"]
         
-        Manifest["建置 Merkle Manifest 与根雜湊"] --> EncManifest["VMK 加密 Manifest"]
+        Manifest["构建 Merkle Manifest 与根哈希"] --> EncManifest["VMK 加密 Manifest"]
         EncManifest --> CommitManifest["3. 提交版本清单: POST /vault/manifests/commit"]
         
-        LocalCache[("IndexedDB 块与清单快取")] <--> FastCDC
+        LocalCache[("IndexedDB 块与清单缓存")] <--> FastCDC
     end
 
     subgraph Edge ["Cloudflare 全球边缘服务"]
         CheckMissing --> D1Chunks["D1 SQL (vault_chunks 索引)"]
         UploadDelta --> R2Chunks["R2 CAS 存储池 (vaults/{userId}/chunks/{chunkId})"]
         CommitManifest --> R2Manifests["R2 Manifests 目录 (vaults/{userId}/manifests/{manifestId})"]
-        CommitManifest --> D1Nodes["D1 SQL (active_manifest_id 指標)"]
+        CommitManifest --> D1Nodes["D1 SQL (active_manifest_id 指针)"]
     end
 ```
 
@@ -234,35 +190,35 @@ flowchart TB
 - [npm](https://www.npmjs.com/) (v9.0.0 或更高版本) 或 [pnpm](https://pnpm.io/)
 - [Cloudflare Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
 
-### 1. 複製并安装依赖
+### 1. 克隆并安装依赖
 ```bash
 git clone https://github.com/your-username/markspace.git
 cd markspace
 npm install
 ```
 
-### 2. 本地資料库迁移 (Cloudflare D1)
+### 2. 本地数据库迁移 (Cloudflare D1)
 ```bash
 npm run d1:migrate:local
 ```
 
 ### 3. 启动开发服务器
 ```bash
-# 終端 1：启动边缘 API 后端
+# 终端 1：启动边缘 API 后端
 npm run dev:api
 
-# 終端 2：启动前端 UI 开发服务器
+# 终端 2：启动前端 UI 开发服务器
 npm run dev:ui
 ```
 在浏览器中打开 `http://localhost:5173` 即可开始使用。
 
 ---
 
-## 🚢 部署發佈
+## 🚢 部署发布
 
-### 🌐 方式一：Cloudflare 控制台 Web 介面一鍵部署 (推薦)
+### 🌐 方式一：Cloudflare 控制台 Web 界面一键部署 (推荐)
 
-透過 Cloudflare 官方部署按鈕一鍵直達全球邊緣網路：
+通过 Cloudflare 官方部署按钮一键直达全球边缘网络：
 
 <p align="center">
   <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Obein/Markspace">
@@ -270,59 +226,59 @@ npm run dev:ui
   </a>
 </p>
 
-#### 1. 建置與路徑設定 (Build Settings)
-在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 匯入或設定專案時：
-- **根目錄 (Root Directory)**：`/` (專案根目錄)
-- **建置命令 (Build Command)**：`npm run build:ui`
+#### 1. 构建与路径设置 (Build Settings)
+在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 导入或配置项目时：
+- **根目录 (Root Directory)**：`/` (项目根目录)
+- **构建命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
 - **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
-- **靜態資產輸出目錄 (Build Output Directory)**：`apps/ui/dist`
-- **Worker 後端進入點**：`apps/api/src/index.ts`
+- **静态资源输出目录 (Build Output Directory)**：`apps/ui/dist`
+- **Worker 后端入口**：`apps/api/src/index.ts`
 
-#### 2. Cloudflare 資源綁定 (Bindings)
-進入 **Cloudflare 控制台** -> **Workers 和 Pages** -> **markspace** -> **設定 (Settings)** -> **綁定 (Bindings)**：
+#### 2. Cloudflare 资源绑定 (Bindings)
+进入 **Cloudflare 控制台** -> **Workers 和 Pages** -> **markspace** -> **设置 (Settings)** -> **绑定 (Bindings)**：
 
-| 綁定類型 (Binding Type) | 變數名稱 (Variable Name) | 綁定目標與說明 |
+| 绑定类型 (Binding Type) | 变量名称 (Variable Name) | 绑定目标与说明 |
 | :--- | :--- | :--- |
-| **D1 資料庫** | `DB` | 綁定至 D1 資料庫：`markspace-db` |
-| **R2 儲存貯體** | `BUCKET` | 綁定至 R2 儲存貯體：`markspace-media-bucket` |
-| **靜態資產 (Static Assets)** | `ASSETS` | 透過 `wrangler.jsonc` 自動對應至 `apps/ui/dist` |
+| **D1 数据库** | `DB` | 绑定至 D1 数据库：`markspace-db` |
+| **R2 存储桶** | `BUCKET` | 绑定至 R2 存储桶：`markspace-media-bucket` |
+| **静态资产 (Static Assets)** | `ASSETS` | 通过 `wrangler.jsonc` 自动映射至 `apps/ui/dist` |
 
 > [!NOTE]
-> **資料庫初次初始化 (D1 Migrations)**：
-> 在 **Cloudflare 控制台** -> **儲存與資料庫** -> **D1** -> `markspace-db` -> **主控台 (Console)** 中執行 [`apps/api/migrations/0001_initial_schema.sql`](apps/api/migrations/0001_initial_schema.sql) 內的 SQL 陳述式，或在本機透過 Wrangler 執行 `npm run d1:migrate:prod`。
+> **数据库初次初始化 (D1 Migrations)**：
+> 在 **Cloudflare 控制台** -> **存储和数据库** -> **D1** -> `markspace-db` -> **控制台 (Console)** 中执行 [`apps/api/migrations/0001_initial_schema.sql`](apps/api/migrations/0001_initial_schema.sql) 内的 SQL 语句，或在本地通过 Wrangler 执行 `npm run d1:migrate:prod`。
 
-#### 3. 環境變數與金鑰設定 (Variables and Secrets)
-進入 **設定 (Settings)** -> **變數與機密 (Variables and Secrets)**，新增以下必填設定：
+#### 3. 环境变量与密钥配置 (Variables and Secrets)
+进入 **设置 (Settings)** -> **变量和机密 (Variables and Secrets)**，添加以下必填配置：
 
-| 名稱 (Name) | 類型 (Type) | 說明 (Description) | 產生命令範例 |
+| 名称 (Name) | 类型 (Type) | 说明 (Description) | 生成命令/示例 |
 | :--- | :--- | :--- | :--- |
-| `JWT_SECRET` | **機密 (Secret / 加密)** | 使用者工作階段 JWT 鑑權簽章金鑰（建議 ≥32 字元高熵字串） | `openssl rand -base64 32` |
-| `MASTER_ENCRYPTION_KEY` | **機密 (Secret / 加密)** | 256 位元十六進位主金鑰（64 位 Hex 字元），用於 TOTP 與 OPRF 信封加密 | `openssl rand -hex 32` |
-| `ENVIRONMENT` | **變數 (Variable / 明文)** | 執行環境識別碼 | `production` |
+| `JWT_SECRET` | **机密 (Secret / 加密)** | 用户会话 JWT 鉴权签名密钥（建议 ≥32 字符高熵字符串） | `openssl rand -base64 32` (或密码生成器随机字符串) |
+| `MASTER_ENCRYPTION_KEY` | **机密 (Secret / 加密)** | 256 位十六进制主密钥（64 位 Hex 字符），用于 TOTP 与 OPRF 信封加密 | `openssl rand -hex 32` (或 64 位十六进制生成器) |
+| `ENVIRONMENT` | **变量 (Variable / 明文)** | 运行环境标识 | `production` |
 
 ---
 
-### 💻 方式二：CLI 命令列部署 (Cloudflare Wrangler)
+### 💻 方式二：CLI 命令行部署 (Cloudflare Wrangler)
 
 ```bash
-# 1. 首次建立生產 D1 資料庫與 R2 儲存貯體
+# 1. 首次创建生产 D1 数据库与 R2 存储桶
 npx wrangler d1 create markspace-db
 npx wrangler r2 bucket create markspace-media-bucket
 
-# 2. 設定生產機密金鑰
+# 2. 设置生产机密密钥
 npx wrangler secret put JWT_SECRET --workspace=apps/api
 npx wrangler secret put MASTER_ENCRYPTION_KEY --workspace=apps/api
 
-# 3. 執行 D1 遠端資料庫遷移
+# 3. 执行 D1 远程数据库迁移
 npm run d1:migrate:prod
 
-# 4. 建置前端產物並一鍵部署 Worker
+# 4. 构建前端产物并一键部署 Worker
 npm run deploy
 ```
 
 ---
 
-## 🛠️ 技術棧清單
+## 🛠️ 技术栈清单
 
 | 层次 | 核心技术 |
 | :--- | :--- |
@@ -330,13 +286,14 @@ npm run deploy
 | **样式与设计** | Tailwind CSS, Lucide React, Monaspace Neon |
 | **文档处理** | Marked, Lezer AST, KaTeX, Mermaid.js |
 | **分块与版本控制** | FastCDC (Gear-Hash), Merkle DAG, IndexedDB Local Cache |
-| **密码学套件** | Web Crypto API (SubtleCrypto, 非导出金鑰), AES-256-GCM, OPRF NIST P-256, DPoP RFC 9449 |
-| **边缘计算与存储** | Cloudflare Workers, Cloudflare D1 SQL, Cloudflare R2 CAS 物件儲存 |
+| **密码学套件** | Web Crypto API (SubtleCrypto, 非导出密钥), AES-256-GCM, OPRF NIST P-256, DPoP RFC 9449 |
+| **边缘计算与存储** | Cloudflare Workers, Cloudflare D1 SQL, Cloudflare R2 CAS 对象存储 |
 | **Monorepo 工具链** | npm workspaces, TypeScript Project References |
 
 ---
 
-## 📄 開源授權
+## 📄 开源许可证
 
-本项目采用 **GNU Affero General Public License v3.0 (AGPLv3)** 開源授權。  
-详细信息请参阅 [LICENSE](LICENSE) 檔案。
+本项目采用 **GNU Affero General Public License v3.0 (AGPLv3)** 开源许可证。  
+详细信息请参阅 [LICENSE](LICENSE) 文件。
+
