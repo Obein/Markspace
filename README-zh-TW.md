@@ -29,6 +29,12 @@
 - **一體化工程與科學排版套件**：原生整合 KaTeX 公式引擎、Mermaid 動態圖表 AST 與支援即時公式計算的可視化試算表。
 - **全球分散式邊緣 Serverless 架構**：100% 部署於 Cloudflare 全球邊緣網路（Workers + D1 + R2），零伺服器維運負擔，極速回應。
 
+<p align="center">
+  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Obein/Markspace">
+    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" />
+  </a>
+</p>
+
 ---
 
 ### ⚖️ 核心架構與特性對比
@@ -210,17 +216,63 @@ npm run dev:ui
 
 ## 🚢 部署發佈
 
-### 1. 远程資料库迁移
-```bash
-# 首次建立 D1 資料库（如未建立）
-npm run d1:create
+### 🌐 方式一：Cloudflare 控制台 Web 介面一鍵部署 (推薦)
 
-# 将迁移应用至线上生产資料库
+透過 Cloudflare 官方部署按鈕一鍵直達全球邊緣網路：
+
+<p align="center">
+  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Obein/Markspace">
+    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" />
+  </a>
+</p>
+
+#### 1. 建置與路徑設定 (Build Settings)
+在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 匯入或設定專案時：
+- **根目錄 (Root Directory)**：`/` (專案根目錄)
+- **建置命令 (Build Command)**：`npm run build:ui`
+- **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
+- **靜態資產輸出目錄 (Build Output Directory)**：`apps/ui/dist`
+- **Worker 後端進入點**：`apps/api/src/index.ts`
+
+#### 2. Cloudflare 資源綁定 (Bindings)
+進入 **Cloudflare 控制台** -> **Workers 和 Pages** -> **markspace** -> **設定 (Settings)** -> **綁定 (Bindings)**：
+
+| 綁定類型 (Binding Type) | 變數名稱 (Variable Name) | 綁定目標與說明 |
+| :--- | :--- | :--- |
+| **D1 資料庫** | `DB` | 綁定至 D1 資料庫：`markspace-db` |
+| **R2 儲存貯體** | `BUCKET` | 綁定至 R2 儲存貯體：`markspace-media-bucket` |
+| **靜態資產 (Static Assets)** | `ASSETS` | 透過 `wrangler.jsonc` 自動對應至 `apps/ui/dist` |
+
+> [!NOTE]
+> **資料庫初次初始化 (D1 Migrations)**：
+> 在 **Cloudflare 控制台** -> **儲存與資料庫** -> **D1** -> `markspace-db` -> **主控台 (Console)** 中執行 [`apps/api/migrations/0001_initial_schema.sql`](apps/api/migrations/0001_initial_schema.sql) 內的 SQL 陳述式，或在本機透過 Wrangler 執行 `npm run d1:migrate:prod`。
+
+#### 3. 環境變數與金鑰設定 (Variables and Secrets)
+進入 **設定 (Settings)** -> **變數與機密 (Variables and Secrets)**，新增以下必填設定：
+
+| 名稱 (Name) | 類型 (Type) | 說明 (Description) | 產生命令範例 |
+| :--- | :--- | :--- | :--- |
+| `JWT_SECRET` | **機密 (Secret / 加密)** | 使用者工作階段 JWT 鑑權簽章金鑰（建議 ≥32 字元高熵字串） | `openssl rand -base64 32` |
+| `MASTER_ENCRYPTION_KEY` | **機密 (Secret / 加密)** | 256 位元十六進位主金鑰（64 位 Hex 字元），用於 TOTP 與 OPRF 信封加密 | `openssl rand -hex 32` |
+| `ENVIRONMENT` | **變數 (Variable / 明文)** | 執行環境識別碼 | `production` |
+
+---
+
+### 💻 方式二：CLI 命令列部署 (Cloudflare Wrangler)
+
+```bash
+# 1. 首次建立生產 D1 資料庫與 R2 儲存貯體
+npx wrangler d1 create markspace-db
+npx wrangler r2 bucket create markspace-media-bucket
+
+# 2. 設定生產機密金鑰
+npx wrangler secret put JWT_SECRET --workspace=apps/api
+npx wrangler secret put MASTER_ENCRYPTION_KEY --workspace=apps/api
+
+# 3. 執行 D1 遠端資料庫遷移
 npm run d1:migrate:prod
-```
 
-### 2. 建置与部署 Worker
-```bash
+# 4. 建置前端產物並一鍵部署 Worker
 npm run deploy
 ```
 

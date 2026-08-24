@@ -29,6 +29,12 @@ English | [简体中文](README-zh-CN.md) | [正體中文](README-zh-TW.md)
 - **Integrated Scientific & Engineering Workspace**: Hardware-accelerated KaTeX typesetting, dynamic Mermaid AST diagrams, and WYSIWYG spreadsheet table editor.
 - **Edge-Native Serverless Architecture**: 100% serverless deployment on Cloudflare global edge fabric (Workers + D1 + R2) with zero maintenance.
 
+<p align="center">
+  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Obein/Markspace">
+    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" />
+  </a>
+</p>
+
 ---
 
 ### ⚖️ Architectural Comparison
@@ -210,17 +216,63 @@ Open `http://localhost:5173` to access the workspace.
 
 ## 🚢 Deployment
 
-### 1. Remote Database Migrations
-```bash
-# Provision D1 database (if first time)
-npm run d1:create
+### 🌐 Option 1: Cloudflare Dashboard Web Deployment (One-Click / Web GUI)
 
-# Apply migrations to production database
+Deploy directly to Cloudflare global edge network with one click:
+
+<p align="center">
+  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Obein/Markspace">
+    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" />
+  </a>
+</p>
+
+#### 1. Build & Project Configuration
+When importing or deploying the repository in Cloudflare Dashboard / Workers Builds:
+- **Root Directory**: `/` (repository root)
+- **Build Command**: `npm run build:ui`
+- **Deploy Command**: `npm run deploy` (or `npx wrangler deploy --workspace=apps/api`)
+- **Build Output Directory (Static Assets)**: `apps/ui/dist`
+- **Worker Main Entrypoint**: `apps/api/src/index.ts`
+
+#### 2. Cloudflare Resource Bindings
+Navigate to **Cloudflare Dashboard** -> **Workers & Pages** -> **markspace** -> **Settings** -> **Bindings**:
+
+| Binding Type | Variable Name | Resource Target / Details |
+| :--- | :--- | :--- |
+| **D1 Database** | `DB` | Target D1 database: `markspace-db` |
+| **R2 Bucket** | `BUCKET` | Target R2 bucket: `markspace-media-bucket` |
+| **Static Assets** | `ASSETS` | Auto-bound to `apps/ui/dist` via `wrangler.jsonc` |
+
+> [!NOTE]
+> **Database Initialization (D1 Migration)**:
+> In **Cloudflare Dashboard** -> **Storage & Databases** -> **D1** -> `markspace-db` -> **Console**, execute the SQL statements in [`apps/api/migrations/0001_initial_schema.sql`](apps/api/migrations/0001_initial_schema.sql), or run `npm run d1:migrate:prod` locally via Wrangler.
+
+#### 3. Required Environment Variables & Secrets
+In **Settings** -> **Variables and Secrets**, configure the following runtime variables:
+
+| Name | Type | Description | Generation Example |
+| :--- | :--- | :--- | :--- |
+| `JWT_SECRET` | **Secret (Encrypted)** | High-entropy secret (min 32 chars) for signing session JWT tokens | `openssl rand -base64 32` |
+| `MASTER_ENCRYPTION_KEY` | **Secret (Encrypted)** | 256-bit Hex Key (64 hex chars) for TOTP/OPRF envelope encryption | `openssl rand -hex 32` |
+| `ENVIRONMENT` | **Variable (Plaintext)** | Execution environment identifier | `production` |
+
+---
+
+### 💻 Option 2: CLI Deployment (Cloudflare Wrangler)
+
+```bash
+# 1. Provision D1 Database & R2 Bucket
+npx wrangler d1 create markspace-db
+npx wrangler r2 bucket create markspace-media-bucket
+
+# 2. Set Production Secrets
+npx wrangler secret put JWT_SECRET --workspace=apps/api
+npx wrangler secret put MASTER_ENCRYPTION_KEY --workspace=apps/api
+
+# 3. Apply D1 Migrations to Production
 npm run d1:migrate:prod
-```
 
-### 2. Build & Deploy Worker
-```bash
+# 4. Build UI & Deploy Worker
 npm run deploy
 ```
 

@@ -29,6 +29,12 @@
 - **一体化工程与科学排版套件**：原生集成 KaTeX 公式引擎、Mermaid 动态图表 AST 与支持实时公式计算的可视化表格。
 - **全球分布式边缘 Serverless 架构**：100% 部署于 Cloudflare 全球边缘网络（Workers + D1 + R2），零服务器运维负担，极速响应。
 
+<p align="center">
+  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Obein/Markspace">
+    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" />
+  </a>
+</p>
+
 ---
 
 ### ⚖️ 核心架构与特性对比
@@ -210,17 +216,63 @@ npm run dev:ui
 
 ## 🚢 部署发布
 
-### 1. 远程数据库迁移
-```bash
-# 首次创建 D1 数据库（如未创建）
-npm run d1:create
+### 🌐 方式一：Cloudflare 控制台 Web 界面一键部署 (推荐)
 
-# 将迁移应用至线上生产数据库
+通过 Cloudflare 官方部署按钮一键直达全球边缘网络：
+
+<p align="center">
+  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Obein/Markspace">
+    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" />
+  </a>
+</p>
+
+#### 1. 构建与路径设置 (Build Settings)
+在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 导入或配置项目时：
+- **根目录 (Root Directory)**：`/` (项目根目录)
+- **构建命令 (Build Command)**：`npm run build:ui`
+- **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
+- **静态资源输出目录 (Build Output Directory)**：`apps/ui/dist`
+- **Worker 后端入口**：`apps/api/src/index.ts`
+
+#### 2. Cloudflare 资源绑定 (Bindings)
+进入 **Cloudflare 控制台** -> **Workers 和 Pages** -> **markspace** -> **设置 (Settings)** -> **绑定 (Bindings)**：
+
+| 绑定类型 (Binding Type) | 变量名称 (Variable Name) | 绑定目标与说明 |
+| :--- | :--- | :--- |
+| **D1 数据库** | `DB` | 绑定至 D1 数据库：`markspace-db` |
+| **R2 存储桶** | `BUCKET` | 绑定至 R2 存储桶：`markspace-media-bucket` |
+| **静态资产 (Static Assets)** | `ASSETS` | 通过 `wrangler.jsonc` 自动映射至 `apps/ui/dist` |
+
+> [!NOTE]
+> **数据库初次初始化 (D1 Migrations)**：
+> 在 **Cloudflare 控制台** -> **存储和数据库** -> **D1** -> `markspace-db` -> **控制台 (Console)** 中执行 [`apps/api/migrations/0001_initial_schema.sql`](apps/api/migrations/0001_initial_schema.sql) 内的 SQL 语句，或在本地通过 Wrangler 执行 `npm run d1:migrate:prod`。
+
+#### 3. 环境变量与密钥配置 (Variables and Secrets)
+进入 **设置 (Settings)** -> **变量和机密 (Variables and Secrets)**，添加以下必填配置：
+
+| 名称 (Name) | 类型 (Type) | 说明 (Description) | 生成命令示例 |
+| :--- | :--- | :--- | :--- |
+| `JWT_SECRET` | **机密 (Secret / 加密)** | 用户会话 JWT 鉴权签名密钥（建议 ≥32 字符高熵字符串） | `openssl rand -base64 32` |
+| `MASTER_ENCRYPTION_KEY` | **机密 (Secret / 加密)** | 256 位十六进制主密钥（64 位 Hex 字符），用于 TOTP 与 OPRF 信封加密 | `openssl rand -hex 32` |
+| `ENVIRONMENT` | **变量 (Variable / 明文)** | 运行环境标识 | `production` |
+
+---
+
+### 💻 方式二：CLI 命令行部署 (Cloudflare Wrangler)
+
+```bash
+# 1. 首次创建生产 D1 数据库与 R2 存储桶
+npx wrangler d1 create markspace-db
+npx wrangler r2 bucket create markspace-media-bucket
+
+# 2. 设置生产机密密钥
+npx wrangler secret put JWT_SECRET --workspace=apps/api
+npx wrangler secret put MASTER_ENCRYPTION_KEY --workspace=apps/api
+
+# 3. 执行 D1 远程数据库迁移
 npm run d1:migrate:prod
-```
 
-### 2. 构建与部署 Worker
-```bash
+# 4. 构建前端产物并一键部署 Worker
 npm run deploy
 ```
 
