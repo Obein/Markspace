@@ -229,7 +229,7 @@ Deploy directly to Cloudflare global edge network with one click:
 #### 1. Build & Project Configuration
 When importing or deploying the repository in Cloudflare Dashboard / Workers Builds:
 - **Root Directory**: `/` (repository root)
-- **Build Command**: `npm run build:ui`
+- **Build Command**: `npm run build` (or `npm run build:ui`)
 - **Deploy Command**: `npm run deploy` (or `npx wrangler deploy --workspace=apps/api`)
 - **Build Output Directory (Static Assets)**: `apps/ui/dist`
 - **Worker Main Entrypoint**: `apps/api/src/index.ts`
@@ -250,10 +250,10 @@ Navigate to **Cloudflare Dashboard** -> **Workers & Pages** -> **markspace** -> 
 #### 3. Required Environment Variables & Secrets
 In **Settings** -> **Variables and Secrets**, configure the following runtime variables:
 
-| Name | Type | Description | Generation Example |
+| Name | Type | Description | Generation Command / Example |
 | :--- | :--- | :--- | :--- |
-| `JWT_SECRET` | **Secret (Encrypted)** | High-entropy secret (min 32 chars) for signing session JWT tokens | `openssl rand -base64 32` |
-| `MASTER_ENCRYPTION_KEY` | **Secret (Encrypted)** | 256-bit Hex Key (64 hex chars) for TOTP/OPRF envelope encryption | `openssl rand -hex 32` |
+| `JWT_SECRET` | **Secret (Encrypted)** | High-entropy secret (min 32 chars) for signing session JWT tokens | `openssl rand -base64 32` (or password generator) |
+| `MASTER_ENCRYPTION_KEY` | **Secret (Encrypted)** | 256-bit Hex Key (64 hex chars) for TOTP/OPRF envelope encryption | `openssl rand -hex 32` (or 64-char hex generator) |
 | `ENVIRONMENT` | **Variable (Plaintext)** | Execution environment identifier | `production` |
 
 ---

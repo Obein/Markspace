@@ -229,7 +229,7 @@ npm run dev:ui
 #### 1. 构建与路径设置 (Build Settings)
 在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 导入或配置项目时：
 - **根目录 (Root Directory)**：`/` (项目根目录)
-- **构建命令 (Build Command)**：`npm run build:ui`
+- **构建命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
 - **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
 - **静态资源输出目录 (Build Output Directory)**：`apps/ui/dist`
 - **Worker 后端入口**：`apps/api/src/index.ts`
@@ -250,10 +250,10 @@ npm run dev:ui
 #### 3. 环境变量与密钥配置 (Variables and Secrets)
 进入 **设置 (Settings)** -> **变量和机密 (Variables and Secrets)**，添加以下必填配置：
 
-| 名称 (Name) | 类型 (Type) | 说明 (Description) | 生成命令示例 |
+| 名称 (Name) | 类型 (Type) | 说明 (Description) | 生成命令/示例 |
 | :--- | :--- | :--- | :--- |
-| `JWT_SECRET` | **机密 (Secret / 加密)** | 用户会话 JWT 鉴权签名密钥（建议 ≥32 字符高熵字符串） | `openssl rand -base64 32` |
-| `MASTER_ENCRYPTION_KEY` | **机密 (Secret / 加密)** | 256 位十六进制主密钥（64 位 Hex 字符），用于 TOTP 与 OPRF 信封加密 | `openssl rand -hex 32` |
+| `JWT_SECRET` | **机密 (Secret / 加密)** | 用户会话 JWT 鉴权签名密钥（建议 ≥32 字符高熵字符串） | `openssl rand -base64 32` (或密码生成器随机字符串) |
+| `MASTER_ENCRYPTION_KEY` | **机密 (Secret / 加密)** | 256 位十六进制主密钥（64 位 Hex 字符），用于 TOTP 与 OPRF 信封加密 | `openssl rand -hex 32` (或 64 位十六进制生成器) |
 | `ENVIRONMENT` | **变量 (Variable / 明文)** | 运行环境标识 | `production` |
 
 ---

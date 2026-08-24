@@ -124,24 +124,68 @@
 ### 👤 使用者政策、儲存配額與閒置自動銷毀
 - **Unix 規範憑證**：使用者名稱遵循 Unix 格式（`5–32` 字元，`/^[a-z_][a-z0-9_-]{4,31}$/`，僅限小寫字母、數字、底線與連字號，首字元為字母或底線），系統內全域唯一；密碼採用 Unix 格式（`12–128` 字元），不強制字元成分複雜度。
 - **全域唯一 User UUID**：每位使用者綁定唯一的 UUID 識別碼，支援控制台一鍵快捷複製。
-- **精細化儲存配額管控 (1MB – 1TB)**：非管理員使用者預設擁有 `10MB` 儲存配額，系統管理員可按需在 `1MB` 到 `1TB` 區間內調整全域預設或指定使用者配額，分塊與檔案寫入執行硬上限攔截。
-- **100 條審計日誌保留上限**：每位使用者的零信任安全與操作審計日誌自動剪裁並最多保留最新 100 條記錄，UI 顯式宣告。
-- **閒置帳戶生命週期銷毀機制**：非管理員使用者最後在線時間超過閒置閾值（預設 `1 個月`，支援管理員設定 `1 個月` 至 `1 年`，亦可關閉）將自動由 Worker Cron 定時任務徹底級聯銷毀使用者與其全部 Vault 資料，UI 關鍵節點顯式宣告備份與自部署提示。
-- **系統管理員控制台**：支援系統管理員集中檢視所有使用者的 UUID、建立時間、最後在線時間、儲存消耗、調整使用者角色/配额，以及手動或定時觸發閒置使用者清理。
+- **精細化儲存配額管控 (1MB – 1TB)**：非管�#### 1. 建置與路徑設定 (Build Settings)
+在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 匯入或設定專案時：
+- **根目錄 (Root Directory)**：`/` (專案根目錄)
+- **建置命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
+- **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
+- **靜態資產輸出目錄 (Build Output Directory)**：`apps/ui/dist`
+- **Worker 後端進入點**：`apps/api/src/index.ts`
 
-### 📊 交互式可视化試算表编辑器
-- **所见即所得試算表网格**：在 Markdown 笔记中直接增删行列、调整对齐与单元格内容。
-- **实时公式引擎**：内置数学计算引擎，支援 `SUM`、`AVG`、`COUNT`、`MIN`、`MAX`、`IF` 及基础算术表达式。
-- **GFM 无损转换**：与标准 GitHub Flavored Markdown 試算表语法无缝互转。
+#### 2. Cloudflare 資源綁定 (Bindings)
+進入 **Cloudflare 控制台** -> **Workers 和 Pages** -> **markspace** -> **設定 (Settings)** -> **綁定 (Bindings)**：
 
-### 📐 科学与工程排版套件
-- **KaTeX 数学公式引擎**：支援行内公式（`$...$`）与块级公式（`$$...$$`）的高性能渲染。
-- **Mermaid 动态图表 AST**：直接根据程式碼块生成流程图、循序圖、類別圖与甘特图。
-- **Lezer 增量语法解析**：支援 Markdown、JavaScript、Python、CSS、HTML、JSON 等语言的高速语法醒目提示。
+| 綁定類型 (Binding Type) | 變數名稱 (Variable Name) | 綁定目標與說明 |
+| :--- | :--- | :--- |
+| **D1 資料庫** | `DB` | 綁定至 D1 資料庫：`markspace-db` |
+| **R2 儲存貯體** | `BUCKET` | 綁定至 R2 儲存貯體：`marksp#### 1. 建置與路徑設定 (Build Settings)
+在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 匯入或設定專案時：
+- **根目錄 (Root Directory)**：`/` (專案根目錄)
+- **建置命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
+- **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
+- **靜態資產輸出目錄 (Build Output Directory)**：`apps/ui/dist`
+- **Worker 後端進入點**：`apps/api/src/index.ts`
 
-### 🌐 全要素国际化多语言 (i18n)
-- 原生支援 8 种主流语言无缝切换：
-  - 🇨🇳 简体中文 (`zh-CN`) | 🇭🇰/🇹🇼 正體中文 (`zh-TW`) | 🇺🇸 English (`en-US`) | 🇯🇵 日本語 (`ja-JP`)
+#### 2. Cloudflare 資源綁定 (Bindings)
+進入 **Cloudflare 控制台** -> *#### 1. 建置與路徑設定 (Build Settings)
+在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 匯入或設定專案時：
+- **根目錄 (Root Directory)**：`/` (專案根目錄)
+- **建置命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
+- **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
+- **靜態資產輸出目錄 (Build Output Directory)**：`apps/ui/dist`
+- **Worker 後端進入點**：`apps/api/src/index.ts`
+
+#### 2. Cloudflare 資源綁定 (Bin#### 1. 建置與路徑設定 (Build Settings)
+在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 匯入或設定專案時：
+- **根目錄 (Root Directory)**：`/` (專案根目錄)
+- **建置命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
+- **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
+- **靜態資產輸出目錄 (Build Output Directory)**：`apps/ui/dist`
+- **Worker 後端進入點**：`apps/api/src/index.ts`
+
+#### 2. Cloudflare 資源綁定 (Bindings)
+進入 **Cloudflare 控制台** -> **Workers 和 Pages** -> **markspace** -> **設定 (Settings)** -> **綁定 (Bindings)**：
+
+| 綁定類型 (Binding Type) | 變數名稱 (Variable Name) | 綁定目標與說明 |
+| :--- | :--- | :--- |
+| **D1 資料庫** | `DB` | 綁定至 D1 資料庫：`markspace-db` |
+| **R2 儲存貯體** | `BUCKET` | 綁定至 R2 儲存貯體：`markspace-media-bucket` |
+| **靜態資產 (Static Assets)** | `ASSETS` | 透過 `wrangler.jsonc` 自動對應至 `apps/ui/dist` |
+
+> [!NOTE]
+> **資料庫初次初始化 (D1 Migrations)**：
+> 在 **Cloudflare 控制台** -> **儲存與資料庫** -> **D1** -> `markspace-db` -> **主控台 (Console)** 中執行 [`apps/api/migrations/0001_initial_schema.sql`](apps/api/migrations/0001_initial_schema.sql) 內的 SQL 陳述式，或在本機透過 Wrangler 執行 `npm run d1:migrate:prod`。
+
+#### 3. 環境變數與金鑰設定 (Variables and Secrets)
+進入 **設定 (Settings)** -> **變數與機密 (Variables and Secrets)**，新增以下必填設定（可透過 OpenSSL 命令列或任意密碼管理器 / 密碼產生器工具隨機產生）：
+
+| 名稱 (Name) | 類型 (Type) | 說明 (Description) | 產生命令/範例 |
+| :--- | :--- | :--- | :--- |
+| `JWT_SECRET` | **機密 (Secret / 加密)** | 使用者工作階段 JWT 鑑權簽章金鑰（建議 ≥32 字元高熵字串） | `openssl rand -base64 32` (或密碼產生器隨機字串) |
+| `MASTER_ENCRYPTION_KEY` | **機密 (Secret / 加密)** | 256 位元十六進位主金鑰（64 位 Hex 字元），用於 TOTP 與 OPRF 信封加密 | `openssl rand -hex 32` (或 64 位十六進位產生器) |
+| `ENVIRONMENT` | **變數 (Variable / 明文)** | 執行環境識別碼 | `production` |� OPRF 信封加密 | `openssl rand -hex 32` (或 64 位十六進位產生器) |
+| `ENVIRONMENT` | **變數 (Variable / 明文)** | 執行環境識別碼 | `production` |` (或 64 位十六進位產生器) |
+| `ENVIRONMENT` | **變數 (Variable / 明文)** | 執行環境識別碼 | `production` |TW`) | 🇺🇸 English (`en-US`) | 🇯🇵 日本語 (`ja-JP`)
   - 🇰🇷 한국어 (`ko-KR`) | 🇩🇪 Deutsch (`de-DE`) | 🇪🇸 Español (`es-ES`) | 🇻🇳 Tiếng Việt (`vi-VN`)
 
 ### 🎨 OLED 纯黑美学与排版

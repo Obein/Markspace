@@ -10,6 +10,7 @@
   "scripts": {
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:ui": "npm run dev --workspace=apps/ui",
+    "build": "npm run build --workspace=apps/ui",
     "build:ui": "npm run build --workspace=apps/ui",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "deploy": "npm run build:ui && npm run deploy --workspace=apps/api",
