@@ -51,6 +51,8 @@ export interface AuditLogEntity {
     | 'TOTP_DISABLE'
     | 'SECURITY_NONCE_VIOLATION'
     | 'DPOP_HANDSHAKE'
+    | 'AUTH_REVOKE_SESSION'
+    | 'AUTH_REVOKE_OTHER_SESSIONS'
     | 'ADMIN_DELETE_USER'
     | 'ADMIN_UPDATE_ROLE'
     | 'ADMIN_UPDATE_QUOTA'
@@ -115,6 +117,7 @@ export interface RegisterDTO {
   username: string;
   authToken: string;
   nonce?: string;
+  rememberMe?: boolean;
 }
 
 export interface LoginDTO {
@@ -122,12 +125,14 @@ export interface LoginDTO {
   authToken: string;
   totpCode?: string;
   nonce?: string;
+  rememberMe?: boolean;
 }
 
 export interface LoginTotpPasswordlessDTO {
   username: string;
   totpCode: string;
   nonce?: string;
+  rememberMe?: boolean;
 }
 
 export interface TotpSetupResponseDTO {

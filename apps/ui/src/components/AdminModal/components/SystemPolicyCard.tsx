@@ -50,7 +50,7 @@ export const SystemPolicyCard: React.FC<SystemPolicyCardProps> = ({
           {/* ROW 1: Default Storage Quota */}
           <div className="w-full space-y-1.5 bg-black/[0.02] dark:bg-white/5 p-3 rounded-xl border border-black/10 dark:border-white/5">
             <div className="flex items-center justify-between">
-              <label className="text-xs text-zinc-700 dark:text-zinc-300 font-medium flex items-center gap-1.5">
+              <label className="text-xs dark:text-zinc-700 text-zinc-300 font-medium flex items-center gap-1.5">
                 <HardDrive className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400" />
                 <span>{t('defaultStorageQuota') || 'Default Storage Quota'}:</span>
               </label>
@@ -65,7 +65,7 @@ export const SystemPolicyCard: React.FC<SystemPolicyCardProps> = ({
             <select
               value={defaultQuotaMb}
               onChange={(e) => setDefaultQuotaMb(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-black/15 dark:border-white/10 text-xs text-zinc-900 dark:white focus:outline-none focus:border-primaryColor-500 cursor-pointer"
+              className="w-full px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-black/15 dark:border-white/10 text-xs text-zinc-900 dark:text-zinc-300 focus:outline-none focus:border-primaryColor-500 cursor-pointer"
             >
               <option value={1}>1 MB ({t('minimal') || 'Minimal'})</option>
               <option value={10}>10 MB ({t('default') || 'Default'})</option>
@@ -81,7 +81,7 @@ export const SystemPolicyCard: React.FC<SystemPolicyCardProps> = ({
           {/* ROW 2: Idle Destruction Period */}
           <div className="w-full space-y-1.5 bg-black/[0.02] dark:bg-white/5 p-3 rounded-xl border border-black/10 dark:border-white/5">
             <div className="flex items-center justify-between">
-              <label className="text-xs text-zinc-700 dark:text-zinc-300 font-medium flex items-center gap-1.5">
+              <label className="text-xs dark:text-zinc-700 text-zinc-300 font-medium flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                 <span>{t('idleDestructionPeriod') || 'Idle Destruction Period'}:</span>
               </label>
@@ -94,7 +94,7 @@ export const SystemPolicyCard: React.FC<SystemPolicyCardProps> = ({
             <select
               value={idlePeriodDays}
               onChange={(e) => setIdlePeriodDays(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-black/15 dark:border-white/10 text-xs text-zinc-900 dark:white focus:outline-none focus:border-primaryColor-500 cursor-pointer"
+              className="w-full px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-black/15 dark:border-white/10 text-xs text-zinc-900 dark:text-zinc-300 focus:outline-none focus:border-primaryColor-500 cursor-pointer"
             >
               <option value={0}>{t('disabledNeverDestroy') || 'Disabled (Never Destroy)'}</option>
               <option value={30}>

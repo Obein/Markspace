@@ -7,6 +7,7 @@ export interface TokenPair {
   readonly familyId: string;
   readonly generation: number;
   readonly expiresInSeconds: number;
+  readonly refreshTokenTtlSeconds: number;
 }
 
 export interface RefreshTokenRecord {
@@ -26,8 +27,37 @@ export interface TokenFamilyState {
   readonly activeGeneration: number;
   readonly isRevoked: boolean;
   readonly revokedReason?: string;
+  readonly ipAddress?: string;
+  readonly userAgent?: string;
+  readonly deviceName?: string;
+  readonly ttlSeconds: number;
+  readonly isRememberMe: boolean;
+  readonly lastActiveAt?: number;
   readonly createdAt: number;
   readonly updatedAt: number;
+}
+
+export interface ActiveSessionInfo {
+  readonly id: string;
+  readonly userId: string;
+  readonly ipAddress?: string;
+  readonly userAgent?: string;
+  readonly deviceName?: string;
+  readonly ttlSeconds: number;
+  readonly isRememberMe: boolean;
+  readonly isCurrent: boolean;
+  readonly createdAt: number;
+  readonly updatedAt: number;
+  readonly lastActiveAt: number;
+  readonly expiresAt: number;
+}
+
+export interface IssueTokenOptions {
+  readonly dpopJkt?: string;
+  readonly rememberMe?: boolean;
+  readonly ipAddress?: string;
+  readonly userAgent?: string;
+  readonly deviceName?: string;
 }
 
 export interface ITokenService {
@@ -40,14 +70,17 @@ export interface ITokenService {
     userId: string,
     payload: UserPayload,
     secret: string,
-    dpopJkt?: string
+    options?: IssueTokenOptions
   ): Promise<TokenPair>;
   rotateRefreshToken(
     db: D1Database,
     rawOldRefreshToken: string,
     secret: string,
-    presentedDpopJkt?: string
+    presentedDpopJkt?: string,
+    clientMeta?: { ipAddress?: string; userAgent?: string }
   ): Promise<TokenPair & { userPayload: UserPayload }>;
+  listUserSessions(db: D1Database, userId: string, currentFamilyId?: string): Promise<ActiveSessionInfo[]>;
   revokeFamily(db: D1Database, familyId: string, reason?: string): Promise<void>;
+  revokeOtherUserFamilies(db: D1Database, userId: string, currentFamilyId: string): Promise<void>;
   revokeAllUserFamilies(db: D1Database, userId: string): Promise<void>;
 }

@@ -62,16 +62,28 @@ export class ApiClient implements IApiClient {
     return this.auth.prelogin(username);
   }
 
-  async register(username: string, authToken: string): Promise<AuthResponse> {
-    return this.auth.register(username, authToken);
+  async register(username: string, authToken: string, rememberMe?: boolean): Promise<AuthResponse> {
+    return this.auth.register(username, authToken, rememberMe);
   }
 
-  async login(username: string, authToken: string, totpCode?: string): Promise<AuthResponse> {
-    return this.auth.login(username, authToken, totpCode);
+  async login(username: string, authToken: string, totpCode?: string, rememberMe?: boolean): Promise<AuthResponse> {
+    return this.auth.login(username, authToken, totpCode, rememberMe);
   }
 
-  async loginPasswordlessTotp(username: string, totpCode: string): Promise<AuthResponse> {
-    return this.auth.loginPasswordlessTotp(username, totpCode);
+  async loginPasswordlessTotp(username: string, totpCode: string, rememberMe?: boolean): Promise<AuthResponse> {
+    return this.auth.loginPasswordlessTotp(username, totpCode, rememberMe);
+  }
+
+  async getSessions() {
+    return this.auth.getSessions();
+  }
+
+  async revokeSession(id: string): Promise<void> {
+    return this.auth.revokeSession(id);
+  }
+
+  async revokeOtherSessions(): Promise<void> {
+    return this.auth.revokeOtherSessions();
   }
 
   async logout(): Promise<void> {

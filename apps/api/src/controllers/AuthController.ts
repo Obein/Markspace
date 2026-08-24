@@ -44,6 +44,18 @@ export class AuthController {
     return this.sessionController.logout(ctx);
   }
 
+  public async getSessions(ctx: RequestContext): Promise<Response> {
+    return this.sessionController.getSessions(ctx);
+  }
+
+  public async revokeSession(ctx: RequestContext): Promise<Response> {
+    return this.sessionController.revokeSession(ctx);
+  }
+
+  public async revokeOtherSessions(ctx: RequestContext): Promise<Response> {
+    return this.sessionController.revokeOtherSessions(ctx);
+  }
+
   public async getAuditLogs(ctx: RequestContext): Promise<Response> {
     return this.sessionController.getAuditLogs(ctx);
   }

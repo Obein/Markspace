@@ -92,6 +92,21 @@ export interface VaultNodeResponse {
   activeManifestId?: string | null;
 }
 
+export interface ActiveSession {
+  id: string;
+  userId: string;
+  ipAddress?: string;
+  userAgent?: string;
+  deviceName?: string;
+  ttlSeconds: number;
+  isRememberMe: boolean;
+  isCurrent: boolean;
+  createdAt: number;
+  updatedAt: number;
+  lastActiveAt: number;
+  expiresAt: number;
+}
+
 export interface IApiClient {
   setToken(token: string): void;
   getAccessToken(): string | null;
@@ -100,13 +115,16 @@ export interface IApiClient {
   // Zero-Trust Session & Token Lifecycle
   initSession(): Promise<AuthResponse | null>;
   refreshToken(): Promise<AuthResponse>;
+  getSessions(): Promise<ActiveSession[]>;
+  revokeSession(id: string): Promise<void>;
+  revokeOtherSessions(): Promise<void>;
   logout(): Promise<void>;
 
   // Nonce & Prelogin Handshakes
   prelogin(username: string): Promise<{ exists: boolean; isTotpEnabled: boolean; serverTime: number }>;
-  register(username: string, authToken: string): Promise<AuthResponse>;
-  login(username: string, authToken: string, totpCode?: string): Promise<AuthResponse>;
-  loginPasswordlessTotp(username: string, totpCode: string): Promise<AuthResponse>;
+  register(username: string, authToken: string, rememberMe?: boolean): Promise<AuthResponse>;
+  login(username: string, authToken: string, totpCode?: string, rememberMe?: boolean): Promise<AuthResponse>;
+  loginPasswordlessTotp(username: string, totpCode: string, rememberMe?: boolean): Promise<AuthResponse>;
 
   // TOTP 2FA Management
   setupTotp(): Promise<{ secret: string; otpauthUri: string; expiresAt: number }>;

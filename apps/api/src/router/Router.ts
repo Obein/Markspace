@@ -56,6 +56,18 @@ export class Router {
     this.addRoute('GET', '/api/v1/auth/audit-logs', true, false, (container, ctx) =>
       container.authController.getAuditLogs(ctx)
     );
+    this.addRoute('GET', '/api/v1/auth/sessions', true, false, (container, ctx) =>
+      container.authController.getSessions(ctx)
+    );
+    this.addRoute('POST', '/api/v1/auth/sessions/revoke-others', true, false, (container, ctx) =>
+      container.authController.revokeOtherSessions(ctx)
+    );
+    this.addRoute('POST', '/api/v1/auth/sessions/:id/revoke', true, false, (container, ctx) =>
+      container.authController.revokeSession(ctx)
+    );
+    this.addRoute('DELETE', '/api/v1/auth/sessions/:id', true, false, (container, ctx) =>
+      container.authController.revokeSession(ctx)
+    );
 
     // 2. Legacy Notes Endpoints (Protected)
     this.addRoute('GET', '/api/v1/notes', true, false, (container, ctx) =>

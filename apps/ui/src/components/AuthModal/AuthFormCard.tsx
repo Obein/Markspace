@@ -166,6 +166,8 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
                 setAccountPassword={setAccountPassword}
                 showPassword={showPassword}
                 setShowPassword={setShowPassword}
+                rememberMe={form.rememberMe}
+                setRememberMe={form.setRememberMe}
                 loading={loading}
                 onSubmit={handleLoginSubmit}
               />

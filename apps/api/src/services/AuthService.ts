@@ -1,5 +1,5 @@
 import { IPasswordHasher } from '../interfaces/IPasswordHasher';
-import { ITokenService } from '../interfaces/ITokenService';
+import { ActiveSessionInfo, IssueTokenOptions, ITokenService } from '../interfaces/ITokenService';
 import { IUserRepository } from '../interfaces/IUserRepository';
 import { TotpService } from './TotpService';
 import {
@@ -18,6 +18,7 @@ export interface AuthResult {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
+  refreshTokenTtl?: number;
   user: {
     id: string;
     username: string;
@@ -49,11 +50,12 @@ export class AuthService {
   }
 
   async prelogin(username: string): Promise<PreloginResponseDTO> {
-    const normalized = (username || '').trim().toLowerCase();
-    const user = await this.userRepository.findByUsername(normalized);
+    const validUsername = this.validateUsername(username);
+    const user = await this.userRepository.findByUsername(validUsername);
+
     return {
-      exists: Boolean(user),
-      isTotpEnabled: Boolean(user?.isTotpEnabled),
+      exists: !!user,
+      isTotpEnabled: !!user?.isTotpEnabled,
       serverTime: Date.now(),
     };
   }
@@ -62,7 +64,7 @@ export class AuthService {
     db: D1Database,
     dto: RegisterDTO,
     jwtSecret: string,
-    dpopJkt?: string
+    options?: IssueTokenOptions
   ): Promise<AuthResult> {
     const username = this.validateUsername(dto.username);
 
@@ -103,13 +105,17 @@ export class AuthService {
       user.id,
       { userId: user.id, username: user.username, role: user.role },
       jwtSecret,
-      dpopJkt
+      {
+        ...options,
+        rememberMe: dto.rememberMe,
+      }
     );
 
     return {
       accessToken: tokenPair.accessToken,
       refreshToken: tokenPair.rawRefreshToken,
       expiresIn: tokenPair.expiresInSeconds,
+      refreshTokenTtl: tokenPair.refreshTokenTtlSeconds,
       user: {
         id: user.id,
         username: user.username,
@@ -123,7 +129,7 @@ export class AuthService {
     dto: LoginDTO,
     jwtSecret: string,
     kek?: string,
-    dpopJkt?: string
+    options?: IssueTokenOptions
   ): Promise<AuthResult> {
     if (!dto.username || !dto.authToken) {
       throw new Error('INVALID_CREDENTIALS: Username and Auth Token are required');
@@ -161,13 +167,17 @@ export class AuthService {
       user.id,
       { userId: user.id, username: user.username, role: user.role },
       jwtSecret,
-      dpopJkt
+      {
+        ...options,
+        rememberMe: dto.rememberMe,
+      }
     );
 
     return {
       accessToken: tokenPair.accessToken,
       refreshToken: tokenPair.rawRefreshToken,
       expiresIn: tokenPair.expiresInSeconds,
+      refreshTokenTtl: tokenPair.refreshTokenTtlSeconds,
       user: {
         id: user.id,
         username: user.username,
@@ -181,7 +191,7 @@ export class AuthService {
     dto: LoginTotpPasswordlessDTO,
     jwtSecret: string,
     kek?: string,
-    dpopJkt?: string
+    options?: IssueTokenOptions
   ): Promise<AuthResult> {
     if (!dto.username || !dto.totpCode) {
       throw new Error('INVALID_CREDENTIALS: Username and TOTP code are required');
@@ -211,13 +221,17 @@ export class AuthService {
       user.id,
       { userId: user.id, username: user.username, role: user.role },
       jwtSecret,
-      dpopJkt
+      {
+        ...options,
+        rememberMe: dto.rememberMe,
+      }
     );
 
     return {
       accessToken: tokenPair.accessToken,
       refreshToken: tokenPair.rawRefreshToken,
       expiresIn: tokenPair.expiresInSeconds,
+      refreshTokenTtl: tokenPair.refreshTokenTtlSeconds,
       user: {
         id: user.id,
         username: user.username,
@@ -230,9 +244,10 @@ export class AuthService {
     db: D1Database,
     rawRefreshToken: string,
     jwtSecret: string,
-    dpopJkt?: string
+    dpopJkt?: string,
+    clientMeta?: { ipAddress?: string; userAgent?: string }
   ): Promise<AuthResult> {
-    const rotated = await this.tokenService.rotateRefreshToken(db, rawRefreshToken, jwtSecret, dpopJkt);
+    const rotated = await this.tokenService.rotateRefreshToken(db, rawRefreshToken, jwtSecret, dpopJkt, clientMeta);
 
     // Update last active timestamp
     await this.userRepository.updateLastActive(rotated.userPayload.userId);
@@ -241,12 +256,83 @@ export class AuthService {
       accessToken: rotated.accessToken,
       refreshToken: rotated.rawRefreshToken,
       expiresIn: rotated.expiresInSeconds,
+      refreshTokenTtl: rotated.refreshTokenTtlSeconds,
       user: {
         id: rotated.userPayload.userId,
         username: rotated.userPayload.username,
         role: rotated.userPayload.role,
       },
     };
+  }
+
+  async getActiveSessions(
+    db: D1Database,
+    userId: string,
+    rawRefreshToken?: string
+  ): Promise<ActiveSessionInfo[]> {
+    let currentFamilyId: string | undefined;
+    if (rawRefreshToken) {
+      try {
+        const encoder = new TextEncoder();
+        const hashBuf = await crypto.subtle.digest('SHA-256', encoder.encode(rawRefreshToken));
+        const tokenHash = Array.from(new Uint8Array(hashBuf))
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('');
+
+        const record = await db
+          .prepare(`SELECT family_id FROM refresh_tokens WHERE token_hash = ?`)
+          .bind(tokenHash)
+          .first<{ family_id: string }>();
+
+        if (record) {
+          currentFamilyId = record.family_id;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    return this.tokenService.listUserSessions(db, userId, currentFamilyId);
+  }
+
+  async revokeSession(db: D1Database, userId: string, familyId: string): Promise<void> {
+    const family = await db
+      .prepare(`SELECT user_id FROM token_families WHERE id = ?`)
+      .bind(familyId)
+      .first<{ user_id: string }>();
+
+    if (!family || family.user_id !== userId) {
+      throw new Error('SESSION_NOT_FOUND: Session not found or unauthorized');
+    }
+
+    await this.tokenService.revokeFamily(db, familyId, 'REVOKED_BY_USER');
+  }
+
+  async revokeOtherSessions(
+    db: D1Database,
+    userId: string,
+    rawRefreshToken?: string
+  ): Promise<void> {
+    if (!rawRefreshToken) {
+      throw new Error('CURRENT_SESSION_REQUIRED: Current session token is required to preserve active device');
+    }
+
+    const encoder = new TextEncoder();
+    const hashBuf = await crypto.subtle.digest('SHA-256', encoder.encode(rawRefreshToken));
+    const tokenHash = Array.from(new Uint8Array(hashBuf))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    const record = await db
+      .prepare(`SELECT family_id FROM refresh_tokens WHERE token_hash = ?`)
+      .bind(tokenHash)
+      .first<{ family_id: string }>();
+
+    if (!record) {
+      throw new Error('SESSION_NOT_FOUND: Current session refresh token not recognized');
+    }
+
+    await this.tokenService.revokeOtherUserFamilies(db, userId, record.family_id);
   }
 
   async logout(db: D1Database, rawRefreshToken?: string): Promise<void> {

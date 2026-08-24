@@ -1,4 +1,4 @@
-import { AuditLogResponse, AuthResponse } from '../../interfaces/IApiClient';
+import { ActiveSession, AuditLogResponse, AuthResponse } from '../../interfaces/IApiClient';
 import { HttpTransport } from './HttpTransport';
 
 export class AuthApi {
@@ -45,31 +45,49 @@ export class AuthApi {
     });
   }
 
-  async register(username: string, authToken: string): Promise<AuthResponse> {
+  async register(username: string, authToken: string, rememberMe?: boolean): Promise<AuthResponse> {
     const data = await this.transport.request<AuthResponse>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ username, authToken }),
+      body: JSON.stringify({ username, authToken, rememberMe }),
     });
     this.transport.setToken(data.accessToken || data.token || '', data.expiresIn || 60);
     return data;
   }
 
-  async login(username: string, authToken: string, totpCode?: string): Promise<AuthResponse> {
+  async login(username: string, authToken: string, totpCode?: string, rememberMe?: boolean): Promise<AuthResponse> {
     const data = await this.transport.request<AuthResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, authToken, totpCode }),
+      body: JSON.stringify({ username, authToken, totpCode, rememberMe }),
     });
     this.transport.setToken(data.accessToken || data.token || '', data.expiresIn || 60);
     return data;
   }
 
-  async loginPasswordlessTotp(username: string, totpCode: string): Promise<AuthResponse> {
+  async loginPasswordlessTotp(username: string, totpCode: string, rememberMe?: boolean): Promise<AuthResponse> {
     const data = await this.transport.request<AuthResponse>('/auth/login/passwordless-totp', {
       method: 'POST',
-      body: JSON.stringify({ username, totpCode }),
+      body: JSON.stringify({ username, totpCode, rememberMe }),
     });
     this.transport.setToken(data.accessToken || data.token || '', data.expiresIn || 60);
     return data;
+  }
+
+  async getSessions(): Promise<ActiveSession[]> {
+    return this.transport.request<ActiveSession[]>('/auth/sessions', {
+      method: 'GET',
+    });
+  }
+
+  async revokeSession(id: string): Promise<void> {
+    await this.transport.request<{ message: string }>(`/auth/sessions/${id}/revoke`, {
+      method: 'POST',
+    });
+  }
+
+  async revokeOtherSessions(): Promise<void> {
+    await this.transport.request<{ message: string }>('/auth/sessions/revoke-others', {
+      method: 'POST',
+    });
   }
 
   async logout(): Promise<void> {

@@ -32,17 +32,26 @@ export const AppContent: React.FC = () => {
   const { toasts, showToast, dismissToast } = useToast();
   const { isDark, toggleTheme, accentColor, setAccentColor, customHex, setCustomHex } = useTheme(username);
 
-  // Auto-Lock Hook for Inactivity Timeout (1 - 60 min)
+  // Auto-Lock / Auto-Logout Hook for Inactivity Timeout
   const {
     autoLockEnabled,
     setAutoLockEnabled,
     autoLockMinutes,
     setAutoLockMinutes,
+    autoLockAction,
+    setAutoLockAction,
   } = useAutoLock({
     username,
     isVaultUnlocked,
     onLockVault: () => lockVault(activeVaultId),
-    onAutoLocked: () => showToast(t('vaultAutoLocked'), 'info'),
+    onLogout: () => logoutAccount(),
+    onAutoLocked: (action) =>
+      showToast(
+        action === 'logout'
+          ? (t('sessionAutoLoggedOut') || '已因长时间无操作自动安全登出')
+          : t('vaultAutoLocked'),
+        'info'
+      ),
   });
   const {
     isProfileOpen,
@@ -218,6 +227,8 @@ export const AppContent: React.FC = () => {
         onToggleAutoLock={setAutoLockEnabled}
         autoLockMinutes={autoLockMinutes}
         onChangeAutoLockMinutes={setAutoLockMinutes}
+        autoLockAction={autoLockAction}
+        onChangeAutoLockAction={setAutoLockAction}
         accentColor={accentColor}
         onSelectAccentColor={setAccentColor}
         customHex={customHex}

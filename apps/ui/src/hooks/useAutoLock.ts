@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
+export type AutoLockAction = 'lock' | 'logout';
+
 export interface UseAutoLockOptions {
   username: string | null;
   isVaultUnlocked: boolean;
   onLockVault: () => void;
-  onAutoLocked?: () => void;
+  onLogout?: () => void;
+  onAutoLocked?: (action: AutoLockAction) => void;
 }
 
 export interface UseAutoLockReturn {
@@ -12,12 +15,15 @@ export interface UseAutoLockReturn {
   setAutoLockEnabled: (enabled: boolean) => void;
   autoLockMinutes: number;
   setAutoLockMinutes: (minutes: number) => void;
+  autoLockAction: AutoLockAction;
+  setAutoLockAction: (action: AutoLockAction) => void;
 }
 
 export function useAutoLock({
   username,
   isVaultUnlocked,
   onLockVault,
+  onLogout,
   onAutoLocked,
 }: UseAutoLockOptions): UseAutoLockReturn {
   const userKey = username || 'default';
@@ -36,7 +42,7 @@ export function useAutoLock({
       const stored = localStorage.getItem(`markspace_auto_lock_minutes_${userKey}`);
       if (stored) {
         const parsed = parseInt(stored, 10);
-        if (!isNaN(parsed) && parsed >= 1 && parsed <= 60) {
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= 1440) {
           return parsed;
         }
       }
@@ -44,6 +50,15 @@ export function useAutoLock({
       // Fallback to default 15 minutes
     }
     return 15;
+  });
+
+  const [autoLockAction, setAutoLockActionState] = useState<AutoLockAction>(() => {
+    try {
+      const stored = localStorage.getItem(`markspace_auto_lock_action_${userKey}`);
+      return stored === 'logout' ? 'logout' : 'lock';
+    } catch {
+      return 'lock';
+    }
   });
 
   // Sync state when switching users
@@ -55,12 +70,17 @@ export function useAutoLock({
       const storedMins = localStorage.getItem(`markspace_auto_lock_minutes_${userKey}`);
       if (storedMins) {
         const parsed = parseInt(storedMins, 10);
-        if (!isNaN(parsed) && parsed >= 1 && parsed <= 60) {
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= 1440) {
           setAutoLockMinutesState(parsed);
-          return;
+        } else {
+          setAutoLockMinutesState(15);
         }
+      } else {
+        setAutoLockMinutesState(15);
       }
-      setAutoLockMinutesState(15);
+
+      const storedAction = localStorage.getItem(`markspace_auto_lock_action_${userKey}`);
+      setAutoLockActionState(storedAction === 'logout' ? 'logout' : 'lock');
     } catch {
       // ignore
     }
@@ -80,7 +100,7 @@ export function useAutoLock({
 
   const setAutoLockMinutes = useCallback(
     (mins: number) => {
-      const clamped = Math.min(60, Math.max(1, Math.round(mins)));
+      const clamped = Math.min(1440, Math.max(1, Math.round(mins)));
       setAutoLockMinutesState(clamped);
       try {
         localStorage.setItem(`markspace_auto_lock_minutes_${userKey}`, String(clamped));
@@ -91,14 +111,28 @@ export function useAutoLock({
     [userKey]
   );
 
+  const setAutoLockAction = useCallback(
+    (action: AutoLockAction) => {
+      setAutoLockActionState(action);
+      try {
+        localStorage.setItem(`markspace_auto_lock_action_${userKey}`, action);
+      } catch {
+        // ignore
+      }
+    },
+    [userKey]
+  );
+
   const lastActiveRef = useRef<number>(Date.now());
   const onLockVaultRef = useRef(onLockVault);
+  const onLogoutRef = useRef(onLogout);
   const onAutoLockedRef = useRef(onAutoLocked);
 
   useEffect(() => {
     onLockVaultRef.current = onLockVault;
+    onLogoutRef.current = onLogout;
     onAutoLockedRef.current = onAutoLocked;
-  }, [onLockVault, onAutoLocked]);
+  }, [onLockVault, onLogout, onAutoLocked]);
 
   // Activity tracking and inactivity timeout loop
   useEffect(() => {
@@ -136,9 +170,14 @@ export function useAutoLock({
       const timeoutMs = autoLockMinutes * 60 * 1000;
 
       if (idleDurationMs >= timeoutMs) {
-        onLockVaultRef.current();
+        if (autoLockAction === 'logout' && onLogoutRef.current) {
+          onLogoutRef.current();
+        } else {
+          onLockVaultRef.current();
+        }
+
         if (onAutoLockedRef.current) {
-          onAutoLockedRef.current();
+          onAutoLockedRef.current(autoLockAction);
         }
         lastActiveRef.current = Date.now();
       }
@@ -150,12 +189,14 @@ export function useAutoLock({
       }
       clearInterval(interval);
     };
-  }, [isVaultUnlocked, autoLockEnabled, autoLockMinutes]);
+  }, [isVaultUnlocked, autoLockEnabled, autoLockMinutes, autoLockAction]);
 
   return {
     autoLockEnabled,
     setAutoLockEnabled,
     autoLockMinutes,
     setAutoLockMinutes,
+    autoLockAction,
+    setAutoLockAction,
   };
 }

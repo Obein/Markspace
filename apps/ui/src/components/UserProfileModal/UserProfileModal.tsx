@@ -5,13 +5,14 @@ import { useI18n } from '../../i18n/i18nContext';
 import { TotpSetupSection } from './TotpSetupSection';
 import { PasskeySection } from './PasskeySection';
 import { GeneralSettingsSection } from './components/GeneralSettingsSection';
+import { ActiveSessionsSection } from './components/ActiveSessionsSection';
 import { AuditLogsAccordion } from './components/AuditLogsAccordion';
 import { UserProfileModalProps } from './UserProfileModal.types';
 
 /**
  * UserProfileModal
  * User profile shell orchestrating user identity info, hardware passkeys,
- * TOTP 2FA, theme/language preferences, and security audit logs.
+ * active multi-sessions, TOTP 2FA, theme/language preferences, and security audit logs.
  */
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   isOpen,
@@ -20,6 +21,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onToggleAutoLock,
   autoLockMinutes = 15,
   onChangeAutoLockMinutes,
+  autoLockAction = 'lock',
+  onChangeAutoLockAction,
   accentColor = 'blue',
   onSelectAccentColor,
   customHex = '#3b82f6',
@@ -119,12 +122,19 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           <TotpSetupSection />
         </div>
 
+        {/* Active Multi-Session & Device Management */}
+        <div className="mb-4 p-4 rounded-2xl bg-black/[0.03] dark:bg-white/5 border border-black/10 dark:border-white/10">
+          <ActiveSessionsSection />
+        </div>
+
         {/* General Settings: AutoLock, Theme Accent Color, Language */}
         <GeneralSettingsSection
           autoLockEnabled={autoLockEnabled}
           onToggleAutoLock={onToggleAutoLock}
           autoLockMinutes={autoLockMinutes}
           onChangeAutoLockMinutes={onChangeAutoLockMinutes}
+          autoLockAction={autoLockAction}
+          onChangeAutoLockAction={onChangeAutoLockAction}
           accentColor={accentColor}
           onSelectAccentColor={onSelectAccentColor}
           customHex={customHex}
@@ -138,17 +148,18 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         <div className="flex items-center justify-between pt-4 border-t border-black/10 dark:border-white/10 text-xs">
           <div className="flex items-center gap-1.5 text-zinc-500 text-[11px] font-mono">
             <ShieldCheck className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400" />
-            <span>Zero-Knowledge Account</span>
+            <span>{t('zeroTrustActive')}</span>
           </div>
+
           <button
             onClick={() => {
-              onClose();
               logoutAccount();
+              onClose();
             }}
-            className="px-3 py-1.5 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border border-black/10 dark:border-white/10 transition flex items-center gap-1 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10 transition cursor-pointer font-medium text-xs"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>{t('logoutAccount')}</span>
+            <span>{t('logout')}</span>
           </button>
         </div>
       </div>

@@ -8,6 +8,31 @@ import {
 import { ApiResponse, RequestContext } from '../../types/http';
 
 /**
+ * Parses user agent string into a readable device/client name.
+ */
+export function parseDeviceName(ua: string): string {
+  if (!ua) return 'Unknown Device';
+
+  let os = 'Unknown OS';
+  if (/Windows NT 10.0/i.test(ua)) os = 'Windows 10/11';
+  else if (/Windows NT/i.test(ua)) os = 'Windows';
+  else if (/iPhone/i.test(ua)) os = 'iPhone';
+  else if (/iPad/i.test(ua)) os = 'iPad';
+  else if (/Macintosh|Mac OS X/i.test(ua)) os = 'Mac';
+  else if (/Android/i.test(ua)) os = 'Android';
+  else if (/Linux/i.test(ua)) os = 'Linux';
+
+  let browser = 'Browser';
+  if (/Edg\//i.test(ua)) browser = 'Edge';
+  else if (/Chrome\//i.test(ua)) browser = 'Chrome';
+  else if (/Safari\//i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
+  else if (/Firefox\//i.test(ua)) browser = 'Firefox';
+  else if (/Opera|OPR\//i.test(ua)) browser = 'Opera';
+
+  return `${os} (${browser})`;
+}
+
+/**
  * AuthCredentialController
  * Handles prelogin discovery, user registration, and password / passwordless logins.
  */
@@ -40,12 +65,19 @@ export class AuthCredentialController {
     const body = (await ctx.request.json()) as RegisterDTO;
     const ip = this.getClientIp(ctx);
     const userAgent = this.getUserAgent(ctx);
+    const deviceName = parseDeviceName(userAgent);
 
     try {
       const result = await this.authService.register(
         ctx.env.DB,
         body,
-        ctx.env.JWT_SECRET
+        ctx.env.JWT_SECRET,
+        {
+          rememberMe: body.rememberMe,
+          ipAddress: ip,
+          userAgent,
+          deviceName,
+        }
       );
 
       await this.auditLogRepo.recordLog({
@@ -64,14 +96,16 @@ export class AuthCredentialController {
         data: {
           accessToken: result.accessToken,
           expiresIn: result.expiresIn,
+          refreshTokenTtl: result.refreshTokenTtl,
           user: result.user,
         },
         timestamp: new Date().toISOString(),
       };
 
+      const cookieMaxAge = result.refreshTokenTtl || (body.rememberMe ? 604800 : 86400);
       const headers = new Headers({
         'Content-Type': 'application/json',
-        'Set-Cookie': `__Host-auth_refresh_token=${result.refreshToken}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=2592000`,
+        'Set-Cookie': `__Host-auth_refresh_token=${result.refreshToken}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${cookieMaxAge}`,
       });
 
       return new Response(JSON.stringify(response), {
@@ -97,13 +131,20 @@ export class AuthCredentialController {
     const body = (await ctx.request.json()) as LoginDTO;
     const ip = this.getClientIp(ctx);
     const userAgent = this.getUserAgent(ctx);
+    const deviceName = parseDeviceName(userAgent);
 
     try {
       const result = await this.authService.login(
         ctx.env.DB,
         body,
         ctx.env.JWT_SECRET,
-        ctx.env.MASTER_ENCRYPTION_KEY
+        ctx.env.MASTER_ENCRYPTION_KEY,
+        {
+          rememberMe: body.rememberMe,
+          ipAddress: ip,
+          userAgent,
+          deviceName,
+        }
       );
 
       await this.auditLogRepo.recordLog({
@@ -114,7 +155,7 @@ export class AuthCredentialController {
         ipAddress: ip,
         userAgent,
         status: 'SUCCESS',
-        details: 'User successfully authenticated and tokens issued',
+        details: `User authenticated (rememberMe: ${Boolean(body.rememberMe)}) and tokens issued`,
       });
 
       const response: ApiResponse = {
@@ -122,14 +163,16 @@ export class AuthCredentialController {
         data: {
           accessToken: result.accessToken,
           expiresIn: result.expiresIn,
+          refreshTokenTtl: result.refreshTokenTtl,
           user: result.user,
         },
         timestamp: new Date().toISOString(),
       };
 
+      const cookieMaxAge = result.refreshTokenTtl || (body.rememberMe ? 604800 : 86400);
       const headers = new Headers({
         'Content-Type': 'application/json',
-        'Set-Cookie': `__Host-auth_refresh_token=${result.refreshToken}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=2592000`,
+        'Set-Cookie': `__Host-auth_refresh_token=${result.refreshToken}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${cookieMaxAge}`,
       });
 
       return new Response(JSON.stringify(response), {
@@ -155,13 +198,20 @@ export class AuthCredentialController {
     const body = (await ctx.request.json()) as LoginTotpPasswordlessDTO;
     const ip = this.getClientIp(ctx);
     const userAgent = this.getUserAgent(ctx);
+    const deviceName = parseDeviceName(userAgent);
 
     try {
       const result = await this.authService.loginPasswordlessTotp(
         ctx.env.DB,
         body,
         ctx.env.JWT_SECRET,
-        ctx.env.MASTER_ENCRYPTION_KEY
+        ctx.env.MASTER_ENCRYPTION_KEY,
+        {
+          rememberMe: body.rememberMe,
+          ipAddress: ip,
+          userAgent,
+          deviceName,
+        }
       );
 
       await this.auditLogRepo.recordLog({
@@ -172,7 +222,7 @@ export class AuthCredentialController {
         ipAddress: ip,
         userAgent,
         status: 'SUCCESS',
-        details: 'User authenticated via passwordless TOTP and tokens issued',
+        details: `User authenticated via passwordless TOTP (rememberMe: ${Boolean(body.rememberMe)}) and tokens issued`,
       });
 
       const response: ApiResponse = {
@@ -180,14 +230,16 @@ export class AuthCredentialController {
         data: {
           accessToken: result.accessToken,
           expiresIn: result.expiresIn,
+          refreshTokenTtl: result.refreshTokenTtl,
           user: result.user,
         },
         timestamp: new Date().toISOString(),
       };
 
+      const cookieMaxAge = result.refreshTokenTtl || (body.rememberMe ? 604800 : 86400);
       const headers = new Headers({
         'Content-Type': 'application/json',
-        'Set-Cookie': `__Host-auth_refresh_token=${result.refreshToken}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=2592000`,
+        'Set-Cookie': `__Host-auth_refresh_token=${result.refreshToken}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${cookieMaxAge}`,
       });
 
       return new Response(JSON.stringify(response), {

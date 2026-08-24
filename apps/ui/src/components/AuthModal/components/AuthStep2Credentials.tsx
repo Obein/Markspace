@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogIn, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { LogIn, Eye, EyeOff, Loader2, CheckSquare, Square } from 'lucide-react';
 import { useI18n } from '../../../i18n/i18nContext';
 
 export interface AuthStep2CredentialsProps {
@@ -12,6 +12,8 @@ export interface AuthStep2CredentialsProps {
   setAccountPassword: (password: string) => void;
   showPassword: boolean;
   setShowPassword: (show: boolean) => void;
+  rememberMe: boolean;
+  setRememberMe: (remember: boolean) => void;
   loading: boolean;
   onSubmit: (e: React.FormEvent) => Promise<void>;
 }
@@ -26,6 +28,8 @@ export const AuthStep2Credentials: React.FC<AuthStep2CredentialsProps> = ({
   setAccountPassword,
   showPassword,
   setShowPassword,
+  rememberMe,
+  setRememberMe,
   loading,
   onSubmit,
 }) => {
@@ -94,6 +98,24 @@ export const AuthStep2Credentials: React.FC<AuthStep2CredentialsProps> = ({
           </div>
         </div>
       )}
+
+      {/* Remember Me 7 Days Checkbox */}
+      <div className="flex items-center justify-between py-0.5">
+        <label
+          onClick={() => setRememberMe(!rememberMe)}
+          className="inline-flex items-center gap-1.5 cursor-pointer text-zinc-400 hover:text-zinc-200 transition text-[11px] select-none"
+        >
+          {rememberMe ? (
+            <CheckSquare className="w-3.5 h-3.5 text-primaryColor-400" />
+          ) : (
+            <Square className="w-3.5 h-3.5 text-zinc-500" />
+          )}
+          <span>{t('rememberMe7Days') || '记住用户 7 日'}</span>
+        </label>
+        <span className="text-[10px] text-zinc-500 font-mono">
+          {rememberMe ? (t('valid7Days') || '7 日免登') : (t('default1Day') || '默认 1 日')}
+        </span>
+      </div>
 
       <button
         type="submit"

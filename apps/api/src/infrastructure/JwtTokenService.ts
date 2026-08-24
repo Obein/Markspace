@@ -1,10 +1,11 @@
-import { ITokenService, TokenPair } from '../interfaces/ITokenService';
+import { ActiveSessionInfo, IssueTokenOptions, ITokenService, TokenPair } from '../interfaces/ITokenService';
 import { UserRole } from '../types/domain';
 import { UserPayload } from '../types/http';
 
 export class JwtTokenService implements ITokenService {
-  private readonly atTtlSeconds = 60; // 1 minute Access Token (as requested)
-  private readonly rtTtlSeconds = 86400; // 1 day Refresh Token (as requested)
+  private readonly atTtlSeconds = 60; // 1 minute short-lived Access Token
+  private readonly defaultRtTtlSeconds = 86400; // 1 day Refresh Token (default)
+  private readonly rememberMeRtTtlSeconds = 604800; // 7 days Refresh Token (remember me)
 
   private base64UrlEncode(str: string): string {
     const encoder = new TextEncoder();
@@ -153,38 +154,56 @@ export class JwtTokenService implements ITokenService {
 
   /**
    * Issues an initial TokenPair for a newly authenticated session.
+   * Default: 1 day (86,400s). If rememberMe: 7 days (604,800s).
    */
   public async issueInitialTokenPair(
     db: D1Database,
     userId: string,
     payload: UserPayload,
     secret: string,
-    dpopJkt?: string
+    options?: IssueTokenOptions
   ): Promise<TokenPair> {
     const familyId = `fam_${this.generateRandomHex(16)}`;
     const generation = 0;
     const now = Date.now();
 
-    // 1. Initialize Token Family in D1
+    const isRememberMe = Boolean(options?.rememberMe);
+    const ttlSeconds = isRememberMe ? this.rememberMeRtTtlSeconds : this.defaultRtTtlSeconds;
+
+    // 1. Initialize Token Family in D1 with session metadata
     await db
       .prepare(
-        `INSERT INTO token_families (id, user_id, active_generation, is_revoked, created_at, updated_at)
-         VALUES (?, ?, ?, 0, ?, ?)`
+        `INSERT INTO token_families (
+           id, user_id, active_generation, is_revoked, ip_address, user_agent, device_name,
+           ttl_seconds, is_remember_me, last_active_at, created_at, updated_at
+         ) VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
-      .bind(familyId, userId, generation, now, now)
+      .bind(
+        familyId,
+        userId,
+        generation,
+        options?.ipAddress || null,
+        options?.userAgent || null,
+        options?.deviceName || null,
+        ttlSeconds,
+        isRememberMe ? 1 : 0,
+        now,
+        now,
+        now
+      )
       .run();
 
-    // 2. Generate Refresh Token
+    // 2. Generate Refresh Token with custom TTL
     const rawRefreshToken = `rt_${this.generateRandomHex(32)}`;
     const tokenHash = await this.hashString(rawRefreshToken);
-    const expiresAt = now + this.rtTtlSeconds * 1000;
+    const expiresAt = now + ttlSeconds * 1000;
 
     await db
       .prepare(
         `INSERT INTO refresh_tokens (token_hash, family_id, generation, user_id, dpop_jkt, expires_at, is_used, created_at)
          VALUES (?, ?, ?, ?, ?, ?, 0, ?)`
       )
-      .bind(tokenHash, familyId, generation, userId, dpopJkt || null, expiresAt, now)
+      .bind(tokenHash, familyId, generation, userId, options?.dpopJkt || null, expiresAt, now)
       .run();
 
     // 3. Generate short-lived Access Token (1 min)
@@ -197,18 +216,20 @@ export class JwtTokenService implements ITokenService {
       familyId,
       generation,
       expiresInSeconds: this.atTtlSeconds,
+      refreshTokenTtlSeconds: ttlSeconds,
     };
   }
 
   /**
    * Rotates a Refresh Token (RTR) and issues a fresh short-lived Access Token.
-   * Enforces Token Family Tree tracking & automated breach/reuse detection.
+   * Preserves session TTL policies and updates active session timestamps.
    */
   public async rotateRefreshToken(
     db: D1Database,
     rawOldRefreshToken: string,
     secret: string,
-    presentedDpopJkt?: string
+    presentedDpopJkt?: string,
+    clientMeta?: { ipAddress?: string; userAgent?: string }
   ): Promise<TokenPair & { userPayload: UserPayload }> {
     const oldTokenHash = await this.hashString(rawOldRefreshToken);
 
@@ -237,6 +258,8 @@ export class JwtTokenService implements ITokenService {
         user_id: string;
         active_generation: number;
         is_revoked: number;
+        ttl_seconds?: number;
+        is_remember_me?: number;
       }>();
 
     if (!family || family.is_revoked === 1) {
@@ -278,13 +301,14 @@ export class JwtTokenService implements ITokenService {
       role: (userRow.role as UserRole) || 'user',
     };
 
+    const ttlSeconds = family.ttl_seconds || this.defaultRtTtlSeconds;
     const nextGeneration = record.generation + 1;
     const now = Date.now();
     const newRawRefreshToken = `rt_${this.generateRandomHex(32)}`;
     const newTokenHash = await this.hashString(newRawRefreshToken);
-    const newExpiresAt = now + this.rtTtlSeconds * 1000;
+    const newExpiresAt = now + ttlSeconds * 1000;
 
-    // Atomic D1 batch execution: Mark old token used, insert next token, advance active generation
+    // Atomic D1 batch execution: Mark old token used, insert next token, advance active generation & update activity
     await db.batch([
       db
         .prepare(`UPDATE refresh_tokens SET is_used = 1 WHERE token_hash = ?`)
@@ -305,9 +329,20 @@ export class JwtTokenService implements ITokenService {
         ),
       db
         .prepare(
-          `UPDATE token_families SET active_generation = ?, updated_at = ? WHERE id = ?`
+          `UPDATE token_families
+           SET active_generation = ?, updated_at = ?, last_active_at = ?,
+               ip_address = COALESCE(?, ip_address),
+               user_agent = COALESCE(?, user_agent)
+           WHERE id = ?`
         )
-        .bind(nextGeneration, now, record.family_id),
+        .bind(
+          nextGeneration,
+          now,
+          now,
+          clientMeta?.ipAddress || null,
+          clientMeta?.userAgent || null,
+          record.family_id
+        ),
     ]);
 
     const newAccessToken = await this.generateAccessToken(userPayload, secret, this.atTtlSeconds);
@@ -319,8 +354,63 @@ export class JwtTokenService implements ITokenService {
       familyId: record.family_id,
       generation: nextGeneration,
       expiresInSeconds: this.atTtlSeconds,
+      refreshTokenTtlSeconds: ttlSeconds,
       userPayload,
     };
+  }
+
+  /**
+   * Lists all active (unrevoked & unexpired) sessions for a given user.
+   */
+  public async listUserSessions(
+    db: D1Database,
+    userId: string,
+    currentFamilyId?: string
+  ): Promise<ActiveSessionInfo[]> {
+    const now = Date.now();
+
+    const { results } = await db
+      .prepare(
+        `SELECT f.id, f.user_id, f.ip_address, f.user_agent, f.device_name,
+                f.ttl_seconds, f.is_remember_me, f.created_at, f.updated_at,
+                COALESCE(f.last_active_at, f.updated_at) as last_active_at,
+                COALESCE(MAX(r.expires_at), f.created_at + (f.ttl_seconds * 1000)) as expires_at
+         FROM token_families f
+         LEFT JOIN refresh_tokens r ON f.id = r.family_id
+         WHERE f.user_id = ? AND f.is_revoked = 0
+         GROUP BY f.id
+         HAVING expires_at > ?
+         ORDER BY last_active_at DESC`
+      )
+      .bind(userId, now)
+      .all<{
+        id: string;
+        user_id: string;
+        ip_address: string | null;
+        user_agent: string | null;
+        device_name: string | null;
+        ttl_seconds: number;
+        is_remember_me: number;
+        created_at: number;
+        updated_at: number;
+        last_active_at: number;
+        expires_at: number;
+      }>();
+
+    return (results || []).map((row) => ({
+      id: row.id,
+      userId: row.user_id,
+      ipAddress: row.ip_address || undefined,
+      userAgent: row.user_agent || undefined,
+      deviceName: row.device_name || undefined,
+      ttlSeconds: row.ttl_seconds || this.defaultRtTtlSeconds,
+      isRememberMe: Boolean(row.is_remember_me),
+      isCurrent: currentFamilyId ? row.id === currentFamilyId : false,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      lastActiveAt: row.last_active_at,
+      expiresAt: row.expires_at,
+    }));
   }
 
   public async revokeFamily(db: D1Database, familyId: string, reason = 'LOGOUT'): Promise<void> {
@@ -328,6 +418,22 @@ export class JwtTokenService implements ITokenService {
     await db
       .prepare(`UPDATE token_families SET is_revoked = 1, revoked_reason = ?, updated_at = ? WHERE id = ?`)
       .bind(reason, now, familyId)
+      .run();
+  }
+
+  public async revokeOtherUserFamilies(
+    db: D1Database,
+    userId: string,
+    currentFamilyId: string
+  ): Promise<void> {
+    const now = Date.now();
+    await db
+      .prepare(
+        `UPDATE token_families
+         SET is_revoked = 1, revoked_reason = 'REVOKE_OTHER_SESSIONS', updated_at = ?
+         WHERE user_id = ? AND id != ? AND is_revoked = 0`
+      )
+      .bind(now, userId, currentFamilyId)
       .run();
   }
 

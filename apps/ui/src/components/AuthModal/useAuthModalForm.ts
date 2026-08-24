@@ -28,6 +28,8 @@ export interface UseAuthModalFormReturn {
   isTotpEnabledForUser: boolean;
   loginMethod: 'totp' | 'password';
   setLoginMethod: (method: 'totp' | 'password') => void;
+  rememberMe: boolean;
+  setRememberMe: (val: boolean) => void;
 
   // Status & Feedback
   loading: boolean;
@@ -67,6 +69,7 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
   const [totpCode, setTotpCode] = useState('');
   const [isTotpEnabledForUser, setIsTotpEnabledForUser] = useState(false);
   const [loginMethod, setLoginMethod] = useState<'totp' | 'password'>('password');
+  const [rememberMe, setRememberMe] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -142,7 +145,7 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
           setErrorMsg(t('enterTotpCode'));
           return;
         }
-        res = await apiClient.loginPasswordlessTotp(usernameInput.trim().toLowerCase(), totpCode.trim());
+        res = await apiClient.loginPasswordlessTotp(usernameInput.trim().toLowerCase(), totpCode.trim(), rememberMe);
       } else {
         if (!accountPassword) {
           setErrorMsg(t('enterPassword'));
@@ -155,7 +158,8 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
         res = await apiClient.login(
           usernameInput.trim().toLowerCase(),
           authToken,
-          isTotpEnabledForUser ? totpCode.trim() : undefined
+          isTotpEnabledForUser ? totpCode.trim() : undefined,
+          rememberMe
         );
       }
 
@@ -167,7 +171,7 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
     } finally {
       setLoading(false);
     }
-  }, [loginMethod, totpCode, accountPassword, cryptoService, apiClient, usernameInput, isTotpEnabledForUser, setToken, setUsername, setRole, t]);
+  }, [loginMethod, totpCode, accountPassword, rememberMe, cryptoService, apiClient, usernameInput, isTotpEnabledForUser, setToken, setUsername, setRole, t]);
 
   // Step 2 Register Submit
   const handleRegisterSubmit = useCallback(async (e: React.FormEvent) => {
@@ -194,7 +198,7 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
         accountPassword,
         'markspace-account-auth-salt'
       );
-      const res = await apiClient.register(cleanUsername, authToken);
+      const res = await apiClient.register(cleanUsername, authToken, rememberMe);
       setToken(res.accessToken || res.token || '');
       setUsername(res.user.username);
       setRole(res.user.role);
@@ -203,7 +207,7 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
     } finally {
       setLoading(false);
     }
-  }, [accountPassword, confirmPassword, clearSecurityAlert, cryptoService, apiClient, usernameInput, setToken, setUsername, setRole, t]);
+  }, [accountPassword, confirmPassword, rememberMe, clearSecurityAlert, cryptoService, apiClient, usernameInput, setToken, setUsername, setRole, t]);
 
   // Camera lens zoom-blur mode switch transition
   const switchMode = useCallback((toRegister: boolean) => {
@@ -219,6 +223,7 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
       setShowPassword(false);
       setShowConfirmPassword(false);
       setTotpCode('');
+      setRememberMe(false);
 
       setTimeout(() => {
         setIsTransitioning(false);
@@ -249,6 +254,8 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
     isTotpEnabledForUser,
     loginMethod,
     setLoginMethod,
+    rememberMe,
+    setRememberMe,
     loading,
     errorMsg,
     setErrorMsg,
