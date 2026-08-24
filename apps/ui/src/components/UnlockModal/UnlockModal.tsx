@@ -92,21 +92,21 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className={`w-full max-w-md p-7 glass-panel rounded-glass-lg border border-white/15 text-white shadow-2xl relative overflow-hidden transition-transform duration-200 ${
+        className={`w-full max-w-md p-7 glass-panel rounded-glass-lg border border-black/10 dark:border-white/10 text-zinc-900 dark:text-white shadow-2xl relative overflow-hidden transition-transform duration-200 ${
           shake ? 'animate-shake' : ''
         }`}
       >
         {/* Top Header Row */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
+          <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
             <img
               src="/assets/obex_cat_eye_logo-256.webp"
               alt="Markspace Logo"
               className="w-4 h-4 rounded object-contain"
             />
-            <span className="font-mono text-zinc-300">
+            <span className="font-mono text-zinc-700 dark:text-zinc-300 font-medium">
               {mode === 'setup-passkey'
                 ? t('setupPasskeyTitle') || 'Passkey Setup'
                 : isCreateMode
@@ -118,7 +118,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
             <button
               type="button"
               onClick={onOpenProfile}
-              className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-xs font-mono transition cursor-pointer"
+              className="px-2.5 py-1 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white border border-black/10 dark:border-white/10 text-xs font-mono transition cursor-pointer"
               title={t('userProfile')}
             >
               <span>{username}</span>
@@ -128,21 +128,21 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
 
         {/* Global Error Notice */}
         {errorMsg && (
-          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs text-center font-mono">
+          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-300 text-xs text-center font-mono">
             {errorMsg}
           </div>
         )}
 
         {/* Vault Switcher & Management bar (When multiple vaults exist and in unlock mode) */}
         {!isCreateMode && mode !== 'setup-passkey' && vaults.length > 0 && activeVault && (
-          <div className="mb-5 flex items-center justify-between gap-2 p-1.5 rounded-xl bg-black/40 border border-white/10">
+          <div className="mb-5 flex items-center justify-between gap-2 p-1.5 rounded-xl bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10">
             <select
               value={activeVault.id}
               onChange={(e) => onSelectVault(e.target.value)}
-              className="bg-transparent text-xs text-zinc-200 font-mono focus:outline-none px-2 py-1 flex-1 cursor-pointer"
+              className="bg-transparent text-xs text-zinc-800 dark:text-zinc-200 font-mono focus:outline-none px-2 py-1 flex-1 cursor-pointer"
             >
               {vaults.map((v) => (
-                <option key={v.id} value={v.id} className="bg-zinc-900 text-white">
+                <option key={v.id} value={v.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">
                   {v.name}
                 </option>
               ))}
@@ -159,7 +159,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                     setMode('create');
                   }
                 }}
-                className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-primaryColor-400 hover:text-primaryColor-300 transition cursor-pointer"
+                className="p-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-primaryColor-600 dark:text-primaryColor-400 hover:text-primaryColor-700 dark:hover:text-primaryColor-300 transition cursor-pointer"
                 title={t('newVault') || 'New Vault'}
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -177,7 +177,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                       onDeleteVault(activeVault.id);
                     }
                   }}
-                  className="p-1 rounded-lg bg-white/5 hover:bg-red-500/20 text-zinc-400 hover:text-red-300 transition cursor-pointer"
+                  className="p-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-red-500/10 dark:hover:bg-red-500/20 text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-300 transition cursor-pointer"
                   title={t('deleteVault') || 'Delete Vault'}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -252,14 +252,14 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
         )}
 
         {/* Modal Footer */}
-        <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-zinc-400">
-          <div className="flex items-center gap-1 text-primaryColor-400 text-[11px] font-mono">
+        <div className="mt-5 pt-3 border-t border-black/10 dark:border-white/10 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="flex items-center gap-1 text-primaryColor-600 dark:text-primaryColor-400 text-[11px] font-mono">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Hardware Passkey Protected</span>
           </div>
           <button
             onClick={logoutAccount}
-            className="text-red-400 hover:underline transition flex items-center gap-1 text-[11px] cursor-pointer"
+            className="text-red-600 dark:text-red-400 hover:underline transition flex items-center gap-1 text-[11px] cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>{t('logoutAccount')}</span>

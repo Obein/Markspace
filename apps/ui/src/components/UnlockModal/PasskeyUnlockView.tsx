@@ -50,13 +50,13 @@ export const PasskeyUnlockView: React.FC<PasskeyUnlockViewProps> = ({
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Vault Identity Badge - Locked State Icon */}
       <div className="text-center space-y-1.5">
-        <div className="inline-flex p-3.5 rounded-2xl bg-primaryColor-500/15 border border-black/10 dark:border-white/15 backdrop-blur-md text-primaryColor-500 shadow-lg shadow-primaryColor-500/10 mb-2">
+        <div className="inline-flex p-3.5 rounded-2xl bg-primaryColor-500/15 border border-primaryColor-500/25 backdrop-blur-md text-primaryColor-600 dark:text-primaryColor-400 shadow-lg shadow-primaryColor-500/10 mb-2">
           <Lock className="w-8 h-8" />
         </div>
-        <h2 className="text-base font-bold text-white tracking-wide">
+        <h2 className="text-base font-bold text-zinc-900 dark:text-white tracking-wide">
           {activeVault?.name || t('encryptedVault') || 'Encrypted Vault'}
         </h2>
-        <p className="text-xs text-zinc-400 font-mono">
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
           {t('passkeyUnlockDesc') || 'Unlock with biometric hardware or security key'}
         </p>
       </div>
@@ -83,8 +83,8 @@ export const PasskeyUnlockView: React.FC<PasskeyUnlockViewProps> = ({
             )}
           </button>
         ) : (
-          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs flex items-center gap-2 font-mono">
-            <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-200 text-xs flex items-center gap-2 font-mono">
+            <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
             <span>Passkeys are not supported on this device. Please use your 8-word recovery phrase.</span>
           </div>
         )}
@@ -93,9 +93,9 @@ export const PasskeyUnlockView: React.FC<PasskeyUnlockViewProps> = ({
         <button
           type="button"
           onClick={onSwitchToRecovery}
-          className="w-full py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-black/10 dark:border-white/10 text-xs font-mono transition flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 px-4 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white border border-black/10 dark:border-white/10 text-xs font-mono transition flex items-center justify-center gap-2 cursor-pointer"
         >
-          <KeyRound className="w-3.5 h-3.5 text-primaryColor-400" />
+          <KeyRound className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400" />
           <span>{t('unlockWithRecovery') || 'Unlock with 8-Word Recovery Phrase'}</span>
         </button>
       </div>

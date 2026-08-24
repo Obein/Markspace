@@ -36,24 +36,24 @@ export const SetupPasskeyView: React.FC<SetupPasskeyViewProps> = ({
     <div className="space-y-5 animate-in fade-in duration-200">
       {/* Header */}
       <div className="text-center space-y-1.5">
-        <div className="inline-flex p-3.5 rounded-2xl bg-primaryColor-500/15 border border-black/10 dark:border-white/15 backdrop-blur-md text-primaryColor-500 shadow-lg shadow-primaryColor-500/10 mb-2">
+        <div className="inline-flex p-3.5 rounded-2xl bg-primaryColor-500/15 border border-primaryColor-500/25 backdrop-blur-md text-primaryColor-600 dark:text-primaryColor-400 shadow-lg shadow-primaryColor-500/10 mb-2">
           <Fingerprint className="w-8 h-8 animate-pulse" />
         </div>
-        <h2 className="text-base font-bold text-white tracking-wide">
+        <h2 className="text-base font-bold text-zinc-900 dark:text-white tracking-wide">
           {t('setupPasskeyTitle') || 'Setup Device Passkey'}
         </h2>
-        <p className="text-xs text-zinc-400 font-mono">
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
           {t('setupPasskeyDesc') || 'Create a hardware Passkey before creating or unlocking encrypted vaults.'}
         </p>
       </div>
 
       {/* Cloud & Platform Support Info Card */}
-      <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 space-y-2 text-xs font-mono">
-        <div className="flex items-center gap-1.5 text-primaryColor-400 font-semibold">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+      <div className="p-3.5 rounded-xl bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10 space-y-2 text-xs font-mono">
+        <div className="flex items-center gap-1.5 text-primaryColor-700 dark:text-primaryColor-400 font-semibold">
+          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
           <span>{t('supportedPasskeyProviders') || 'Cross-Platform & Cloud Synced Passkeys'}</span>
         </div>
-        <ul className="text-[11px] text-zinc-400 space-y-1 list-disc list-inside">
+        <ul className="text-[11px] text-zinc-600 dark:text-zinc-400 space-y-1 list-disc list-inside">
           <li>Google Password Manager (Chrome, Android)</li>
           <li>Apple iCloud Keychain (Safari, macOS, iOS)</li>
           <li>1Password, Bitwarden, Dashlane</li>
@@ -83,8 +83,8 @@ export const SetupPasskeyView: React.FC<SetupPasskeyViewProps> = ({
       </button>
 
       {/* Zero Trust Notice */}
-      <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono text-zinc-500 pt-2 border-t border-white/5">
-        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+      <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono text-zinc-500 dark:text-zinc-400 pt-2 border-t border-black/5 dark:border-white/5">
+        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
         <span>FIDO2 WebAuthn Hardware-Level Zero-Knowledge Protection</span>
       </div>
     </div>
