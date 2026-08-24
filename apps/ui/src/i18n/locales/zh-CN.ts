@@ -327,7 +327,7 @@ export const zhCN: typeof enUS = {
   commercialCloudDrive: '商业网盘',
   cloudDriveEnabledBadge: '网盘启用',
   cloudDriveActiveHint: '当前保险库使用商业网盘存储密文',
-  webdavStorage: 'WebDAV 协议',
+  webdavStorage: 'WebDAV',
   webdavEnabledBadge: 'WebDAV 启用',
   webdavActiveHint: '当前保险库使用 WebDAV 服务器同步',
   configured: '已配置',

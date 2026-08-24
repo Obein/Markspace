@@ -327,7 +327,7 @@ export const zhTW: typeof enUS = {
   commercialCloudDrive: '商業網盤',
   cloudDriveEnabledBadge: '網盤啟用',
   cloudDriveActiveHint: '目前保險庫使用商業網盤儲存密文',
-  webdavStorage: 'WebDAV 協定',
+  webdavStorage: 'WebDAV',
   webdavEnabledBadge: 'WebDAV 啟用',
   webdavActiveHint: '目前保險庫使用 WebDAV 伺服器同步',
   configured: '已設定',

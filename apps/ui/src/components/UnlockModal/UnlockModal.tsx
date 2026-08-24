@@ -95,7 +95,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
-      <div className="w-full max-w-md flex flex-col items-center my-auto">
+      <div className="w-full max-w-lg flex flex-col items-center my-auto">
         <div
           className={`w-full p-7 glass-panel rounded-glass-lg border border-black/10 dark:border-white/10 text-zinc-900 dark:text-white shadow-2xl relative overflow-hidden transition-transform duration-200 ${
             shake ? 'animate-shake' : ''

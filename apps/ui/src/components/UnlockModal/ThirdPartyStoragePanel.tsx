@@ -245,7 +245,7 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full p-3.5 flex items-center justify-between gap-3 text-left hover:bg-black/5 dark:hover:bg-white/5 transition cursor-pointer select-none"
       >
-        <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <div className="p-2 rounded-xl bg-black/5 dark:bg-white/5 text-primaryColor-600 dark:text-primaryColor-400 shrink-0">
             {config.provider === 'r2' ? (
               <Cloud className="w-4 h-4" />
@@ -258,27 +258,24 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
             )}
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono font-semibold text-zinc-800 dark:text-zinc-200 truncate">
                 {summary.title}
               </span>
               <span
-                className={`px-1.5 py-0.5 rounded-md border text-[10px] font-mono font-medium ${summary.badgeColor}`}
+                className={`px-2 py-0.5 rounded-md border text-[10px] font-mono font-medium whitespace-nowrap shrink-0 ${summary.badgeColor}`}
               >
                 {summary.badge}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5 font-mono flex items-center gap-1">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5 font-mono">
               {summary.hint}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
-          <span className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 hidden sm:inline">
-            {isExpanded ? t('collapse') : t('configure')}
-          </span>
+        <div className="flex items-center gap-1.5 shrink-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 whitespace-nowrap">
           <ChevronDown
             className={`w-4 h-4 transition-transform duration-300 ${
               isExpanded ? 'rotate-180 text-primaryColor-500' : ''
@@ -291,21 +288,21 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
       {isExpanded && (
         <div className="p-4 pt-2 border-t border-black/10 dark:border-white/10 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Storage Scheme Selector Tabs */}
-          <div className="flex p-1 rounded-xl bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10 gap-1 text-xs font-mono">
+          <div className="grid grid-cols-3 p-1 rounded-xl bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10 gap-1 text-xs font-mono">
             <button
               type="button"
               onClick={() => {
                 setActiveTab('s3');
                 setTestResult(null);
               }}
-              className={`flex-1 py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer ${
+              className={`py-2 px-1 sm:px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
                 activeTab === 's3'
                   ? 'bg-white dark:bg-zinc-800 text-primaryColor-600 dark:text-primaryColor-400 shadow-sm font-semibold'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
-              <HardDrive className="w-3.5 h-3.5" />
-              <span>{t('s3CompatibleStorage')}</span>
+              <HardDrive className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{t('s3CompatibleStorage')}</span>
             </button>
 
             <button
@@ -314,14 +311,14 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
                 setActiveTab('cloud_drive');
                 setTestResult(null);
               }}
-              className={`flex-1 py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer ${
+              className={`py-2 px-1 sm:px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
                 activeTab === 'cloud_drive'
                   ? 'bg-white dark:bg-zinc-800 text-primaryColor-600 dark:text-primaryColor-400 shadow-sm font-semibold'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
-              <Cloud className="w-3.5 h-3.5" />
-              <span>{t('commercialCloudDrive')}</span>
+              <Cloud className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{t('commercialCloudDrive')}</span>
             </button>
 
             <button
@@ -330,14 +327,14 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
                 setActiveTab('webdav');
                 setTestResult(null);
               }}
-              className={`flex-1 py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer ${
+              className={`py-2 px-1 sm:px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
                 activeTab === 'webdav'
                   ? 'bg-white dark:bg-zinc-800 text-primaryColor-600 dark:text-primaryColor-400 shadow-sm font-semibold'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
-              <Globe className="w-3.5 h-3.5" />
-              <span>{t('webdavStorage')}</span>
+              <Globe className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{t('webdavStorage')}</span>
             </button>
           </div>
 
@@ -378,18 +375,18 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
           )}
 
           {/* Action Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <div className="flex items-center justify-between gap-2 pt-1">
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleTestConnection}
                 disabled={isTesting}
-                className="px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-800 dark:text-zinc-200 border border-black/10 dark:border-white/10 text-xs font-mono transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-800 dark:text-zinc-200 border border-black/10 dark:border-white/10 text-xs font-mono transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
               >
                 {isTesting ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
                 ) : (
-                  <Radio className="w-3.5 h-3.5 text-primaryColor-500" />
+                  <Radio className="w-3.5 h-3.5 text-primaryColor-500 shrink-0" />
                 )}
                 <span>{isTesting ? t('testing') : t('testConnection')}</span>
               </button>
@@ -398,10 +395,10 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
                 <button
                   type="button"
                   onClick={handleResetToR2}
-                  className="px-2.5 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border border-black/10 dark:border-white/10 text-xs font-mono transition flex items-center gap-1 cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border border-black/10 dark:border-white/10 text-xs font-mono transition flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
                   title={t('restoreR2Desc')}
                 >
-                  <RotateCcw className="w-3 h-3" />
+                  <RotateCcw className="w-3 h-3 shrink-0" />
                   <span>{t('restoreR2')}</span>
                 </button>
               )}
@@ -411,9 +408,9 @@ export const ThirdPartyStoragePanel: React.FC<ThirdPartyStoragePanelProps> = ({
               type="button"
               onClick={handleSaveAndEnable}
               disabled={isSaving}
-              className="px-4 py-1.5 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-700 active:scale-95 text-white text-xs font-mono font-medium shadow-md shadow-primaryColor-500/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-4 py-1.5 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-700 active:scale-95 text-white text-xs font-mono font-medium shadow-md shadow-primaryColor-500/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
             >
-              <Save className="w-3.5 h-3.5" />
+              <Save className="w-3.5 h-3.5 shrink-0" />
               <span>{t('saveAndBind')}</span>
             </button>
           </div>
