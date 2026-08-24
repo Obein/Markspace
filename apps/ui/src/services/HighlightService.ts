@@ -14,6 +14,7 @@ import { Parser } from '@lezer/common';
 import { IHighlightService } from '../interfaces/IHighlightService';
 import { isMarkdownTableSeparator } from '../utils/TableConverter';
 import { customLanguageParsers, tryCustomHighlight } from './languages/languageRegistry';
+import { MathMarkdownExtension } from './languages/lezerMathExtension';
 
 export class HighlightService implements IHighlightService {
   private parsers: Record<string, Parser>;
@@ -67,9 +68,10 @@ export class HighlightService implements IHighlightService {
       ...customLanguageParsers,
     };
 
-    // Configure Markdown parser with GFM and nested fenced code block language parsers
+    // Configure Markdown parser with GFM, Math/LaTeX extension, and nested fenced code block language parsers
     this.markdownParser = baseMarkdownParser.configure([
       GFM,
+      MathMarkdownExtension,
       parseCode({
         codeParser: (info: string) => {
           const lang = info.trim().toLowerCase().split(/\s+/)[0];
