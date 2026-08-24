@@ -16,7 +16,7 @@ export const CloudDriveConfigForm: React.FC<CloudDriveConfigFormProps> = ({ conf
     { id: 'google_drive', label: 'Google Drive', authHint: 'OAuth Access Token / Service Account Key', tokenPlaceholder: 'ya29.a0AfH6SM...' },
     { id: 'onedrive', label: 'Microsoft OneDrive', authHint: 'Microsoft Graph OAuth Access Token', tokenPlaceholder: 'EwBoA8l6BAAU...' },
     { id: 'dropbox', label: 'Dropbox', authHint: 'Dropbox App Generated Access Token', tokenPlaceholder: 'sl.B4x...' },
-    { id: 'aliyun_drive', label: t('aliyunDriveLabel'), authHint: 'OpenAPI Access Token / Refresh Token', tokenPlaceholder: 'eyJhbGciOi...' },
+    { id: 'aliyun_drive', label: t('aliyunDriveLabel'), authHint: '', tokenPlaceholder: 'eyJhbGciOi...' },
     { id: 'quark_drive', label: t('quarkDriveLabel'), authHint: 'Cookie / 网页端授权 Token', tokenPlaceholder: 'b-user-id=...; b-cookie=...' },
   ];
 
