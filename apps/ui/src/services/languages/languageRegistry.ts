@@ -1,17 +1,15 @@
 import { Parser } from '@lezer/common';
 import {
   tokenizeAssembly,
-  tokenizeCpp,
   tokenizeCSharp,
   tokenizeFortran,
-  tokenizeGo,
-  tokenizeJava,
+  tokenizeLatex,
+  tokenizeMermaid,
   tokenizePascal,
-  tokenizePhp,
   tokenizeR,
-  tokenizeRust,
   tokenizeScratch,
   tokenizeVisualBasic,
+  tokenizeYaml,
   TokenizerFn,
 } from './customTokenizers';
 import { createCustomLanguageParser, highlightWithTokenizer } from './createLanguageParser';
@@ -26,28 +24,10 @@ export interface LanguageDefinition {
 
 const definitions: Array<{ name: string; aliases: string[]; display: string; tokenizer: TokenizerFn }> = [
   {
-    name: 'cpp',
-    aliases: ['c', 'cpp', 'c++', 'cc', 'cxx', 'h', 'hpp', 'hh', 'hxx'],
-    display: 'C / C++',
-    tokenizer: tokenizeCpp,
-  },
-  {
-    name: 'java',
-    aliases: ['java', 'jsp'],
-    display: 'Java',
-    tokenizer: tokenizeJava,
-  },
-  {
     name: 'csharp',
     aliases: ['c#', 'csharp', 'cs', 'dotnet'],
     display: 'C#',
     tokenizer: tokenizeCSharp,
-  },
-  {
-    name: 'rust',
-    aliases: ['rust', 'rs'],
-    display: 'Rust',
-    tokenizer: tokenizeRust,
   },
   {
     name: 'r',
@@ -74,18 +54,6 @@ const definitions: Array<{ name: string; aliases: string[]; display: string; tok
     tokenizer: tokenizeScratch,
   },
   {
-    name: 'php',
-    aliases: ['php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml'],
-    display: 'PHP',
-    tokenizer: tokenizePhp,
-  },
-  {
-    name: 'go',
-    aliases: ['go', 'golang'],
-    display: 'Go',
-    tokenizer: tokenizeGo,
-  },
-  {
     name: 'fortran',
     aliases: ['fortran', 'f90', 'f95', 'f03', 'f08', 'f77', 'for', 'f'],
     display: 'Fortran',
@@ -96,6 +64,24 @@ const definitions: Array<{ name: string; aliases: string[]; display: string; tok
     aliases: ['assembly', 'asm', 'nasm', 'masm', 'gas', 's', 'x86', 'x64', 'arm', 'aarch64', 'riscv'],
     display: 'Assembly',
     tokenizer: tokenizeAssembly,
+  },
+  {
+    name: 'yaml',
+    aliases: ['yaml', 'yml'],
+    display: 'YAML',
+    tokenizer: tokenizeYaml,
+  },
+  {
+    name: 'mermaid',
+    aliases: ['mermaid', 'mmd'],
+    display: 'Mermaid',
+    tokenizer: tokenizeMermaid,
+  },
+  {
+    name: 'latex',
+    aliases: ['latex', 'tex', 'math', 'katex', '$$'],
+    display: 'LaTeX',
+    tokenizer: tokenizeLatex,
   },
 ];
 
@@ -132,6 +118,15 @@ export function getLanguageDisplayLabel(rawLang: string): string {
     tsx: 'React TSX',
     py: 'Python',
     python: 'Python',
+    rust: 'Rust',
+    rs: 'Rust',
+    go: 'Go',
+    golang: 'Go',
+    cpp: 'C / C++',
+    c: 'C',
+    'c++': 'C++',
+    java: 'Java',
+    php: 'PHP',
     json: 'JSON',
     html: 'HTML',
     xml: 'XML',
@@ -142,6 +137,12 @@ export function getLanguageDisplayLabel(rawLang: string): string {
     zsh: 'Zsh',
     yaml: 'YAML',
     yml: 'YAML',
+    mermaid: 'Mermaid',
+    mmd: 'Mermaid',
+    latex: 'LaTeX',
+    tex: 'TeX',
+    math: 'Math',
+    katex: 'KaTeX',
     markdown: 'Markdown',
     md: 'Markdown',
   };

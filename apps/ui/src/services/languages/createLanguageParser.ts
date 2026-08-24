@@ -45,8 +45,8 @@ export function createCustomLanguageParser(tokenizer: TokenizerFn): Parser {
           const tokens = tokenizer(text);
           const buffer: number[] = [];
 
-          // Lezer Tree.build requires bottom-up post-order buffer
-          for (let i = tokens.length - 1; i >= 0; i--) {
+          // Lezer Tree.build with flat leaf nodes expects buffer in forward ascending order
+          for (let i = 0; i < tokens.length; i++) {
             const tok = tokens[i];
             buffer.push(tok.id, tok.from, tok.to, 4);
           }

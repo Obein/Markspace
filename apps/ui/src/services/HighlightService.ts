@@ -5,6 +5,11 @@ import { parser as jsonParser } from '@lezer/json';
 import { parser as pythonParser } from '@lezer/python';
 import { parser as htmlParser } from '@lezer/html';
 import { parser as cssParser } from '@lezer/css';
+import { parser as rustParser } from '@lezer/rust';
+import { parser as goParser } from '@lezer/go';
+import { parser as cppParser } from '@lezer/cpp';
+import { parser as javaParser } from '@lezer/java';
+import { parser as phpParser } from '@lezer/php';
 import { Parser } from '@lezer/common';
 import { IHighlightService } from '../interfaces/IHighlightService';
 import { isMarkdownTableSeparator } from '../utils/TableConverter';
@@ -23,6 +28,11 @@ export class HighlightService implements IHighlightService {
     const python = pythonParser;
     const html = htmlParser;
     const css = cssParser;
+    const rust = rustParser;
+    const go = goParser;
+    const cpp = cppParser;
+    const java = javaParser;
+    const php = phpParser;
 
     this.parsers = {
       js,
@@ -37,6 +47,23 @@ export class HighlightService implements IHighlightService {
       html,
       xml: html,
       css,
+      rust,
+      rs: rust,
+      go,
+      golang: go,
+      cpp,
+      c: cpp,
+      'c++': cpp,
+      cc: cpp,
+      cxx: cpp,
+      h: cpp,
+      hpp: cpp,
+      hh: cpp,
+      hxx: cpp,
+      java,
+      jsp: java,
+      php,
+      phtml: php,
       ...customLanguageParsers,
     };
 
@@ -59,13 +86,13 @@ export class HighlightService implements IHighlightService {
   public highlightCode(code: string, language: string = 'javascript'): string {
     const langKey = (language || 'javascript').toLowerCase().trim();
 
-    // 1. Direct fast-path for custom languages
+    // 1. Direct fast-path for custom tokenized languages
     const customResult = tryCustomHighlight(code, langKey);
     if (customResult !== null) {
       return customResult;
     }
 
-    // 2. Lezer standard AST parsers for js, ts, python, json, html, css, markdown
+    // 2. Lezer official AST parsers (js, ts, rust, go, cpp, java, php, python, json, html, css, markdown)
     const parser =
       this.parsers[langKey] ||
       (langKey === 'markdown' || langKey === 'md' ? this.markdownParser : this.parsers['js']);

@@ -1,4 +1,6 @@
 /**
+ * Custom Tokenizers for languages without official @lezer/* packages.
+ *
  * Syntax Token Types matching Lezer classHighlighter output tags:
  * 2: Keyword (tok-keyword)
  * 3: String (tok-string)
@@ -58,29 +60,7 @@ function createScanner(rules: TokenRule[]): TokenizerFn {
   };
 }
 
-// ── 1. C / C++ ─────────────────────────────────────────────────────────────
-export const tokenizeCpp = createScanner([
-  { type: 8, regex: /^#\s*(include|define|undef|if|ifdef|ifndef|else|elif|endif|pragma|error|line|warning)\b[^\n]*/ },
-  { type: 5, regex: /^(\/\/[^\n]*|\/\*[\s\S]*?\*\/)/ },
-  { type: 3, regex: /^(R"([a-zA-Z0-9_]*)\([\s\S]*?\)\2"|"([^"\\]|\\.)*"|'([^'\\]|\\.)*')/ },
-  { type: 4, regex: /^(0x[0-9a-fA-F]+(\.[0-9a-fA-F]+)?([pP][+-]?\d+)?[uUlLzZ]*|0b[01]+[uUlL]*|\d+(\.\d+)?([eE][+-]?\d+)?[fFlLuU]*)\b/ },
-  { type: 6, regex: /^\b(int|char|short|long|float|double|bool|void|size_t|ssize_t|int8_t|int16_t|int32_t|int64_t|uint8_t|uint16_t|uint32_t|uint64_t|uintptr_t|intptr_t|auto|wchar_t|char8_t|char16_t|char32_t|string|wstring|string_view|vector|map|unordered_map|set|unordered_set|multiset|multimap|deque|list|forward_list|array|queue|priority_queue|stack|pair|tuple|optional|variant|any|shared_ptr|unique_ptr|weak_ptr|atomic|thread|mutex|chrono)\b/ },
-  { type: 2, regex: /^\b(if|else|for|while|do|switch|case|default|break|continue|return|goto|struct|class|union|enum|namespace|using|typedef|template|typename|concept|requires|public|protected|private|virtual|override|final|const|constexpr|consteval|constinit|static|inline|explicit|friend|mutable|volatile|try|catch|throw|noexcept|new|delete|nullptr|true|false|this|sizeof|alignas|alignof|decltype|static_assert|co_await|co_yield|co_return)\b/ },
-  { type: 7, regex: /^(::|->|\+\+|--|<<=|>>=|<=|>=|==|!=|&&|\|\||<<|>>|\+=|-=|\*=|(?:\/)=|%=|&=|\|=|\^=|[-+*/%&|^!=<>~?])/ },
-]);
-
-// ── 2. Java ────────────────────────────────────────────────────────────────
-export const tokenizeJava = createScanner([
-  { type: 8, regex: /^@[A-Za-z_][A-Za-z0-9_.]*/ },
-  { type: 5, regex: /^(\/\/[^\n]*|\/\*[\s\S]*?\*\/)/ },
-  { type: 3, regex: /^("""[\s\S]*?"""|"([^"\\]|\\.)*"|'([^'\\]|\\.)*')/ },
-  { type: 4, regex: /^(0x[0-9a-fA-F]+[lL]?|0b[01]+[lL]?|\d+(\.\d+)?([eE][+-]?\d+)?[fFdDlL]?)\b/ },
-  { type: 6, regex: /^\b(byte|short|int|long|float|double|char|boolean|void|String|Integer|Long|Double|Float|Boolean|Character|Byte|Short|Object|Class|List|ArrayList|LinkedList|Map|HashMap|LinkedHashMap|TreeMap|Set|HashSet|LinkedHashSet|TreeSet|Optional|Stream|CompletableFuture|Thread|Runnable|Callable|Exception|RuntimeException|Throwable|BigDecimal|BigInteger)\b/ },
-  { type: 2, regex: /^\b(public|private|protected|static|final|abstract|synchronized|volatile|transient|native|strictfp|class|interface|enum|record|extends|implements|permits|sealed|non-sealed|import|package|if|else|for|while|do|switch|case|default|break|continue|return|try|catch|finally|throw|throws|new|this|super|instanceof|null|true|false|yield|var|const|goto)\b/ },
-  { type: 7, regex: /^(\+\+|--|<=|>=|==|!=|&&|\|\||<<=|>>=|>>>=|<<|>>>|>>|\+=|-=|\*=|(?:\/)=|%=|&=|\|=|\^=|[-+*/%&|^!=<>~?:])/ },
-]);
-
-// ── 3. C# ──────────────────────────────────────────────────────────────────
+// ── 1. C# ──────────────────────────────────────────────────────────────────
 export const tokenizeCSharp = createScanner([
   { type: 8, regex: /^(#\s*(region|endregion|pragma|if|else|elif|endif|define|undef|warning|error|nullable)\b[^\n]*|\[[A-Za-z_][A-Za-z0-9_]*(?:\(.*?\))?\])/ },
   { type: 5, regex: /^(\/\/[^\n]*|\/\*[\s\S]*?\*\/)/ },
@@ -91,19 +71,7 @@ export const tokenizeCSharp = createScanner([
   { type: 7, regex: /^(\?\?=|=>|\?\?|\+\+|--|<=|>=|==|!=|&&|\|\||<<=|>>=|<<|>>|\+=|-=|\*=|(?:\/)=|%=|&=|\|=|\^=|[-+*/%&|^!=<>~?:])/ },
 ]);
 
-// ── 4. Rust ────────────────────────────────────────────────────────────────
-export const tokenizeRust = createScanner([
-  { type: 8, regex: /^(#\!\[[\s\S]*?\]|#\[[\s\S]*?\]|\b(println|eprintln|print|eprint|format|vec|panic|assert|assert_eq|assert_ne|debug_assert|cfg|todo|unimplemented|unreachable|macro_rules)!)/ },
-  { type: 5, regex: /^(\/\/[^\n]*|\/\*[\s\S]*?\*\/)/ },
-  { type: 3, regex: /^(r#"[^"]*"#|r"[^"]*"|b"([^"\\]|\\.)*"|b'([^'\\]|\\.)*'|"([^"\\]|\\.)*"|'([^'\\]|\\.)*')/ },
-  { type: 10, regex: /^'([a-z_][a-z0-9_]*)\b/ }, // Lifetime
-  { type: 4, regex: /^(0x[0-9a-fA-F_]+[uif0-9]*|0b[01_]+[uif0-9]*|0o[0-7_]+[uif0-9]*|\d[\d_]*(\.[\d_]+)?([eE][+-]?\d+)?[uif0-9]*)\b/ },
-  { type: 6, regex: /^\b(i8|i16|i32|i64|i128|isize|u8|u16|u32|u64|u128|usize|f32|f64|bool|char|str|String|Option|Some|None|Result|Ok|Err|Vec|Box|Rc|Arc|RefCell|Cell|Mutex|RwLock|HashMap|HashSet|BTreeMap|BTreeSet|Pin|Future|Send|Sync|Clone|Copy|Debug|Default|Display|Drop|Eq|PartialEq|Ord|PartialOrd|Iterator|Into|From|AsRef|Self|self)\b/ },
-  { type: 2, regex: /^\b(as|async|await|break|const|continue|crate|dyn|else|enum|extern|false|fn|for|if|impl|in|let|loop|match|mod|move|mut|pub|ref|return|static|struct|super|trait|true|type|unsafe|use|where|while)\b/ },
-  { type: 7, regex: /^(::|->|=>|\.\.=?|\+\+|--|<=|>=|==|!=|&&|\|\||<<=|>>=|<<|>>|\+=|-=|\*=|(?:\/)=|%=|&=|\|=|\^=|[-+*/%&|^!=<>~?:])/ },
-]);
-
-// ── 5. R ───────────────────────────────────────────────────────────────────
+// ── 2. R ───────────────────────────────────────────────────────────────────
 export const tokenizeR = createScanner([
   { type: 5, regex: /^#[^\n]*/ },
   { type: 3, regex: /^("([^"\\]|\\.)*"|'([^'\\]|\\.)*')/ },
@@ -114,7 +82,7 @@ export const tokenizeR = createScanner([
   { type: 7, regex: /^(<<-|->>|<-|->|%\w*%|%in%|%\*%|%%|%\/%|::|:::|\$|@|~|\+\+|--|<=|>=|==|!=|&&|\|\||[-+*/%&|^!=<>?:])/ },
 ]);
 
-// ── 6. Visual Basic ────────────────────────────────────────────────────────
+// ── 3. Visual Basic ────────────────────────────────────────────────────────
 export const tokenizeVisualBasic = createScanner([
   { type: 5, regex: /^('[^\n]*|\bREM\b[^\n]*)/i },
   { type: 3, regex: /^"([^"\n]|"")*"/ },
@@ -124,7 +92,7 @@ export const tokenizeVisualBasic = createScanner([
   { type: 7, regex: /^(<=|>=|<>|:=|\+=|-=|\*=|(?:\/)=|\\=|\^=|&=|[-+*/\\^&=<>])/ },
 ]);
 
-// ── 7. Pascal / Delphi ─────────────────────────────────────────────────────
+// ── 4. Pascal / Delphi ─────────────────────────────────────────────────────
 export const tokenizePascal = createScanner([
   { type: 5, regex: /^(\/\/[^\n]*|\{[\s\S]*?\}|\(\*[\s\S]*?\*\))/ },
   { type: 3, regex: /^'([^'\n]|'')*'/ },
@@ -134,7 +102,7 @@ export const tokenizePascal = createScanner([
   { type: 7, regex: /^(:=|\.\.|<=|>=|<>|[-+*/=<>@^])/ },
 ]);
 
-// ── 8. Scratch / Scratchblocks ─────────────────────────────────────────────
+// ── 5. Scratch / Scratchblocks ─────────────────────────────────────────────
 export const tokenizeScratch = createScanner([
   { type: 5, regex: /^(\/\/[^\n]*|#\s*[^\n]*)/ },
   { type: 3, regex: /^("([^"\\]|\\.)*"|'([^'\\]|\\.)*'|\[[^\]\n]*\])/ },
@@ -146,30 +114,7 @@ export const tokenizeScratch = createScanner([
   { type: 7, regex: /^(\+|-|\*|\/|=|<|>|and|or|not|join|letter\s+of|length\s+of|contains|mod|round)/i },
 ]);
 
-// ── 9. PHP ─────────────────────────────────────────────────────────────────
-export const tokenizePhp = createScanner([
-  { type: 8, regex: /^(<\?php|<\?=|\?>)/ },
-  { type: 5, regex: /^(\/\/[^\n]*|\/\*[\s\S]*?\*\/|#[^\n]*)/ },
-  { type: 3, regex: /^("([^"\\]|\\.)*"|'([^'\\]|\\.)*'|<<<([A-Za-z_]+)[\s\S]*?\n\4;?)/ },
-  { type: 9, regex: /^\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*/ },
-  { type: 4, regex: /^(0x[0-9a-fA-F]+|0b[01]+|\d+(\.\d+)?([eE][+-]?\d+)?)\b/ },
-  { type: 6, regex: /^\b(int|float|string|bool|array|object|callable|iterable|void|never|mixed|null|false|true|self|parent|static)\b/i },
-  { type: 2, regex: /^\b(abstract|and|as|break|case|catch|class|clone|const|continue|declare|default|die|do|echo|else|elseif|empty|enddeclare|endfor|endforeach|endif|endswitch|endwhile|enum|eval|exit|extends|final|finally|fn|for|foreach|function|global|goto|if|implements|include|include_once|instanceof|insteadof|interface|isset|list|match|namespace|new|or|print|private|protected|public|readonly|require|require_once|return|static|switch|throw|trait|try|unset|use|var|while|xor|yield)\b/i },
-  { type: 7, regex: /^(->|\?->|::|=>|\?\?=|===|!==|\?\?|<=|>=|==|!=|<=>|\+\+|--|\+=|-=|\*=|(?:\/)=|\.=|[-+*/%.&|^!=<>?:])/ },
-]);
-
-// ── 10. Go ─────────────────────────────────────────────────────────────────
-export const tokenizeGo = createScanner([
-  { type: 5, regex: /^(\/\/[^\n]*|\/\*[\s\S]*?\*\/)/ },
-  { type: 3, regex: /^(`[^`]*`|"([^"\\]|\\.)*"|'([^'\\]|\\.)*')/ },
-  { type: 4, regex: /^(0x[0-9a-fA-F_]+|0b[01_]+|0o[0-7_]+|\d[\d_]*(\.[\d_]+)?([eE][+-]?\d+)?i?)\b/ },
-  { type: 6, regex: /^\b(bool|byte|complex64|complex128|error|float32|float64|int|int8|int16|int32|int64|rune|string|uint|uint8|uint16|uint32|uint64|uintptr|any|comparable|nil|true|false|iota)\b/ },
-  { type: 9, regex: /^\b(append|cap|close|complex|copy|delete|imag|len|make|new|panic|print|println|real|recover|clear|min|max)\b/ },
-  { type: 2, regex: /^\b(break|case|chan|const|continue|default|defer|else|fallthrough|for|func|go|goto|if|import|interface|map|package|range|return|select|struct|switch|type|var)\b/ },
-  { type: 7, regex: /^(:=|<-|\.\.\.|\+\+|--|<=|>=|==|!=|&&|\|\||<<=|>>=|\&^=|\&^|<<|>>|\+=|-=|\*=|(?:\/)=|%=|&=|\|=|\^=|[-+*/%&|^!=<>?:])/ },
-]);
-
-// ── 11. Fortran ────────────────────────────────────────────────────────────
+// ── 6. Fortran ─────────────────────────────────────────────────────────────
 export const tokenizeFortran = createScanner([
   { type: 5, regex: /^(![^\n]*|^[Cc*][^\n]*)/ },
   { type: 3, regex: /^("([^"\\]|\\.)*"|'([^'\\]|\\.)*')/ },
@@ -180,7 +125,7 @@ export const tokenizeFortran = createScanner([
   { type: 7, regex: /^(::|=>|\/\/|\*\*|<=|>=|==|\/=|[-+*/=<>])/ },
 ]);
 
-// ── 12. Assembly (x86, ARM, RISC-V, NASM, GAS) ─────────────────────────────
+// ── 7. Assembly (x86, ARM, RISC-V, NASM, GAS) ──────────────────────────────
 export const tokenizeAssembly = createScanner([
   { type: 5, regex: /^(;[^\n]*|#[^\n]*|\/\/[^\n]*|\/\*[\s\S]*?\*\/)/ },
   { type: 8, regex: /^(\.[a-zA-Z_][a-zA-Z0-9_]*|\b(SECTION|SEGMENT|GLOBAL|GLOBL|EXTERN|EQU|ORG|BITS|USE16|USE32|USE64|DB|DW|DD|DQ|DT|RESB|RESW|RESD|RESQ)\b)/i },
@@ -190,4 +135,40 @@ export const tokenizeAssembly = createScanner([
   { type: 9, regex: /^[a-zA-Z_.][a-zA-Z0-9_$.]*:/ }, // Labels
   { type: 2, regex: /^\b(mov|movzx|movsx|lea|push|pop|pushf|popf|add|sub|mul|imul|div|idiv|inc|dec|neg|and|or|xor|not|shl|shr|sal|sar|rol|ror|cmp|test|jmp|je|jne|jz|jnz|jg|jge|jl|jle|ja|jae|jb|jbe|call|ret|syscall|sysenter|int|nop|hlt|clc|stc|cld|std|cli|sti|cmov[a-z]+|set[a-z]+|rep|repe|repne|movsb|movsw|movsd|movsq|ldr|str|ldp|stp|movz|movk|movn|adr|adrp|b|bl|blr|bx|cbz|cbnz|tbz|tbnz|svc|eret|wfi|wfe|lui|auipc|jal|jalr|beq|bne|blt|bge|bltu|bgeu|lb|lh|lw|ld|lbu|lhu|lwu|sb|sh|sw|sd|addi|slti|sltiu|xori|ori|andi|slli|srli|srai|ecall|ebreak)\b/i },
   { type: 7, regex: /^([+\-*/%&|^!=<>~?:,\[\]])/ },
+]);
+
+// ── 8. YAML ────────────────────────────────────────────────────────────────
+export const tokenizeYaml = createScanner([
+  { type: 5, regex: /^#[^\n]*/ },
+  { type: 8, regex: /^(---|\.\.\.|%YAML\s+[0-9.]+)/ },
+  { type: 8, regex: /^([&*][a-zA-Z0-9_-]+)/ }, // Anchors & Aliases
+  { type: 6, regex: /^(!{1,2}[a-zA-Z0-9_/-]+)/ }, // Tags
+  { type: 9, regex: /^([a-zA-Z0-9_-]+|"[^"\n]*"|'[^'\n]*')(?=\s*:)/ }, // Key names
+  { type: 3, regex: /^("([^"\\]|\\.)*"|'([^'\\]|\\.)*'|[|>][+-]?)/ },
+  { type: 10, regex: /^\b(true|false|yes|no|on|off|null|~|TRUE|FALSE|YES|NO|ON|OFF|NULL)\b/ },
+  { type: 4, regex: /^(0x[0-9a-fA-F]+|0o[0-7]+|\b\d+(\.\d+)?([eE][+-]?\d+)?\b|\.inf|\.nan)\b/i },
+  { type: 7, regex: /^(:|\?|-|\{|\}|\[|\]|,)/ },
+]);
+
+// ── 9. Mermaid ─────────────────────────────────────────────────────────────
+export const tokenizeMermaid = createScanner([
+  { type: 5, regex: /^%%[^\n]*/ },
+  { type: 8, regex: /^%%\{[\s\S]*?\}%%/ },
+  { type: 8, regex: /^\b(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram-v2|stateDiagram|erDiagram|gantt|pie|gitGraph|mindmap|quadrantChart|xychart-beta|timeline|sankey-beta|block-beta|journey|C4Context|C4Container|C4Component|C4Dynamic|C4Deployment|zenuml)\b/i },
+  { type: 6, regex: /^\b(TB|TD|BT|RL|LR)\b/ },
+  { type: 2, regex: /^\b(subgraph|end|section|title|accTitle|accDescr|participant|actor|boundary|control|entity|database|collections|autonumber|activate|deactivate|loop|alt|else|opt|par|and|critical|option|break|rect|note|over|right\s+of|left\s+of|classDef|class|style|linkStyle|interpolate|click|callback|call|href|commit|branch|checkout|merge|cherry-pick|tag|showData)\b/i },
+  { type: 3, regex: /^"([^"\\]|\\.)*"/ },
+  { type: 4, regex: /^\b\d+(\.\d+)?\b/ },
+  { type: 7, regex: /^(==>|-->|---|-.->|-\.->|->>|-->>|->|--o|--x|x--x|o--o|\+\+|\.\.|:::|<\|--|--\|>|\*--|--\*|o--|--o|:=|[-+*/=<>|:])/ },
+]);
+
+// ── 10. LaTeX / KaTeX / Math ───────────────────────────────────────────────
+export const tokenizeLatex = createScanner([
+  { type: 5, regex: /^%[^\n]*/ },
+  { type: 8, regex: /^\\(begin|end)\{[a-zA-Z0-9_*]+\}/ },
+  { type: 2, regex: /^\\[a-zA-Z@]+/ },
+  { type: 2, regex: /^\\[^a-zA-Z0-9\s]/ },
+  { type: 3, regex: /^("([^"\\]|\\.)*"|'([^'\\]|\\.)*')/ },
+  { type: 4, regex: /^\b\d+(\.\d+)?\b/ },
+  { type: 7, regex: /^([&^_+*/=<>|~:,\-\{\}\(\)\[\]])/ },
 ]);
