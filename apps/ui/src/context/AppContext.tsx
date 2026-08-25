@@ -47,7 +47,7 @@ const cryptoService = new EnvelopeCryptoService();
 const apiClient = new ApiClient();
 const sheetEngine = new SheetEvaluator();
 const highlightService = new HighlightService();
-const previewService = new MarkdownPreviewService(highlightService);
+const previewService = new MarkdownPreviewService(highlightService, sheetEngine);
 
 const AppContext = createContext<AppContextType | null>(null);
 

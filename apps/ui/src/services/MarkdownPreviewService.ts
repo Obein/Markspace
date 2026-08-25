@@ -2,14 +2,17 @@ import { marked, Renderer, Tokens } from 'marked';
 import katex from 'katex';
 import { IPreviewService } from '../interfaces/IPreviewService';
 import { IHighlightService } from '../interfaces/IHighlightService';
+import { ISheetEngine } from '../interfaces/ISheetEngine';
 import { getLanguageDisplayLabel } from './languages/languageRegistry';
 
 export class MarkdownPreviewService implements IPreviewService {
   private customRenderer: Renderer;
   private highlightService: IHighlightService;
+  private sheetEngine?: ISheetEngine;
 
-  constructor(highlightService: IHighlightService) {
+  constructor(highlightService: IHighlightService, sheetEngine?: ISheetEngine) {
     this.highlightService = highlightService;
+    this.sheetEngine = sheetEngine;
     this.customRenderer = new Renderer();
 
     // Custom code block renderer: handles Mermaid, LaTeX/Math, and Syntax Highlighting
@@ -90,6 +93,15 @@ export class MarkdownPreviewService implements IPreviewService {
         codeBlockPlaceholders.set(key, fenced);
         return key;
       });
+
+      // 0.5 Evaluate Spreadsheet Table Formulas in Markdown Preview
+      if (this.sheetEngine) {
+        try {
+          processed = this.sheetEngine.evaluateMarkdownFormulas(processed);
+        } catch (err) {
+          console.warn('Table formula evaluation error in preview', err);
+        }
+      }
 
       // 1. Extract raw Mermaid diagram blocks line-by-line (strictly terminating before markdown dividers or headings)
       processed = extractRawMermaidBlocks(processed, createPlaceholder);

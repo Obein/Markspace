@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { TableAlignment } from '../../utils/TableConverter';
 import { SelectedCellCoord } from './VisualTableEditor.types';
@@ -10,7 +10,7 @@ interface SpreadsheetGridProps {
   evaluatedRows: string[][];
   selectedCell: SelectedCellCoord | null;
   activeInputRef: React.RefObject<HTMLInputElement | null>;
-  onSelectCell: (cell: SelectedCellCoord) => void;
+  onSelectCell: (cell: SelectedCellCoord | null) => void;
   onCellChange: (r: number, c: number, value: string) => void;
   onKeyDown: (e: React.KeyboardEvent, r: number, c: number) => void;
   onAddColumn: (atIndex?: number) => void;
@@ -37,7 +37,14 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
   getColLetter,
 }) => {
   return (
-    <div className="flex-1 overflow-auto p-6 scrollbar-thin">
+    <div
+      className="flex-1 overflow-auto p-6 scrollbar-thin cursor-default"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onSelectCell(null);
+        }
+      }}
+    >
       <table className="border-collapse w-full min-w-[500px] text-xs font-editor-mono font-mono">
         <thead>
           {/* Alphabetical Column Header Bar (A, B, C...) */}
