@@ -33,16 +33,11 @@ export class MtlsSecurityService {
     const cf = (request as any).cf;
     const tlsAuth = cf?.tlsClientAuth;
 
-    // Check Cloudflare headers as fallback
-    const certPresentedHeader = request.headers.get('cf-tls-client-auth-cert-presented') || tlsAuth?.certPresented;
-    const certVerifiedHeader = request.headers.get('cf-tls-client-auth-status') || tlsAuth?.certVerified;
-    const fingerprint =
-      request.headers.get('cf-tls-client-auth-fingerprint') || tlsAuth?.certFingerprintSHA256 || undefined;
-    const subjectDn = request.headers.get('cf-tls-client-auth-subject') || tlsAuth?.certSubjectDN || undefined;
-    const issuerDn = request.headers.get('cf-tls-client-auth-issuer') || tlsAuth?.certIssuerDN || undefined;
-
-    const certPresented = certPresentedHeader === '1' || certPresentedHeader === 'true' || Boolean(tlsAuth?.certPresented === '1');
-    const certVerified = certVerifiedHeader === 'SUCCESS' || tlsAuth?.certVerified === 'SUCCESS';
+    const certPresented = Boolean(tlsAuth?.certPresented === '1');
+    const certVerified = tlsAuth?.certVerified === 'SUCCESS';
+    const fingerprint = tlsAuth?.certFingerprintSHA256 || undefined;
+    const subjectDn = tlsAuth?.certSubjectDN || undefined;
+    const issuerDn = tlsAuth?.certIssuerDN || undefined;
 
     if (!certPresented) {
       return {
@@ -54,7 +49,7 @@ export class MtlsSecurityService {
     }
 
     if (!certVerified) {
-      const failReason = tlsAuth?.certVerified || certVerifiedHeader || 'Verification failed';
+      const failReason = tlsAuth?.certVerified || 'Verification failed';
       return {
         success: false,
         certPresented: true,

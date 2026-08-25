@@ -290,7 +290,7 @@ export class JwtTokenService implements ITokenService {
       throw new Error('EXPIRED_REFRESH_TOKEN: Refresh token has expired');
     }
 
-    if (record.dpop_jkt && presentedDpopJkt && record.dpop_jkt !== presentedDpopJkt) {
+    if (record.dpop_jkt && record.dpop_jkt !== presentedDpopJkt) {
       await this.revokeFamily(db, record.family_id, 'DPOP_DEVICE_MISMATCH');
       throw new Error('SECURITY_ALERT: DPoP device key mismatch during token refresh');
     }
@@ -328,16 +328,16 @@ export class JwtTokenService implements ITokenService {
           `GEO_ANOMALY_DETECTED: Shifted by ${geoCheck.distanceKm.toFixed(1)}km`
         );
 
+        console.error(
+          `[SECURITY AUDIT] GEO_ANOMALY_DETECTED: Session ${record.family_id} shifted ${geoCheck.distanceKm.toFixed(1)}km. ` +
+          `Original: (${family.latitude}, ${family.longitude}), Current: (${clientMeta.latitude}, ${clientMeta.longitude})`
+        );
         const geoError: any = new Error(
-          `GEO_ANOMALY_DETECTED: Request location shifted by ${geoCheck.distanceKm.toFixed(1)}km (>50km zero-trust threshold). Session has been automatically terminated.`
+          `GEO_ANOMALY_DETECTED: Request location shifted beyond zero-trust threshold. Session has been automatically terminated.`
         );
         geoError.code = 'GEO_ANOMALY_DETECTED';
         geoError.status = 401;
         geoError.details = {
-          initialLat: family.latitude,
-          initialLon: family.longitude,
-          currentLat: clientMeta.latitude,
-          currentLon: clientMeta.longitude,
           distanceKm: geoCheck.distanceKm,
         };
         throw geoError;
