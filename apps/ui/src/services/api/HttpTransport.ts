@@ -73,10 +73,11 @@ export class HttpTransport {
 
     this.refreshPromise = (async () => {
       try {
+        const headers = await this.getHeaders('POST', '/auth/refresh');
         const res = await fetch(`${this.baseUrl}/auth/refresh`, {
           method: 'POST',
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
         });
 
         this.updateResponseHeaders(res);

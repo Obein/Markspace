@@ -9,12 +9,14 @@ export class AuthApi {
    */
   async initSession(): Promise<AuthResponse | null> {
     try {
+      const headers = await this.transport.getHeaders('POST', '/auth/refresh');
       const res = await fetch(`${this.transport.getBaseUrl()}/auth/refresh`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
       });
 
+      this.transport.updateResponseHeaders(res);
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success || !json?.data?.accessToken) {
         this.transport.setToken('');
@@ -22,7 +24,7 @@ export class AuthApi {
       }
 
       const data = json.data as AuthResponse;
-      this.transport.setToken(data.accessToken, data.expiresIn || 60);
+      this.transport.setToken(data.accessToken, data.expiresIn || 900);
       return data;
     } catch {
       this.transport.setToken('');
@@ -34,7 +36,7 @@ export class AuthApi {
     const res = await this.transport.request<AuthResponse>('/auth/refresh', {
       method: 'POST',
     });
-    this.transport.setToken(res.accessToken || res.token || '', res.expiresIn || 60);
+    this.transport.setToken(res.accessToken || res.token || '', res.expiresIn || 900);
     return res;
   }
 
@@ -50,7 +52,7 @@ export class AuthApi {
       method: 'POST',
       body: JSON.stringify({ username, authToken, rememberMe }),
     });
-    this.transport.setToken(data.accessToken || data.token || '', data.expiresIn || 60);
+    this.transport.setToken(data.accessToken || data.token || '', data.expiresIn || 900);
     return data;
   }
 
@@ -59,7 +61,7 @@ export class AuthApi {
       method: 'POST',
       body: JSON.stringify({ username, authToken, totpCode, rememberMe }),
     });
-    this.transport.setToken(data.accessToken || data.token || '', data.expiresIn || 60);
+    this.transport.setToken(data.accessToken || data.token || '', data.expiresIn || 900);
     return data;
   }
 
@@ -68,7 +70,7 @@ export class AuthApi {
       method: 'POST',
       body: JSON.stringify({ username, totpCode, rememberMe }),
     });
-    this.transport.setToken(data.accessToken || data.token || '', data.expiresIn || 60);
+    this.transport.setToken(data.accessToken || data.token || '', data.expiresIn || 900);
     return data;
   }
 
@@ -92,10 +94,11 @@ export class AuthApi {
 
   async logout(): Promise<void> {
     try {
+      const headers = await this.transport.getHeaders('POST', '/auth/logout');
       await fetch(`${this.transport.getBaseUrl()}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
       });
     } catch (err) {
       console.warn('Failed to record logout on backend', err);
