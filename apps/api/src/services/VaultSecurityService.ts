@@ -36,6 +36,9 @@ export class VaultSecurityService {
     kek?: string
   ): Promise<CryptoKey> {
     const secret = kek || 'markspace-zero-trust-oprf-server-master-secret-v1';
+    if (!secret || secret.length < 16) {
+      throw new Error('SECURITY_ERROR: Server KEK (Key Encryption Key) master secret is not configured.');
+    }
     const encoder = new TextEncoder();
     const keyData = encoder.encode(secret);
     const message = encoder.encode(`oprf_vault_key:${userId}:${vaultId}:${serverSalt}`);

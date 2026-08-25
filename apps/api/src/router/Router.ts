@@ -274,13 +274,14 @@ export class Router {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
+    const origin = request.headers.get('Origin');
     const clientIp =
       request.headers.get('CF-Connecting-IP') ||
       request.headers.get('X-Forwarded-For') ||
       '127.0.0.1';
 
     if (method === 'OPTIONS') {
-      const corsRes = this.handleCorsOptions();
+      const corsRes = this.handleCorsOptions(origin);
       corsRes.headers.set('X-Client-IP', clientIp);
       return corsRes;
     }
@@ -300,7 +301,7 @@ export class Router {
         details: mtlsCheck.result.reason || 'mTLS machine identity verification failed',
       });
       mtlsCheck.errorResponse.headers.set('X-Client-IP', clientIp);
-      return SecurityHeadersMiddleware.applyHeaders(mtlsCheck.errorResponse);
+      return SecurityHeadersMiddleware.applyHeaders(mtlsCheck.errorResponse, origin);
     }
 
     try {
@@ -341,11 +342,19 @@ export class Router {
           }
         }
 
-        // AOP Aspect 1: Anti-Replay Nonce Verification (Before Advice)
-        // Handshake endpoint /api/v1/auth/nonce does not require a prior nonce
-        if (path !== '/api/v1/auth/nonce' && path.startsWith('/api/v1/')) {
+        // AOP Aspect 1: Anti-Replay Nonce Verification (Fail-Closed)
+        const isNonceExempt =
+          path === '/api/v1/auth/nonce' ||
+          path === '/api/v1/system/capabilities';
+
+        if (!isNonceExempt && path.startsWith('/api/v1/')) {
           const requestNonce = request.headers.get('X-Nonce');
-          if (requestNonce) {
+          if (!requestNonce) {
+            // Fail-closed for all protected or state-modifying routes
+            if (route.requiresAuth || method !== 'GET') {
+              throw new Error('SECURITY_NONCE_VIOLATION: Anti-replay X-Nonce header is strictly required');
+            }
+          } else {
             const validation = container.nonceService.consumeNonce(requestNonce, ctx.user?.userId);
             if (!validation.valid) {
               const isReuse = validation.reason === 'REUSE_LOCKOUT';
@@ -371,13 +380,13 @@ export class Router {
           }
         }
 
-        // Security headers & zero-trust DPoP checks
+        // Security headers & zero-trust DPoP checks (Fail-Closed)
         const dpopProof = request.headers.get('DPoP');
         if (dpopProof) {
           try {
             await DPoPVerifier.verifyProof(dpopProof, method, path);
-          } catch (dpopErr) {
-            console.warn('DPoP proof verification warning:', dpopErr);
+          } catch (dpopErr: any) {
+            throw new Error(`UNAUTHORIZED: DPoP proof verification failed (${dpopErr?.message || 'Invalid proof'})`);
           }
         }
 
@@ -388,7 +397,7 @@ export class Router {
         response.headers.set('X-Next-Nonce', nextNonce);
         response.headers.set('X-Client-IP', clientIp);
 
-        return SecurityHeadersMiddleware.applyHeaders(response);
+        return SecurityHeadersMiddleware.applyHeaders(response, origin);
       }
 
       const notFoundRes = new Response(
@@ -403,29 +412,36 @@ export class Router {
         }
       );
       notFoundRes.headers.set('X-Client-IP', clientIp);
-      return SecurityHeadersMiddleware.applyHeaders(notFoundRes);
+      return SecurityHeadersMiddleware.applyHeaders(notFoundRes, origin);
     } catch (error) {
       const response = ErrorHandler.handle(error);
       const container = new ServiceContainer(env);
       const nextNonce = container.nonceService.generateNonce().nonce;
       response.headers.set('X-Next-Nonce', nextNonce);
       response.headers.set('X-Client-IP', clientIp);
-      return SecurityHeadersMiddleware.applyHeaders(response);
+      return SecurityHeadersMiddleware.applyHeaders(response, origin);
     }
   }
 
-  private handleCorsOptions(): Response {
+  private handleCorsOptions(origin?: string | null): Response {
+    const headers: Record<string, string> = {
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, DPoP, X-Nonce',
+      'Access-Control-Expose-Headers':
+        'X-Next-Nonce, DPoP, Set-Cookie, X-Encrypted-DEK, X-Commit-Hash, Content-Disposition, X-Client-IP',
+    };
+    if (origin) {
+      headers['Access-Control-Allow-Origin'] = origin;
+      headers['Access-Control-Allow-Credentials'] = 'true';
+      headers['Vary'] = 'Origin';
+    }
+
     return SecurityHeadersMiddleware.applyHeaders(
       new Response(null, {
         status: 204,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization, DPoP, X-Nonce',
-          'Access-Control-Expose-Headers': 'X-Next-Nonce, DPoP, Set-Cookie, X-Encrypted-DEK, X-Commit-Hash, Content-Disposition',
-          'Access-Control-Allow-Credentials': 'true',
-        },
-      })
+        headers,
+      }),
+      origin
     );
   }
 }

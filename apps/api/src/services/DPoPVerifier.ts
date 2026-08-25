@@ -85,6 +85,12 @@ export class DPoPVerifier {
       throw new Error(`UNAUTHORIZED: DPoP path mismatch (${payload.htu} vs ${expectedPathname})`);
     }
 
+    // Verify timestamp freshness (RFC 9449 Section 4.3: max ±60 seconds clock skew)
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    if (!payload.iat || typeof payload.iat !== 'number' || Math.abs(nowSeconds - payload.iat) > 60) {
+      throw new Error(`UNAUTHORIZED: DPoP proof timestamp expired or out of freshness window`);
+    }
+
     // Calculate JWK Thumbprint
     const jwkString = JSON.stringify({
       crv: header.jwk.crv,
