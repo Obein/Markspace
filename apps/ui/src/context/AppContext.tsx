@@ -19,6 +19,8 @@ interface AppContextType {
   cmk: CryptoKey | null; // Active vault key
   setCmk: (key: CryptoKey | null) => void;
   unlockedVaultKeys: Record<string, CryptoKey>;
+  boundVaultIps: Record<string, string>;
+  currentClientIp: string | null;
   setVaultKey: (vaultId: string, key: CryptoKey | null) => void;
   activeVaultId: string;
   setActiveVaultId: (vaultId: string | ((prev: string) => string)) => void;
@@ -51,6 +53,8 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [unlockedVaultKeys, setUnlockedVaultKeys] = useState<Record<string, CryptoKey>>({});
+  const [boundVaultIps, setBoundVaultIps] = useState<Record<string, string>>({});
+  const [currentClientIp, setCurrentClientIp] = useState<string | null>(null);
   const [activeVaultId, setActiveVaultId] = useState<string>('');
   // Zero-Trust: In-memory token only (0 localStorage persistence)
   const [token, setTokenState] = useState<string | null>(null);
@@ -108,10 +112,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
   }, []);
 
-  // Wire ApiClient Nonce / Session Violation force logout handler
+  // Wire ApiClient Nonce / Session Violation force logout handler & IP Mutation handler
   useEffect(() => {
     apiClient.setOnForceLogout((reason: string) => {
       setUnlockedVaultKeys({});
+      setBoundVaultIps({});
       setActiveVaultId('');
       setTokenState(null);
       setUserIdState(null);
@@ -121,6 +126,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.removeItem('markspace_username');
       localStorage.removeItem('markspace_user_role');
       setSecurityAlert(reason);
+    });
+
+    apiClient.setOnIpChanged((oldIp: string, newIp: string) => {
+      setCurrentClientIp(newIp);
+      setUnlockedVaultKeys((prevKeys) => {
+        const unlockedCount = Object.keys(prevKeys).length;
+        if (unlockedCount > 0) {
+          setSecurityAlert(
+            `Zero-Trust Notice: Client IP address changed from ${oldIp} to ${newIp}. All active vaults have been automatically locked to prevent unauthorized access.`
+          );
+          setBoundVaultIps({});
+          return {};
+        }
+        return prevKeys;
+      });
     });
   }, []);
 
@@ -166,6 +186,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return copy;
     });
+
+    setBoundVaultIps((prev) => {
+      const copy = { ...prev };
+      if (key) {
+        const currentIp = apiClient.getCurrentClientIp() || '127.0.0.1';
+        copy[vaultId] = currentIp;
+      } else {
+        delete copy[vaultId];
+      }
+      return copy;
+    });
   };
 
   const setCmk = (key: CryptoKey | null) => {
@@ -179,12 +210,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setVaultKey(activeVaultId, null);
     } else {
       setUnlockedVaultKeys({});
+      setBoundVaultIps({});
     }
   };
 
   const logoutAccount = () => {
     apiClient.logout();
     setUnlockedVaultKeys({});
+    setBoundVaultIps({});
     setActiveVaultId('');
     setToken(null);
     setUserId(null);
@@ -203,6 +236,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     cmk: activeVmk,
     setCmk,
     unlockedVaultKeys,
+    boundVaultIps,
+    currentClientIp,
     setVaultKey,
     activeVaultId,
     setActiveVaultId,

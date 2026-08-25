@@ -365,4 +365,8 @@ export const zhCN: typeof enUS = {
   r2NotConfiguredNotice: '⚠️ 系统未关联 Cloudflare R2 第一方存储，请先配置第三方存储（S3 / 商业网盘 / WebDAV）后再创建保险库。',
   thirdPartyStorageRequired: '需要配置第三方存储',
   configureStorageFirst: '请先配置并保存第三方存储',
+  ipChangeAutoLockNotice: '零信任安全提示：检测到客户端 IP 地址发生变动，已自动锁定所有保险库以防凭证劫持。',
+  geoAnomalyNotice: '零信任安全告警：检测到请求地理位置偏离初始会话 >50km，会话已被自动终止以保护数据安全。',
+  mtlsIdentityVerified: '双向 TLS (mTLS) 机器身份校验通过',
+  boundIpBadge: '绑定 IP',
 };

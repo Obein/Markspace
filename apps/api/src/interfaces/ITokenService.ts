@@ -30,6 +30,10 @@ export interface TokenFamilyState {
   readonly ipAddress?: string;
   readonly userAgent?: string;
   readonly deviceName?: string;
+  readonly latitude?: number;
+  readonly longitude?: number;
+  readonly city?: string;
+  readonly country?: string;
   readonly ttlSeconds: number;
   readonly isRememberMe: boolean;
   readonly lastActiveAt?: number;
@@ -43,6 +47,10 @@ export interface ActiveSessionInfo {
   readonly ipAddress?: string;
   readonly userAgent?: string;
   readonly deviceName?: string;
+  readonly latitude?: number;
+  readonly longitude?: number;
+  readonly city?: string;
+  readonly country?: string;
   readonly ttlSeconds: number;
   readonly isRememberMe: boolean;
   readonly isCurrent: boolean;
@@ -58,6 +66,10 @@ export interface IssueTokenOptions {
   readonly ipAddress?: string;
   readonly userAgent?: string;
   readonly deviceName?: string;
+  readonly latitude?: number;
+  readonly longitude?: number;
+  readonly city?: string;
+  readonly country?: string;
 }
 
 export interface ITokenService {
@@ -77,7 +89,14 @@ export interface ITokenService {
     rawOldRefreshToken: string,
     secret: string,
     presentedDpopJkt?: string,
-    clientMeta?: { ipAddress?: string; userAgent?: string }
+    clientMeta?: {
+      ipAddress?: string;
+      userAgent?: string;
+      latitude?: number;
+      longitude?: number;
+      city?: string;
+      country?: string;
+    }
   ): Promise<TokenPair & { userPayload: UserPayload }>;
   listUserSessions(db: D1Database, userId: string, currentFamilyId?: string): Promise<ActiveSessionInfo[]>;
   revokeFamily(db: D1Database, familyId: string, reason?: string): Promise<void>;

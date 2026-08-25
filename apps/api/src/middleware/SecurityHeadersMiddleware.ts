@@ -8,7 +8,7 @@ export class SecurityHeadersMiddleware {
     headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     headers.set(
       'Access-Control-Expose-Headers',
-      'X-Next-Nonce, DPoP, Set-Cookie, X-Encrypted-DEK, X-Commit-Hash, Content-Disposition'
+      'X-Next-Nonce, DPoP, Set-Cookie, X-Encrypted-DEK, X-Commit-Hash, Content-Disposition, X-Client-IP'
     );
   }
 

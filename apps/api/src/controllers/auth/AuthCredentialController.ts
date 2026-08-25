@@ -69,6 +69,7 @@ export class AuthCredentialController {
     const ip = this.getClientIp(ctx);
     const userAgent = this.getUserAgent(ctx);
     const deviceName = parseDeviceName(userAgent);
+    const geo = this.getGeoMetadata(ctx);
 
     try {
       const result = await this.authService.register(
@@ -80,6 +81,7 @@ export class AuthCredentialController {
           ipAddress: ip,
           userAgent,
           deviceName,
+          ...geo,
         }
       );
 
@@ -135,6 +137,7 @@ export class AuthCredentialController {
     const ip = this.getClientIp(ctx);
     const userAgent = this.getUserAgent(ctx);
     const deviceName = parseDeviceName(userAgent);
+    const geo = this.getGeoMetadata(ctx);
 
     try {
       const result = await this.authService.login(
@@ -147,6 +150,7 @@ export class AuthCredentialController {
           ipAddress: ip,
           userAgent,
           deviceName,
+          ...geo,
         }
       );
 
@@ -202,6 +206,7 @@ export class AuthCredentialController {
     const ip = this.getClientIp(ctx);
     const userAgent = this.getUserAgent(ctx);
     const deviceName = parseDeviceName(userAgent);
+    const geo = this.getGeoMetadata(ctx);
 
     try {
       const result = await this.authService.loginPasswordlessTotp(
@@ -214,6 +219,7 @@ export class AuthCredentialController {
           ipAddress: ip,
           userAgent,
           deviceName,
+          ...geo,
         }
       );
 
@@ -262,6 +268,26 @@ export class AuthCredentialController {
       });
       throw err;
     }
+  }
+
+  private getGeoMetadata(ctx: RequestContext): {
+    latitude?: number;
+    longitude?: number;
+    city?: string;
+    country?: string;
+  } {
+    const cf = (ctx.request as any).cf;
+    const lat = cf?.latitude ? parseFloat(String(cf.latitude)) : undefined;
+    const lon = cf?.longitude ? parseFloat(String(cf.longitude)) : undefined;
+    const city = cf?.city ? String(cf.city) : undefined;
+    const country = cf?.country ? String(cf.country) : undefined;
+
+    return {
+      latitude: lat && !isNaN(lat) ? lat : undefined,
+      longitude: lon && !isNaN(lon) ? lon : undefined,
+      city,
+      country,
+    };
   }
 
   private getClientIp(ctx: RequestContext): string {

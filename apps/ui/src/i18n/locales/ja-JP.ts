@@ -362,7 +362,11 @@ export const jaJP: typeof enUS = {
   customWebdavPreset: 'カスタム WebDAV サーバー',
   aliyunDriveLabel: 'Aliyun Drive (阿里云盘)',
   quarkDriveLabel: 'Quark Drive (夸克网盘)',
-  r2NotConfiguredNotice: '⚠️ システムに Cloudflare R2 が関連付けられていません。保管庫を作成する前にサードパーティストレージを設定してください。',
+  r2NotConfiguredNotice: '⚠️ Cloudflare R2 が関連付けられていません。保管庫を作成する前にサードパーティストレージ（S3 / クラウドドライブ / WebDAV）を設定してください。',
   thirdPartyStorageRequired: 'サードパーティストレージの設定が必要です',
-  configureStorageFirst: '最初にサードパーティストレージを設定・保存してください',
+  configureStorageFirst: '先にサードパーティストレージを設定して保存してください',
+  ipChangeAutoLockNotice: 'ゼロトラストセキュリティ通知：クライアントIPアドレスの変更が検出されたため、すべての保管庫が自動的にロックされました。',
+  geoAnomalyNotice: 'ゼロトラスト警告：セッション開始位置から50km以上の位置変更が検出されました。データ保護のためセッションを終了しました。',
+  mtlsIdentityVerified: '相互TLS（mTLS）マシンID検証完了',
+  boundIpBadge: 'バインドIP',
 };

@@ -1,4 +1,5 @@
 import { ActiveSessionInfo, IssueTokenOptions, ITokenService, TokenPair } from '../interfaces/ITokenService';
+import { GeoDistanceService } from '../services/security/GeoDistanceService';
 import { UserRole } from '../types/domain';
 import { UserPayload } from '../types/http';
 
@@ -170,13 +171,14 @@ export class JwtTokenService implements ITokenService {
     const isRememberMe = Boolean(options?.rememberMe);
     const ttlSeconds = isRememberMe ? this.rememberMeRtTtlSeconds : this.defaultRtTtlSeconds;
 
-    // 1. Initialize Token Family in D1 with session metadata
+    // 1. Initialize Token Family in D1 with session metadata & initial geographic coordinates
     await db
       .prepare(
         `INSERT INTO token_families (
            id, user_id, active_generation, is_revoked, ip_address, user_agent, device_name,
+           latitude, longitude, city, country,
            ttl_seconds, is_remember_me, last_active_at, created_at, updated_at
-         ) VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?)`
+         ) VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .bind(
         familyId,
@@ -185,6 +187,10 @@ export class JwtTokenService implements ITokenService {
         options?.ipAddress || null,
         options?.userAgent || null,
         options?.deviceName || null,
+        options?.latitude !== undefined ? options.latitude : null,
+        options?.longitude !== undefined ? options.longitude : null,
+        options?.city || null,
+        options?.country || null,
         ttlSeconds,
         isRememberMe ? 1 : 0,
         now,
@@ -222,14 +228,24 @@ export class JwtTokenService implements ITokenService {
 
   /**
    * Rotates a Refresh Token (RTR) and issues a fresh short-lived Access Token.
-   * Preserves session TTL policies and updates active session timestamps.
+   * Performs continuous zero-trust verification:
+   * 1. Replay attack detection (token reuse)
+   * 2. DPoP cryptographic device proof verification
+   * 3. Haversine dynamic geographical anomaly detection (>50km threshold)
    */
   public async rotateRefreshToken(
     db: D1Database,
     rawOldRefreshToken: string,
     secret: string,
     presentedDpopJkt?: string,
-    clientMeta?: { ipAddress?: string; userAgent?: string }
+    clientMeta?: {
+      ipAddress?: string;
+      userAgent?: string;
+      latitude?: number;
+      longitude?: number;
+      city?: string;
+      country?: string;
+    }
   ): Promise<TokenPair & { userPayload: UserPayload }> {
     const oldTokenHash = await this.hashString(rawOldRefreshToken);
 
@@ -258,6 +274,10 @@ export class JwtTokenService implements ITokenService {
         user_id: string;
         active_generation: number;
         is_revoked: number;
+        latitude?: number | null;
+        longitude?: number | null;
+        city?: string | null;
+        country?: string | null;
         ttl_seconds?: number;
         is_remember_me?: number;
       }>();
@@ -283,6 +303,45 @@ export class JwtTokenService implements ITokenService {
         `REUSE_DETECTED: Stale generation ${record.generation} presented (Active is ${family.active_generation})`
       );
       throw new Error('BREACH_DETECTED: Refresh token reuse detected. Entire session revoked.');
+    }
+
+    // CONTINUOUS ZERO-TRUST VERIFICATION: Geographic Distance Anomaly Check (>50km)
+    if (
+      family.latitude !== null &&
+      family.latitude !== undefined &&
+      family.longitude !== null &&
+      family.longitude !== undefined &&
+      clientMeta?.latitude !== undefined &&
+      clientMeta?.longitude !== undefined
+    ) {
+      const geoCheck = GeoDistanceService.isGeoAnomaly(
+        family.latitude,
+        family.longitude,
+        clientMeta.latitude,
+        clientMeta.longitude
+      );
+
+      if (geoCheck.isAnomaly) {
+        await this.revokeFamily(
+          db,
+          record.family_id,
+          `GEO_ANOMALY_DETECTED: Shifted by ${geoCheck.distanceKm.toFixed(1)}km`
+        );
+
+        const geoError: any = new Error(
+          `GEO_ANOMALY_DETECTED: Request location shifted by ${geoCheck.distanceKm.toFixed(1)}km (>50km zero-trust threshold). Session has been automatically terminated.`
+        );
+        geoError.code = 'GEO_ANOMALY_DETECTED';
+        geoError.status = 401;
+        geoError.details = {
+          initialLat: family.latitude,
+          initialLon: family.longitude,
+          currentLat: clientMeta.latitude,
+          currentLon: clientMeta.longitude,
+          distanceKm: geoCheck.distanceKm,
+        };
+        throw geoError;
+      }
     }
 
     // Fetch user details for the new Access Token
@@ -372,6 +431,7 @@ export class JwtTokenService implements ITokenService {
     const { results } = await db
       .prepare(
         `SELECT f.id, f.user_id, f.ip_address, f.user_agent, f.device_name,
+                f.latitude, f.longitude, f.city, f.country,
                 f.ttl_seconds, f.is_remember_me, f.created_at, f.updated_at,
                 COALESCE(f.last_active_at, f.updated_at) as last_active_at,
                 COALESCE(MAX(r.expires_at), f.created_at + (f.ttl_seconds * 1000)) as expires_at
@@ -389,6 +449,10 @@ export class JwtTokenService implements ITokenService {
         ip_address: string | null;
         user_agent: string | null;
         device_name: string | null;
+        latitude: number | null;
+        longitude: number | null;
+        city: string | null;
+        country: string | null;
         ttl_seconds: number;
         is_remember_me: number;
         created_at: number;
@@ -403,6 +467,10 @@ export class JwtTokenService implements ITokenService {
       ipAddress: row.ip_address || undefined,
       userAgent: row.user_agent || undefined,
       deviceName: row.device_name || undefined,
+      latitude: row.latitude !== null ? row.latitude : undefined,
+      longitude: row.longitude !== null ? row.longitude : undefined,
+      city: row.city || undefined,
+      country: row.country || undefined,
       ttlSeconds: row.ttl_seconds || this.defaultRtTtlSeconds,
       isRememberMe: Boolean(row.is_remember_me),
       isCurrent: currentFamilyId ? row.id === currentFamilyId : false,

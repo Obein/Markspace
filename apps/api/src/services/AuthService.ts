@@ -245,7 +245,14 @@ export class AuthService {
     rawRefreshToken: string,
     jwtSecret: string,
     dpopJkt?: string,
-    clientMeta?: { ipAddress?: string; userAgent?: string }
+    clientMeta?: {
+      ipAddress?: string;
+      userAgent?: string;
+      latitude?: number;
+      longitude?: number;
+      city?: string;
+      country?: string;
+    }
   ): Promise<AuthResult> {
     const rotated = await this.tokenService.rotateRefreshToken(db, rawRefreshToken, jwtSecret, dpopJkt, clientMeta);
 

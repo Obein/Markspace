@@ -6,6 +6,7 @@ import { SecurityHeadersMiddleware } from '../middleware/SecurityHeadersMiddlewa
 import { Env } from '../types/env';
 import { RequestContext } from '../types/http';
 import { DPoPVerifier } from '../services/DPoPVerifier';
+import { MtlsSecurityService } from '../services/security/MtlsSecurityService';
 
 export class Router {
   private routes: Array<{
@@ -273,9 +274,33 @@ export class Router {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
+    const clientIp =
+      request.headers.get('CF-Connecting-IP') ||
+      request.headers.get('X-Forwarded-For') ||
+      '127.0.0.1';
 
     if (method === 'OPTIONS') {
-      return this.handleCorsOptions();
+      const corsRes = this.handleCorsOptions();
+      corsRes.headers.set('X-Client-IP', clientIp);
+      return corsRes;
+    }
+
+    // AOP Aspect 0: Mutual TLS (mTLS) Machine Identity Verification
+    const mtlsCheck = MtlsSecurityService.checkAccess(request, env);
+    if (!mtlsCheck.allowed && mtlsCheck.errorResponse) {
+      const container = new ServiceContainer(env);
+      await container.auditLogRepository.recordLog({
+        userId: 'anonymous',
+        username: 'mtls_gatekeeper',
+        action: 'MTLS_SECURITY_VIOLATION',
+        authMethod: 'Mutual TLS (mTLS)',
+        ipAddress: clientIp,
+        userAgent: request.headers.get('User-Agent') || 'Unknown Client',
+        status: 'FAILED',
+        details: mtlsCheck.result.reason || 'mTLS machine identity verification failed',
+      });
+      mtlsCheck.errorResponse.headers.set('X-Client-IP', clientIp);
+      return SecurityHeadersMiddleware.applyHeaders(mtlsCheck.errorResponse);
     }
 
     try {
@@ -329,7 +354,7 @@ export class Router {
                 username: ctx.user?.username || 'unknown',
                 action: 'SECURITY_NONCE_VIOLATION',
                 authMethod: 'AOP Nonce Interceptor',
-                ipAddress: request.headers.get('CF-Connecting-IP') || '127.0.0.1',
+                ipAddress: clientIp,
                 userAgent: request.headers.get('User-Agent') || 'Unknown Client',
                 status: 'FAILED',
                 details: isReuse
@@ -361,28 +386,30 @@ export class Router {
         // AOP Aspect 2: Dynamic Next-Nonce Header Injection (After Advice)
         const nextNonce = container.nonceService.generateNonce(ctx.user?.userId).nonce;
         response.headers.set('X-Next-Nonce', nextNonce);
+        response.headers.set('X-Client-IP', clientIp);
 
         return SecurityHeadersMiddleware.applyHeaders(response);
       }
 
-      return SecurityHeadersMiddleware.applyHeaders(
-        new Response(
-          JSON.stringify({
-            success: false,
-            error: { code: 'NOT_FOUND', message: `Route not found: ${method} ${path}` },
-            timestamp: new Date().toISOString(),
-          }),
-          {
-            status: 404,
-            headers: { 'Content-Type': 'application/json' },
-          }
-        )
+      const notFoundRes = new Response(
+        JSON.stringify({
+          success: false,
+          error: { code: 'NOT_FOUND', message: `Route not found: ${method} ${path}` },
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        }
       );
+      notFoundRes.headers.set('X-Client-IP', clientIp);
+      return SecurityHeadersMiddleware.applyHeaders(notFoundRes);
     } catch (error) {
       const response = ErrorHandler.handle(error);
       const container = new ServiceContainer(env);
       const nextNonce = container.nonceService.generateNonce().nonce;
       response.headers.set('X-Next-Nonce', nextNonce);
+      response.headers.set('X-Client-IP', clientIp);
       return SecurityHeadersMiddleware.applyHeaders(response);
     }
   }

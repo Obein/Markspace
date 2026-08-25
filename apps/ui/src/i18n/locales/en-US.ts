@@ -360,7 +360,11 @@ export const enUS = {
   customWebdavPreset: 'Custom WebDAV Protocol Server',
   aliyunDriveLabel: 'Aliyun Drive (阿里云盘)',
   quarkDriveLabel: 'Quark Drive (夸克网盘)',
-  r2NotConfiguredNotice: '⚠️ First-party Cloudflare R2 is not associated with this system. Please configure a third-party storage (S3 / Cloud Drive / WebDAV) before creating this vault.',
+  r2NotConfiguredNotice: '⚠️ Cloudflare R2 first-party storage is not bound. Please configure third-party storage (S3 / Cloud Drive / WebDAV) before creating a vault.',
   thirdPartyStorageRequired: 'Third-Party Storage Required',
   configureStorageFirst: 'Please configure and save third-party storage first',
+  ipChangeAutoLockNotice: 'Zero-Trust Notice: Client IP address changed. All active vaults have been automatically locked to prevent unauthorized access.',
+  geoAnomalyNotice: 'Zero-Trust Security Alert: Request location shifted by >50km from initial session location. Session was terminated for data protection.',
+  mtlsIdentityVerified: 'Mutual TLS (mTLS) Machine Identity Verified',
+  boundIpBadge: 'Bound IP',
 };

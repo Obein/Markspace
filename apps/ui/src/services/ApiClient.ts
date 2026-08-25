@@ -44,8 +44,16 @@ export class ApiClient implements IApiClient {
     return this.transport.getAccessToken();
   }
 
+  getCurrentClientIp(): string | null {
+    return this.transport.getCurrentClientIp();
+  }
+
   setOnForceLogout(callback: (reason: string) => void): void {
     this.transport.setOnForceLogout(callback);
+  }
+
+  setOnIpChanged(callback: (oldIp: string, newIp: string) => void): void {
+    this.transport.setOnIpChanged(callback);
   }
 
   // --- Auth & TOTP API ---

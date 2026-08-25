@@ -362,7 +362,11 @@ export const esES: typeof enUS = {
   customWebdavPreset: 'Servidor WebDAV personalizado',
   aliyunDriveLabel: 'Aliyun Drive (阿里云盘)',
   quarkDriveLabel: 'Quark Drive (夸克网盘)',
-  r2NotConfiguredNotice: '⚠️ Cloudflare R2 no está asociado con este sistema. Configure un almacenamiento de terceros antes de crear esta bóveda.',
+  r2NotConfiguredNotice: '⚠️ Cloudflare R2 no está vinculado. Configure el almacenamiento de terceros (S3 / Cloud Drive / WebDAV) antes de crear una bóveda.',
   thirdPartyStorageRequired: 'Almacenamiento de terceros requerido',
-  configureStorageFirst: 'Primero configure y guarde el almacenamiento de terceros',
+  configureStorageFirst: 'Configure y guarde primero el almacenamiento de terceros',
+  ipChangeAutoLockNotice: 'Aviso Zero-Trust: La dirección IP del cliente ha cambiado. Todas las bóvedas activas se han bloqueado automáticamente.',
+  geoAnomalyNotice: 'Alerta de seguridad Zero-Trust: Desviación de ubicación >50 km detectada. Sesión terminada para proteger los datos.',
+  mtlsIdentityVerified: 'Identidad de máquina TLS mutuo (mTLS) verificada',
+  boundIpBadge: 'IP vinculada',
 };

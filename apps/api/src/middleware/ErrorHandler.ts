@@ -6,12 +6,15 @@ export class ErrorHandler {
     let status = 500;
     let code = 'INTERNAL_SERVER_ERROR';
 
-    if (message.startsWith('FORBIDDEN:')) {
+    if (message.startsWith('FORBIDDEN:') || message.startsWith('MTLS_VERIFICATION_REQUIRED:')) {
       status = 403;
-      code = 'FORBIDDEN';
+      code = message.startsWith('MTLS_VERIFICATION_REQUIRED:') ? 'MTLS_VERIFICATION_REQUIRED' : 'FORBIDDEN';
     } else if (message.startsWith('UNAUTHORIZED:')) {
       status = 401;
       code = 'UNAUTHORIZED';
+    } else if (message.startsWith('GEO_ANOMALY_DETECTED:')) {
+      status = 401;
+      code = 'GEO_ANOMALY_DETECTED';
     } else if (message.startsWith('SECURITY_NONCE_VIOLATION:')) {
       status = 401;
       code = 'SECURITY_NONCE_VIOLATION';

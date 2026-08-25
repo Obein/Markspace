@@ -35,6 +35,7 @@ export class AuthSessionController {
     const rawRefreshToken = this.extractRefreshToken(cookieHeader);
     const ip = this.getClientIp(ctx);
     const userAgent = this.getUserAgent(ctx);
+    const geo = this.getGeoMetadata(ctx);
 
     if (!rawRefreshToken) {
       return new Response(
@@ -59,7 +60,7 @@ export class AuthSessionController {
         rawRefreshToken,
         ctx.env.JWT_SECRET,
         undefined,
-        { ipAddress: ip, userAgent }
+        { ipAddress: ip, userAgent, ...geo }
       );
 
       const response: ApiResponse = {
@@ -85,11 +86,24 @@ export class AuthSessionController {
       });
     } catch (err: any) {
       const isBreach = String(err?.message || '').includes('BREACH_DETECTED');
+      const isGeoAnomaly =
+        err?.code === 'GEO_ANOMALY_DETECTED' ||
+        String(err?.message || '').includes('GEO_ANOMALY_DETECTED');
+
+      let action: any = 'AUTH_TOKEN_REFRESH';
+      if (isGeoAnomaly) {
+        action = 'GEO_ANOMALY_SESSION_TERMINATED';
+      } else if (isBreach) {
+        action = 'AUTH_BREACH_DETECTED';
+      }
+
       await this.auditLogRepo.recordLog({
         userId: 'anonymous',
-        username: 'refresh_session',
-        action: isBreach ? 'AUTH_BREACH_DETECTED' : 'AUTH_TOKEN_REFRESH',
-        authMethod: 'Refresh Token Rotation (RTR)',
+        username: isGeoAnomaly ? 'geo_anomaly_protection' : 'refresh_session',
+        action,
+        authMethod: isGeoAnomaly
+          ? 'Continuous Zero-Trust Location Check'
+          : 'Refresh Token Rotation (RTR)',
         ipAddress: ip,
         userAgent,
         status: 'FAILED',
@@ -101,12 +115,20 @@ export class AuthSessionController {
         'Set-Cookie': '__Host-auth_refresh_token=; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0',
       });
 
+      let errorCode = 'UNAUTHORIZED';
+      if (isGeoAnomaly) {
+        errorCode = 'GEO_ANOMALY_DETECTED';
+      } else if (isBreach) {
+        errorCode = 'BREACH_DETECTED';
+      }
+
       return new Response(
         JSON.stringify({
           success: false,
           error: {
-            code: isBreach ? 'BREACH_DETECTED' : 'UNAUTHORIZED',
+            code: errorCode,
             message: err instanceof Error ? err.message : 'Invalid or expired refresh token',
+            details: err?.details,
           },
           timestamp: new Date().toISOString(),
         }),
@@ -277,6 +299,26 @@ export class AuthSessionController {
       }
     }
     return null;
+  }
+
+  private getGeoMetadata(ctx: RequestContext): {
+    latitude?: number;
+    longitude?: number;
+    city?: string;
+    country?: string;
+  } {
+    const cf = (ctx.request as any).cf;
+    const lat = cf?.latitude ? parseFloat(String(cf.latitude)) : undefined;
+    const lon = cf?.longitude ? parseFloat(String(cf.longitude)) : undefined;
+    const city = cf?.city ? String(cf.city) : undefined;
+    const country = cf?.country ? String(cf.country) : undefined;
+
+    return {
+      latitude: lat && !isNaN(lat) ? lat : undefined,
+      longitude: lon && !isNaN(lon) ? lon : undefined,
+      city,
+      country,
+    };
   }
 
   private getClientIp(ctx: RequestContext): string {

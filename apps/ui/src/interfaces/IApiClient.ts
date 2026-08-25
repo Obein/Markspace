@@ -54,7 +54,9 @@ export interface AuditLogResponse {
     | 'ADMIN_UPDATE_ROLE'
     | 'ADMIN_UPDATE_QUOTA'
     | 'ADMIN_UPDATE_POLICY'
-    | 'USER_IDLE_DESTROYED';
+    | 'USER_IDLE_DESTROYED'
+    | 'GEO_ANOMALY_SESSION_TERMINATED'
+    | 'MTLS_SECURITY_VIOLATION';
   authMethod: string;
   ipAddress: string;
   userAgent: string;
@@ -110,7 +112,9 @@ export interface ActiveSession {
 export interface IApiClient {
   setToken(token: string): void;
   getAccessToken(): string | null;
+  getCurrentClientIp(): string | null;
   setOnForceLogout(callback: (reason: string) => void): void;
+  setOnIpChanged(callback: (oldIp: string, newIp: string) => void): void;
 
   // Zero-Trust Session & Token Lifecycle
   initSession(): Promise<AuthResponse | null>;

@@ -362,7 +362,11 @@ export const koKR: typeof enUS = {
   customWebdavPreset: '사용자 정의 WebDAV 서버',
   aliyunDriveLabel: 'Aliyun Drive (阿里云盘)',
   quarkDriveLabel: 'Quark Drive (夸克网盘)',
-  r2NotConfiguredNotice: '⚠️ 시스템에 Cloudflare R2가 연결되어 있지 않습니다. 볼트를 생성하기 전에 타사 스토리지를 먼저 구성해 주세요.',
+  r2NotConfiguredNotice: '⚠️ Cloudflare R2 스토리지가 연결되지 않았습니다. 보관소를 생성하기 전에 타사 스토리지(S3 / 클라우드 드라이브 / WebDAV)를 구성하세요.',
   thirdPartyStorageRequired: '타사 스토리지 구성 필요',
-  configureStorageFirst: '먼저 타사 스토리지를 설정하고 저장하세요',
+  configureStorageFirst: '먼저 타사 스토리지를 구성하고 저장하세요',
+  ipChangeAutoLockNotice: '제로 트러스트 보안 알림: 클라이언트 IP 주소 변경이 감지되어 모든 활성 보관소가 자동으로 잠겼습니다.',
+  geoAnomalyNotice: '제로 트러스트 보안 경고: 세션 시작 위치에서 50km 이상의 위치 이동이 감지되어 데이터 보호를 위해 세션이 종료되었습니다.',
+  mtlsIdentityVerified: '상호 TLS (mTLS) 머신 신원 검증 완료',
+  boundIpBadge: '바인딩된 IP',
 };

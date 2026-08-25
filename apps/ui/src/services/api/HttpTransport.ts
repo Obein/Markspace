@@ -8,7 +8,9 @@ export class HttpTransport {
   private readonly baseUrl: string;
   private currentNonce: string | null = null;
   private currentNonceTimestamp = 0;
+  private currentClientIp: string | null = null;
   private onForceLogoutCallback: ((reason: string) => void) | null = null;
+  private onIpChangedCallback: ((oldIp: string, newIp: string) => void) | null = null;
 
   constructor(baseUrl: string = '/api/v1') {
     this.baseUrl = baseUrl;
@@ -16,6 +18,14 @@ export class HttpTransport {
 
   getBaseUrl(): string {
     return this.baseUrl;
+  }
+
+  getCurrentClientIp(): string | null {
+    return this.currentClientIp;
+  }
+
+  setOnIpChanged(callback: (oldIp: string, newIp: string) => void): void {
+    this.onIpChangedCallback = callback;
   }
 
   setToken(token: string, expiresInSeconds = 60): void {
@@ -69,8 +79,19 @@ export class HttpTransport {
           headers: { 'Content-Type': 'application/json' },
         });
 
+        this.updateResponseHeaders(res);
         const json = await res.json().catch(() => null);
         if (!res.ok || !json?.success || !json?.data?.accessToken) {
+          const errorCode = json?.error?.code;
+          const errorMsg = json?.error?.message;
+          if (errorCode === 'GEO_ANOMALY_DETECTED') {
+            this.clearAuth();
+            if (this.onForceLogoutCallback) {
+              this.onForceLogoutCallback(
+                errorMsg || 'Security Alert: Geographic location shifted (>50km threshold). Session automatically terminated.'
+              );
+            }
+          }
           this.setToken('');
           return null;
         }
@@ -94,6 +115,7 @@ export class HttpTransport {
   async getNonce(): Promise<string> {
     try {
       const res = await fetch(`${this.baseUrl}/auth/nonce`, { method: 'GET', credentials: 'include' });
+      this.updateResponseHeaders(res);
       const nextNonceHeader = res.headers.get('X-Next-Nonce');
       const json = await res.json().catch(() => null);
       const nonce = nextNonceHeader || json?.data?.nonce || '';
@@ -152,10 +174,28 @@ export class HttpTransport {
   }
 
   updateNextNonceFromResponse(res: Response): void {
+    this.updateResponseHeaders(res);
+  }
+
+  updateResponseHeaders(res: Response): void {
     const nextNonceHeader = res.headers.get('X-Next-Nonce');
     if (nextNonceHeader) {
       this.currentNonce = nextNonceHeader;
       this.currentNonceTimestamp = Date.now();
+    }
+
+    const clientIpHeader = res.headers.get('X-Client-IP');
+    if (clientIpHeader && clientIpHeader.trim()) {
+      const newIp = clientIpHeader.trim();
+      if (this.currentClientIp && this.currentClientIp !== newIp) {
+        const oldIp = this.currentClientIp;
+        this.currentClientIp = newIp;
+        if (this.onIpChangedCallback) {
+          this.onIpChangedCallback(oldIp, newIp);
+        }
+      } else {
+        this.currentClientIp = newIp;
+      }
     }
   }
 
@@ -175,13 +215,28 @@ export class HttpTransport {
       },
     });
 
-    this.updateNextNonceFromResponse(res);
+    this.updateResponseHeaders(res);
 
     const json = await res.json().catch(() => null);
 
     if (!res.ok || !json?.success) {
       const errorCode = json?.error?.code;
       const errorMsg = json?.error?.message || `API Error: ${res.status}`;
+
+      // GEO_ANOMALY_DETECTED: Immediate Zero-Trust Session Lockout
+      if (errorCode === 'GEO_ANOMALY_DETECTED' || errorMsg.includes('GEO_ANOMALY_DETECTED')) {
+        console.error('CRITICAL SECURITY ALERT: Geo-anomaly detected (>50km). Terminating user session.');
+        this.clearAuth();
+        if (this.onForceLogoutCallback) {
+          this.onForceLogoutCallback(
+            errorMsg || 'Security Alert: Geographic location shifted by >50km. Session was terminated for data protection.'
+          );
+        }
+        const error: any = new Error(errorMsg);
+        error.status = res.status;
+        error.code = errorCode;
+        throw error;
+      }
 
       // 401 Unauthorized Retry with Silent Refresh
       if (res.status === 401 && !isRetry && !path.startsWith('/auth/')) {
