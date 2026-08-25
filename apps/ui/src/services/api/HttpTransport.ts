@@ -28,7 +28,7 @@ export class HttpTransport {
     this.onIpChangedCallback = callback;
   }
 
-  setToken(token: string, expiresInSeconds = 60): void {
+  setToken(token: string, expiresInSeconds = 900): void {
     this.inMemoryAccessToken = token || null;
     if (token) {
       // Set refresh threshold to 80% of TTL or at least 10s ahead of expiry
@@ -97,7 +97,7 @@ export class HttpTransport {
         }
 
         const data = json.data as AuthResponse;
-        this.setToken(data.accessToken, data.expiresIn || 60);
+        this.setToken(data.accessToken, data.expiresIn || 900);
         return data.accessToken;
       } catch {
         return null;
@@ -110,7 +110,21 @@ export class HttpTransport {
   }
 
   /**
-   * AOP Aspect: Perform initial Nonce handshake if not already cached or expired.
+   * Concurrency-safe Nonce acquisition:
+   * Atomically claims an existing non-expired cached nonce, or fetches a dedicated fresh nonce.
+   */
+  async acquireNonce(): Promise<string> {
+    const isExpired = Date.now() - this.currentNonceTimestamp > 50000;
+    if (this.currentNonce && !isExpired) {
+      const nonce = this.currentNonce;
+      this.currentNonce = null;
+      return nonce;
+    }
+    return this.getNonce();
+  }
+
+  /**
+   * AOP Aspect: Perform Nonce handshake to fetch a fresh single-use nonce.
    */
   async getNonce(): Promise<string> {
     try {
@@ -119,10 +133,6 @@ export class HttpTransport {
       const nextNonceHeader = res.headers.get('X-Next-Nonce');
       const json = await res.json().catch(() => null);
       const nonce = nextNonceHeader || json?.data?.nonce || '';
-      if (nonce) {
-        this.currentNonce = nonce;
-        this.currentNonceTimestamp = Date.now();
-      }
       return nonce;
     } catch {
       return '';
@@ -154,13 +164,11 @@ export class HttpTransport {
     }
 
     // AOP: Ensure we have an active, non-expired anti-replay nonce before sending request
-    const isExpired = Date.now() - this.currentNonceTimestamp > 50000;
-    if ((!this.currentNonce || isExpired) && path !== '/auth/nonce') {
-      await this.getNonce();
-    }
-    if (this.currentNonce) {
-      headers['X-Nonce'] = this.currentNonce;
-      this.currentNonce = null;
+    if (path !== '/auth/nonce') {
+      const nonce = await this.acquireNonce();
+      if (nonce) {
+        headers['X-Nonce'] = nonce;
+      }
     }
 
     try {

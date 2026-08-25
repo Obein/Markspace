@@ -1,5 +1,6 @@
 import { D1AuditLogRepository } from '../../infrastructure/D1AuditLogRepository';
 import { AuthService } from '../../services/AuthService';
+import { DPoPVerifier } from '../../services/DPoPVerifier';
 import { NonceService } from '../../services/NonceService';
 import { ApiResponse, RequestContext } from '../../types/http';
 
@@ -54,12 +55,27 @@ export class AuthSessionController {
       );
     }
 
+    const dpopHeader = ctx.request.headers.get('DPoP');
+    let dpopJkt: string | undefined;
+    if (dpopHeader) {
+      try {
+        const dpopRes = await DPoPVerifier.verifyProof(
+          dpopHeader,
+          ctx.request.method,
+          new URL(ctx.request.url).pathname
+        );
+        dpopJkt = dpopRes.thumbprint;
+      } catch {
+        dpopJkt = undefined;
+      }
+    }
+
     try {
       const result = await this.authService.refreshTokens(
         ctx.env.DB,
         rawRefreshToken,
         ctx.env.JWT_SECRET,
-        undefined,
+        dpopJkt,
         { ipAddress: ip, userAgent, ...geo }
       );
 
