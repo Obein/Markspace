@@ -362,4 +362,7 @@ export const koKR: typeof enUS = {
   customWebdavPreset: '사용자 정의 WebDAV 서버',
   aliyunDriveLabel: 'Aliyun Drive (阿里云盘)',
   quarkDriveLabel: 'Quark Drive (夸克网盘)',
+  r2NotConfiguredNotice: '⚠️ 시스템에 Cloudflare R2가 연결되어 있지 않습니다. 볼트를 생성하기 전에 타사 스토리지를 먼저 구성해 주세요.',
+  thirdPartyStorageRequired: '타사 스토리지 구성 필요',
+  configureStorageFirst: '먼저 타사 스토리지를 설정하고 저장하세요',
 };

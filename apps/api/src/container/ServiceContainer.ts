@@ -44,8 +44,8 @@ export class ServiceContainer {
     this.auditLogRepository = new D1AuditLogRepository(env.DB);
     this.userStorageConfigRepository = new D1UserStorageConfigRepository(env.DB);
 
-    const storageService = new R2StorageService(env.BUCKET);
-    const objectStorageService = new R2ObjectStorageService(env.BUCKET);
+    const storageService = new R2StorageService(env.BUCKET as any);
+    const objectStorageService = new R2ObjectStorageService(env.BUCKET as any);
     const passwordHasher = new WebCryptoHasher();
     this.tokenService = new JwtTokenService();
     this.nonceService = new NonceService(env.JWT_SECRET);

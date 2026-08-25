@@ -23,11 +23,12 @@
 
 ## 💡 何以 Markspace？
 
-- **更完善的零知识隐私**：基于浏览器原生非导出 Web Crypto 密钥（`extractable: false`），明文与密钥不出客户端内存沙箱。
-- **FastCDC 动态切分与 Merkle DAG 增量同步**：512B~4KB 内容感知微块同步，仅传输修改块（节省 >90% 带宽），提供不可篡改版本树与秒级回退。
-- **OPRF 盲化门禁与防重放安全**：NIST P-256 OPRF 盲校验凭据、RFC 9449 DPoP 设备绑定、挑战 Nonce 与 RFC 6238 TOTP 双重认证。
-- **一体化工程与科学排版套件**：原生集成 KaTeX 公式引擎、Mermaid 动态图表 AST 与支持实时公式计算的可视化表格。
-- **全球分布式边缘 Serverless 架构**：100% 部署于 Cloudflare 全球边缘网络（Workers + D1 + R2），零服务器运维负担，极速响应。
+- **更完善的零知識隱私**：基於瀏覽器原生非導出 Web Crypto 金鑰（`extractable: false`），明文與金鑰不出客戶端記憶體沙箱。
+- **FastCDC 動態切分與 Merkle DAG 增量同步**：512B~4KB 內容感知微塊同步，僅傳輸修改塊（節省 >90% 頻寬），提供不可篡改版本樹與秒級回退。
+- **多元第三方儲存與零知識憑證**：支援第一方 Cloudflare R2、標準 S3 相容儲存、主流商業網盤（Google Drive / OneDrive / Dropbox / 阿里雲盤 / 誇克網盤）及 WebDAV 協定，敏感憑據全量客戶端 AES-256-GCM 零知識加密。
+- **OPRF 盲化門禁與防重放安全**：NIST P-256 OPRF 盲校驗憑據、RFC 9449 DPoP 設備綁定、挑戰 Nonce 與 RFC 6238 TOTP 雙重認證。
+- **一體化工程與科學排版套件**：原生整合 KaTeX 公式引擎、Mermaid 動態圖表 AST 與支援即時公式計算的可視化表格。
+- **全球分散式邊緣 Serverless 架構**：100% 部署於 Cloudflare 全球邊緣網路（Workers + D1 + R2），零伺服器維運負擔，極速回應。
 
 <p align="center">
   <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Obein/Markspace">
@@ -37,59 +38,60 @@
 
 ---
 
-### ⚖️ 核心架构与特性对比
+### ⚖️ 核心架構與特性對比
 
-| 评估维度 / 特性能力 | 传统云端笔记 (Notion, 印象笔记) | 本地文件 / Git 同步 (Obsidian + Git/Sync) | **Markspace** |
+| 評估維度 / 特性能力 | 傳統雲端筆記 (Notion, 印象筆記) | 本機檔案 / Git 同步 (Obsidian + Git/Sync) | **Markspace** |
 | :--- | :--- | :--- | :--- |
-| **零知识隐私 (Zero-Knowledge)** | ❌ 服务端可明文检视所有笔记与附件 | ⚠️ 依赖插件；凭证与密钥多以明文存盘 | **✅ 更完善的零知识（Web Crypto 不可导出密钥）** |
-| **同步粒度 (Sync Granularity)** | ⚠️ 全量 JSON 覆盖或专有 Delta 数据流 | ❌ Git 全量 Blob 重写或繁重的 commit 树 | **✅ FastCDC (512B–4KB) 内容感知微块同步** |
-| **传输与带宽利用率** | ❌ 每次修改均涉及较多冗余元数据与上传 | ⚠️ 小改动需生成并打包完整 Git objects | **✅ 节省 >90% 传输带宽（仅传输增量差异块）** |
-| **版本控制与历史回退** | ⚠️ 云端托管快照；保留策略与隐私不透明 | ⚠️ 容易出现 Git 分支冲突与合并故障 | **✅ 加密 Merkle DAG 不可篡改时间线与秒级回退** |
-| **凭证传输与认证安全** | ❌ 明文密码传输 / 服务端 Hash 存储 | ⚠️ 个人访问令牌 (PAT) 或 SSH Key 存盘 | **✅ WebAuthn FIDO2 Passkeys + NIST P-256 OPRF 盲校验 + TOTP** |
-| **二进制媒体存储开销** | ⚠️ 常见 Base64 编码引入 33.3% 体积膨胀 | ❌ Git LFS 或大型二进制导致同步瓶颈 | **✅ 0% 额外开销 Raw Binary 原生二进制流** |
-| **本地缓存与秒级重构** | ⚠️ 离线缓存受限 | ⚠️ `.git` 历史目录占用大量本地磁盘空间 | **✅ 浏览器 IndexedDB 微块缓存，亚毫秒还原** |
-| **基础设施与部署成本** | ❌ 商业闭源锁定，数据无法完全掌控 | ⚠️ 需自建/维护 Git 伺服器或购买专有云 | **✅ 100% Serverless Cloudflare 边缘部署 (D1+R2)** |
+| **零知識隱私 (Zero-Knowledge)** | ❌ 伺服端可明文檢視所有筆記與附件 | ⚠️ 依賴外掛；憑據與金鑰多以明文存盤 | **✅ 更完善的零知識（Web Crypto 不可導出金鑰）** |
+| **同步粒度 (Sync Granularity)** | ⚠️ 全量 JSON 覆蓋或專有 Delta 數據流 | ❌ Git 全量 Blob 重寫或繁重的 commit 樹 | **✅ FastCDC (512B–4KB) 內容感知微塊同步** |
+| **儲存後端與網盤拓展** | ❌ 封閉私有雲鎖定 | ⚠️ 依賴本機檔案或繁瑣的第三方同步外掛 | **✅ 原生 R2 + S3 相容 + 商業網盤 + WebDAV 自由切換** |
+| **傳輸與頻寬利用率** | ❌ 每次修改均涉及較多冗餘元數據與上傳 | ⚠️ 小改動需生成並打包完整 Git objects | **✅ 節省 >90% 傳輸頻寬（僅傳輸增量差異塊）** |
+| **版本控制與歷史回退** | ⚠️ 雲端託管快照；保留策略與隱私不透明 | ⚠️ 容易出現 Git 分支衝突與合併故障 | **✅ 加密 Merkle DAG 不可篡改時間線與秒級回退** |
+| **憑證傳輸與認證安全** | ❌ 明文密碼傳輸 / 伺服端 Hash 儲存 | ⚠️ 個人訪問權杖 (PAT) 或 SSH Key 存盤 | **✅ WebAuthn FIDO2 Passkeys + NIST P-256 OPRF 盲校驗 + TOTP** |
+| **二進位媒體儲存開銷** | ⚠️ 常見 Base64 編碼引入 33.3% 體積膨脹 | ❌ Git LFS 或大型二進位導致同步瓶頸 | **✅ 0% 額外開銷 Raw Binary 原生二進位流** |
+| **本機快取與秒級重構** | ⚠️ 離線快取受限 | ⚠️ `.git` 歷史目錄占用大量本機磁碟空間 | **✅ 瀏覽器 IndexedDB 微塊快取，亞毫秒還原** |
+| **基礎設施與部署成本** | ❌ 商業閉源鎖定，數據無法完全掌控 | ⚠️ 需自建/維護 Git 伺服器或購買專有雲 | **✅ 100% Serverless Cloudflare 邊緣部署 (D1+R2)** |
 
 ---
 
-## 📸 界面预览
+## 📸 介面預覽
 
 <p align="center">
-  <img src="docs/screenshot_markspace_bento_login.webp" alt="Bento 零信任安全展台与登录门禁" width="100%" />
+  <img src="docs/screenshot_markspace_bento_login.webp" alt="Bento 零信任安全展台與登入門禁" width="100%" />
 </p>
 <p align="center">
-  <em>Bento 零信任安全展台与登录门禁</em>
+  <em>Bento 零信任安全展台與登入門禁</em>
 </p>
 
 <table>
   <tr>
     <td width="50%" align="center">
-      <img src="docs/screenshot_markspace_edit_mode.webp" alt="编辑模式" width="100%" /><br />
-      <b>沉浸式编辑模式</b>
+      <img src="docs/screenshot_markspace_edit_mode.webp" alt="編輯模式" width="100%" /><br />
+      <b>沉浸式編輯模式</b>
     </td>
     <td width="50%" align="center">
-      <img src="docs/screenshot_markspace_preview_mode.webp" alt="预览模式" width="100%" /><br />
-      <b>独立预览模式</b>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" align="center">
-      <img src="docs/screenshot_markspace_dual-pane_latex.webp" alt="双栏模式与 KaTeX 数学排版" width="100%" /><br />
-      <b>分列双栏 KaTeX 数学排版</b>
-    </td>
-    <td width="50%" align="center">
-      <img src="docs/screenshot_markspace_dual-pane_mermaid.webp" alt="双栏模式与 Mermaid 图表" width="100%" /><br />
-      <b>分列双栏 Mermaid 动态图表</b>
+      <img src="docs/screenshot_markspace_preview_mode.webp" alt="預覽模式" width="100%" /><br />
+      <b>獨立預覽模式</b>
     </td>
   </tr>
   <tr>
     <td width="50%" align="center">
-      <img src="docs/screenshot_markspace_table_visual_edit.webp" alt="可视化表格与实时公式编辑器" width="100%" /><br />
-      <b>可视化电子表格编辑器</b>
+      <img src="docs/screenshot_markspace_dual-pane_latex.webp" alt="雙欄模式與 KaTeX 數學排版" width="100%" /><br />
+      <b>分列雙欄 KaTeX 數學排版</b>
     </td>
     <td width="50%" align="center">
-      <img src="docs/screenshot_markspace_version_history.webp" alt="Merkle DAG 版本时光机" width="100%" /><br />
-      <b>Merkle DAG 版本时光机与历史回退</b>
+      <img src="docs/screenshot_markspace_dual-pane_mermaid.webp" alt="雙欄模式與 Mermaid 圖表" width="100%" /><br />
+      <b>分列雙欄 Mermaid 動態圖表</b>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_table_visual_edit.webp" alt="視覺化表格與即時公式編輯器" width="100%" /><br />
+      <b>視覺化電子試算表編輯器</b>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/screenshot_markspace_version_history.webp" alt="Merkle DAG 版本時光機" width="100%" /><br />
+      <b>Merkle DAG 版本時光機與歷史回退</b>
     </td>
   </tr>
 </table>
@@ -98,18 +100,31 @@
 
 ## ✨ 核心特性
 
-### 🧩 FastCDC 动态内容分块与差异增量同步
-- **细粒度自适应切分**：采用 64-bit Gear-hash 滚动哈希自适应识别内容边界（`最小 512B`、`平均 1KB`、`最大 4KB`），彻底消除了固定分块带来的雪崩移位效应。
-- **差异块增量同步**：保存时自动探测服务端缺失块，仅上传变更的 512B ~ 1KB 增量密文块与轻量 Manifest 清单，上行带宽节省 90%+。
-- **IndexedDB 本地块缓存**：已解密的块与 Manifest 清单在浏览器本地 IndexedDB 中进行毫秒级缓存，历史版本检视与 Diff 对比 **0 网络请求极速重组**。
+### 🧩 FastCDC 動態內容分塊與差異增量同步
+- **細粒度自適應切分**：採用 64-bit Gear-hash 滾動雜湊自適應識別內容邊界（`最小 512B`、`平均 1KB`、`最大 4KB`），徹底消除了固定分塊帶來的雪崩移位效應。
+- **差異塊增量同步**：儲存時自動探測伺服端缺失塊，僅上傳變更的 512B ~ 1KB 增量密文塊與輕量 Manifest 清單，上行頻寬節省 90%+。
+- **IndexedDB 本機塊快取**：已解密的塊與 Manifest 清單在瀏覽器本機 IndexedDB 中進行毫秒級快取，歷史版本檢視與 Diff 對比 **0 網路請求極速重組**。
 
-### 🛡️ 确定性零知识盲块加密与 CAS 存储池
-- **非可导出密钥安全执行**：直接使用 Web Crypto API 的不可导出密钥（`extractable: false`）执行原生 AES-256-GCM 运算，杜绝堆内存转储与冷启动泄露。
-- **Vault 内部盲去重**：通过私有 $VMK$ 派生确定性 Chunk ID（$H = \text{SHA-256}(Chunk)$ 经由 $VMK$ 加密），同一 Vault 内相同内容自动去重。
-- **跨用户强加密隔离**：不同用户的私有 $VMK$ 完全隔离，相同明文生成截然不同的 Chunk ID 与密文，彻底免疫服务端的频次分析与字典攻击。
-- **Raw Binary (0% 冗余) 存储**：彻底清除 Base64 编码带来的 33.3% 体积膨胀，原生采用 ArrayBuffer / Uint8Array 二进制流存储在 R2 中。
+### 🗄️ 多元第三方儲存支援與零知識憑證加密 (S3 / 商業網盤 / WebDAV)
+- **多協定全生態儲存接入**：
+  - **第一方原生儲存 (First-Party)**：預設 Cloudflare R2 物件儲存，開箱即用；
+  - **S3 相容物件儲存 (S3-Compatible)**：AWS S3、Cloudflare R2 (S3 API)、MinIO、阿里雲 OSS、騰訊雲 COS、Backblaze B2、Wasabi 及自訂 Endpoint / Path Style 支援；
+  - **主流商業網盤 (Commercial Cloud Drive)**：Google Drive、Microsoft OneDrive、Dropbox、阿里雲盤、誇克網盤；
+  - **標準 WebDAV 協定 (WebDAV Protocol)**：堅果雲 (Jianguoyun)、Nextcloud、ownCloud、Synology DSM 與自建 WebDAV 伺服器。
+- **端到端零知識加密憑證儲存 (Zero-Knowledge E2EE)**：
+  - 儲存憑證（如 Secret Access Key、WebDAV 密碼、網盤 OAuth/API Token）在離開瀏覽器前使用客戶端 **AES-256-GCM** 完成強加密；
+  - 伺服端與 D1 資料庫僅保存高強度密文與 IV，伺服端無從知曉明文憑證；
+  - 登入新裝置或切換瀏覽器時，後台自動從雲端同步密文並在客戶端本機解密還原。
+- **即時連通性探針 (Real-Time Connectivity Probe)**：提供即時網路與憑證連通性測試，在儲存並綁定前預先驗證權限與連通狀態。
+- **無 R2 獨立運行能力 (Smart Storage Fallback)**：系統智慧感知後端環境是否綁定 R2 Bucket；在未關聯第一方 R2 時，建立 Vault 自動前置引導並強制設定第三方儲存方案，實現零 R2 強依賴下的完全獨立運行。
 
-### 🌲 Merkle DAG 版本树与时间线回退
+### 🛡️ 確定性零知識盲塊加密與 CAS 儲存池
+- **非可導出金鑰安全執行**：直接使用 Web Crypto API 的不可導出金鑰（`extractable: false`）執行原生 AES-256-GCM 運算，杜絕堆疊記憶體傾印與冷啟動洩漏。
+- **Vault 內部盲去重**：透過私有 $VMK$ 派生確定性 Chunk ID（$H = \text{SHA-256}(Chunk)$ 經由 $VMK$ 加密），同一 Vault 內相同內容自動去重。
+- **跨使用者強加密隔離**：不同使用者的私有 $VMK$ 完全隔離，相同明文生成截然不同的 Chunk ID 與密文，徹底免疫伺服端的頻次分析與字典攻擊。
+- **Raw Binary (0% 冗餘) 儲存**：徹底清除 Base64 編碼帶來的 33.3% 體積膨脹，原生採用 ArrayBuffer / Uint8Array 二進位流儲存在 R2 中。
+
+### 🌲 Merkle DAG 版本樹與時間線回退
 - **不可篡改版本清单**：每次保存均构建轻量加密 Manifest 记录有序 Chunk 拓扑并计算 Merkle Root Hash，形成不可篡改的 DAG 版本树。
 - **点对点精确时间回滚**：支持任意历史版本的无损检视与一键回退，无需服务端重新构建整个文件。
 
@@ -226,53 +241,53 @@ npm run dev:ui
   </a>
 </p>
 
-#### 1. 构建与路径设置 (Build Settings)
-在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 导入或配置项目时：
-- **根目录 (Root Directory)**：`/` (项目根目录)
-- **构建命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
+#### 1. 建置與路徑設定 (Build Settings)
+在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 匯入或設定專案時：
+- **根目錄 (Root Directory)**：`/` (專案根目錄)
+- **建置命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
 - **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
-- **静态资源输出目录 (Build Output Directory)**：`apps/ui/dist`
-- **Worker 后端入口**：`apps/api/src/index.ts`
+- **靜態資產輸出目錄 (Build Output Directory)**：`apps/ui/dist`
+- **Worker 後端進入點**：`apps/api/src/index.ts`
 
-#### 2. Cloudflare 资源绑定 (Bindings)
-进入 **Cloudflare 控制台** -> **Workers 和 Pages** -> **markspace** -> **设置 (Settings)** -> **绑定 (Bindings)**：
+#### 2. Cloudflare 資源綁定 (Bindings)
+進入 **Cloudflare 控制台** -> **Workers 和 Pages** -> **markspace** -> **設定 (Settings)** -> **綁定 (Bindings)**：
 
-| 绑定类型 (Binding Type) | 变量名称 (Variable Name) | 绑定目标与说明 |
+| 綁定類型 (Binding Type) | 變數名稱 (Variable Name) | 綁定目標與說明 |
 | :--- | :--- | :--- |
-| **D1 数据库** | `DB` | 绑定至 D1 数据库：`markspace-db` |
-| **R2 存储桶** | `BUCKET` | 绑定至 R2 存储桶：`markspace-media-bucket` |
-| **静态资产 (Static Assets)** | `ASSETS` | 通过 `wrangler.jsonc` 自动映射至 `apps/ui/dist` |
+| **D1 資料庫** | `DB` | 綁定至 D1 資料庫：`markspace-db` |
+| **R2 儲存貯體** | `BUCKET` | 綁定至 R2 儲存貯體：`markspace-media-bucket`（選填，未綁定時支援純第三方儲存運行） |
+| **靜態資產 (Static Assets)** | `ASSETS` | 透過 `wrangler.jsonc` 自動對應至 `apps/ui/dist` |
 
 > [!NOTE]
-> **数据库初次初始化 (D1 Migrations)**：
-> 在 **Cloudflare 控制台** -> **存储和数据库** -> **D1** -> `markspace-db` -> **控制台 (Console)** 中执行 [`apps/api/migrations/0001_initial_schema.sql`](apps/api/migrations/0001_initial_schema.sql) 内的 SQL 语句，或在本地通过 Wrangler 执行 `npm run d1:migrate:prod`。
+> **資料庫初次初始化 (D1 Migrations)**：
+> 在 **Cloudflare 控制台** -> **儲存與資料庫** -> **D1** -> `markspace-db` -> **主控台 (Console)** 中執行 [`apps/api/migrations/0001_initial_schema.sql`](apps/api/migrations/0001_initial_schema.sql) 內的 SQL 語句，或在本地透過 Wrangler 執行 `npm run d1:migrate:prod`。
 
-#### 3. 环境变量与密钥配置 (Variables and Secrets)
-进入 **设置 (Settings)** -> **变量和机密 (Variables and Secrets)**，添加以下必填配置：
+#### 3. 環境變數與機密金鑰設定 (Variables and Secrets)
+進入 **設定 (Settings)** -> **變數與機密 (Variables and Secrets)**，新增以下必填設定：
 
-| 名称 (Name) | 类型 (Type) | 说明 (Description) | 生成命令/示例 |
+| 名稱 (Name) | 類型 (Type) | 說明 (Description) | 產生命令/範例 |
 | :--- | :--- | :--- | :--- |
-| `JWT_SECRET` | **机密 (Secret / 加密)** | 用户会话 JWT 鉴权签名密钥（建议 ≥32 字符高熵字符串） | `openssl rand -base64 32` (或密码生成器随机字符串) |
-| `MASTER_ENCRYPTION_KEY` | **机密 (Secret / 加密)** | 256 位十六进制主密钥（64 位 Hex 字符），用于 TOTP 与 OPRF 信封加密 | `openssl rand -hex 32` (或 64 位十六进制生成器) |
-| `ENVIRONMENT` | **变量 (Variable / 明文)** | 运行环境标识 | `production` |
+| `JWT_SECRET` | **機密 (Secret / 加密)** | 使用者工作階段 JWT 鑑權簽章金鑰（建議 ≥32 字元高熵字串） | `openssl rand -base64 32` (或密碼產生器隨機字串) |
+| `MASTER_ENCRYPTION_KEY` | **機密 (Secret / 加密)** | 256 位元十六進位主金鑰（64 位元 Hex 字元），用於 TOTP 與 OPRF 信封加密 | `openssl rand -hex 32` (或 64 位元十六進位產生器) |
+| `ENVIRONMENT` | **變數 (Variable / 明文)** | 運行環境識別標記 | `production` |
 
 ---
 
-### 💻 方式二：CLI 命令行部署 (Cloudflare Wrangler)
+### 💻 方式二：CLI 命令列部署 (Cloudflare Wrangler)
 
 ```bash
-# 1. 首次创建生产 D1 数据库与 R2 存储桶
+# 1. 首次建立生產 D1 資料庫與 R2 儲存貯體 (選填)
 npx wrangler d1 create markspace-db
 npx wrangler r2 bucket create markspace-media-bucket
 
-# 2. 设置生产机密密钥
+# 2. 設定生產機密金鑰
 npx wrangler secret put JWT_SECRET --workspace=apps/api
 npx wrangler secret put MASTER_ENCRYPTION_KEY --workspace=apps/api
 
-# 3. 执行 D1 远程数据库迁移
+# 3. 執行 D1 遠端資料庫遷移
 npm run d1:migrate:prod
 
-# 4. 构建前端产物并一键部署 Worker
+# 4. 建置前端產物並一鍵部署 Worker
 npm run deploy
 ```
 

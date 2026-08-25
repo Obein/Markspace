@@ -22,6 +22,22 @@ export class Router {
   }
 
   private setupRoutes(): void {
+    // 0. System Capabilities (Public)
+    this.addRoute('GET', '/api/v1/system/capabilities', false, false, async (_container, ctx) => {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            r2Available: Boolean(ctx.env.BUCKET),
+          },
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    });
+
     // 1. Auth & Session Endpoints
     this.addRoute('GET', '/api/v1/auth/nonce', false, false, (container, ctx) =>
       container.authController.getNonce(ctx)

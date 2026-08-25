@@ -362,4 +362,7 @@ export const zhCN: typeof enUS = {
   customWebdavPreset: '自定义 WebDAV 协议服务器',
   aliyunDriveLabel: '阿里云盘 (Aliyun Drive)',
   quarkDriveLabel: '夸克网盘 (Quark Drive)',
+  r2NotConfiguredNotice: '⚠️ 系统未关联 Cloudflare R2 第一方存储，请先配置第三方存储（S3 / 商业网盘 / WebDAV）后再创建保险库。',
+  thirdPartyStorageRequired: '需要配置第三方存储',
+  configureStorageFirst: '请先配置并保存第三方存储',
 };

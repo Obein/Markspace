@@ -362,4 +362,7 @@ export const esES: typeof enUS = {
   customWebdavPreset: 'Servidor WebDAV personalizado',
   aliyunDriveLabel: 'Aliyun Drive (阿里云盘)',
   quarkDriveLabel: 'Quark Drive (夸克网盘)',
+  r2NotConfiguredNotice: '⚠️ Cloudflare R2 no está asociado con este sistema. Configure un almacenamiento de terceros antes de crear esta bóveda.',
+  thirdPartyStorageRequired: 'Almacenamiento de terceros requerido',
+  configureStorageFirst: 'Primero configure y guarde el almacenamiento de terceros',
 };

@@ -51,7 +51,10 @@ export class AuthCredentialController {
     const result = await this.authService.prelogin(body.username);
     const response: ApiResponse = {
       success: true,
-      data: result,
+      data: {
+        ...result,
+        r2Available: Boolean(ctx.env.BUCKET),
+      },
       timestamp: new Date().toISOString(),
     };
 

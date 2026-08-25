@@ -11,21 +11,67 @@ import {
   AlertTriangle,
   ShieldCheck,
   Fingerprint,
+  HardDrive,
+  Cloud,
+  Globe,
+  Radio,
+  CheckCircle2,
+  AlertCircle,
 } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
+import { useApp } from '../../context/AppContext';
 import { VaultInfo } from '../../interfaces/INoteModels';
+import {
+  StorageProviderType,
+  VaultStorageConfig,
+  S3Config,
+  CloudDriveConfig,
+  WebDAVConfig,
+  StorageTestResult,
+} from '../../services/storage/ThirdPartyStorageTypes';
+import { ThirdPartyStorageManager } from '../../services/storage/ThirdPartyStorageManager';
+import { S3ConfigForm } from './components/S3ConfigForm';
+import { CloudDriveConfigForm } from './components/CloudDriveConfigForm';
+import { WebDAVConfigForm } from './components/WebDAVConfigForm';
 
 export interface CreateVaultViewProps {
   vaultsCount: number;
   onCreateVault: (
     name: string,
     customRecoveryKey?: string,
-    providedPasskeyKey?: CryptoKey
+    providedPasskeyKey?: CryptoKey,
+    initialStorageConfig?: VaultStorageConfig
   ) => Promise<{ vault: VaultInfo; recoveryKey: string; vmk: CryptoKey }>;
   onBackToUnlock: () => void;
   onComplete: (vaultId: string, vmk: CryptoKey) => void;
   onError: (msg: string | null) => void;
 }
+
+const DEFAULT_S3_CONFIG: S3Config = {
+  preset: 'aws',
+  endpoint: 'https://s3.amazonaws.com',
+  region: 'us-east-1',
+  bucketName: '',
+  accessKeyId: '',
+  secretAccessKey: '',
+  prefix: '',
+  forcePathStyle: false,
+};
+
+const DEFAULT_CLOUD_DRIVE_CONFIG: CloudDriveConfig = {
+  provider: 'google_drive',
+  authType: 'token',
+  authToken: '',
+  targetFolder: '/Markspace/VaultData',
+};
+
+const DEFAULT_WEBDAV_CONFIG: WebDAVConfig = {
+  preset: 'jianguoyun',
+  serverUrl: 'https://dav.jianguoyun.com/dav/',
+  username: '',
+  password: '',
+  basePath: '/markspace',
+};
 
 export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
   vaultsCount,
@@ -35,9 +81,18 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
   onError,
 }) => {
   const { t } = useI18n();
+  const { isR2Available } = useApp();
 
   const [newVaultName, setNewVaultName] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Third-party storage setup state when R2 is unavailable
+  const [storageTab, setStorageTab] = useState<StorageProviderType>('s3');
+  const [s3Buffer, setS3Buffer] = useState<S3Config>(DEFAULT_S3_CONFIG);
+  const [cloudDriveBuffer, setCloudDriveBuffer] = useState<CloudDriveConfig>(DEFAULT_CLOUD_DRIVE_CONFIG);
+  const [webdavBuffer, setWebdavBuffer] = useState<WebDAVConfig>(DEFAULT_WEBDAV_CONFIG);
+  const [isTestingStorage, setIsTestingStorage] = useState(false);
+  const [testResult, setTestResult] = useState<StorageTestResult | null>(null);
 
   const [createdRecoveryInfo, setCreatedRecoveryInfo] = useState<{
     vault: VaultInfo;
@@ -46,6 +101,40 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
   } | null>(null);
   const [copiedRecovery, setCopiedRecovery] = useState(false);
   const [confirmedBackup, setConfirmedBackup] = useState(false);
+
+  const handleTestStorageConnection = async () => {
+    setIsTestingStorage(true);
+    setTestResult(null);
+    try {
+      const res = await ThirdPartyStorageManager.testConnection(storageTab, {
+        s3: s3Buffer,
+        cloudDrive: cloudDriveBuffer,
+        webdav: webdavBuffer,
+      });
+      setTestResult(res);
+    } catch (err: any) {
+      setTestResult({
+        success: false,
+        message: err?.message || 'Connection test failed.',
+      });
+    } finally {
+      setIsTestingStorage(false);
+    }
+  };
+
+  const validateStorageConfig = (): boolean => {
+    if (isR2Available) return true;
+    if (storageTab === 's3') {
+      return Boolean(s3Buffer.bucketName.trim() && s3Buffer.accessKeyId.trim() && s3Buffer.secretAccessKey.trim());
+    }
+    if (storageTab === 'cloud_drive') {
+      return Boolean(cloudDriveBuffer.authToken.trim());
+    }
+    if (storageTab === 'webdav') {
+      return Boolean(webdavBuffer.serverUrl.trim() && webdavBuffer.username.trim() && webdavBuffer.password.trim());
+    }
+    return false;
+  };
 
   const handleCreateVaultSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,9 +145,25 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
       return;
     }
 
+    if (!isR2Available && !validateStorageConfig()) {
+      onError(t('configureStorageFirst') || 'Please configure third-party storage credentials first.');
+      return;
+    }
+
+    const storageConfig: VaultStorageConfig | undefined = !isR2Available
+      ? {
+          vaultId: '',
+          provider: storageTab,
+          s3: s3Buffer,
+          cloudDrive: cloudDriveBuffer,
+          webdav: webdavBuffer,
+          updatedAt: Date.now(),
+        }
+      : undefined;
+
     try {
       setLoading(true);
-      const res = await onCreateVault(newVaultName.trim());
+      const res = await onCreateVault(newVaultName.trim(), undefined, undefined, storageConfig);
       setCreatedRecoveryInfo(res);
     } catch (err: unknown) {
       onError(err instanceof Error ? err.message : 'Failed to create vault');
@@ -76,9 +181,11 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
     }
   };
 
+  const isStorageValid = validateStorageConfig();
+
   if (!createdRecoveryInfo) {
     return (
-      <div className="space-y-5 animate-in fade-in duration-150">
+      <div className="space-y-4 animate-in fade-in duration-150">
         <div className="flex items-center justify-between pb-3 border-b border-black/10 dark:border-white/10">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-primaryColor-500/15 border border-primaryColor-500/30 text-primaryColor-600 dark:text-primaryColor-400">
@@ -109,6 +216,117 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
           )}
         </div>
 
+        {/* Mandatory Third-Party Storage Notice when R2 is unavailable */}
+        {!isR2Available && (
+          <div className="space-y-3">
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300 font-mono">
+                <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>{t('thirdPartyStorageRequired')}</span>
+              </div>
+              <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed font-mono">
+                {t('r2NotConfiguredNotice')}
+              </p>
+            </div>
+
+            {/* Storage Scheme Selector Tabs */}
+            <div className="grid grid-cols-3 p-1 rounded-xl bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10 gap-1 text-xs font-mono">
+              <button
+                type="button"
+                onClick={() => {
+                  setStorageTab('s3');
+                  setTestResult(null);
+                }}
+                className={`py-1.5 px-1 sm:px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
+                  storageTab === 's3'
+                    ? 'bg-white dark:bg-zinc-800 text-primaryColor-600 dark:text-primaryColor-400 shadow-sm font-semibold'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                }`}
+              >
+                <HardDrive className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{t('s3CompatibleStorage')}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setStorageTab('cloud_drive');
+                  setTestResult(null);
+                }}
+                className={`py-1.5 px-1 sm:px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
+                  storageTab === 'cloud_drive'
+                    ? 'bg-white dark:bg-zinc-800 text-primaryColor-600 dark:text-primaryColor-400 shadow-sm font-semibold'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                }`}
+              >
+                <Cloud className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{t('commercialCloudDrive')}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setStorageTab('webdav');
+                  setTestResult(null);
+                }}
+                className={`py-1.5 px-1 sm:px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
+                  storageTab === 'webdav'
+                    ? 'bg-white dark:bg-zinc-800 text-primaryColor-600 dark:text-primaryColor-400 shadow-sm font-semibold'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                }`}
+              >
+                <Globe className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{t('webdavStorage')}</span>
+              </button>
+            </div>
+
+            {/* Storage Config Sub-form */}
+            <div className="p-3 rounded-xl bg-black/5 dark:bg-black/20 border border-black/5 dark:border-white/5 space-y-3">
+              {storageTab === 's3' && <S3ConfigForm config={s3Buffer} onChange={setS3Buffer} />}
+              {storageTab === 'cloud_drive' && (
+                <CloudDriveConfigForm config={cloudDriveBuffer} onChange={setCloudDriveBuffer} />
+              )}
+              {storageTab === 'webdav' && (
+                <WebDAVConfigForm config={webdavBuffer} onChange={setWebdavBuffer} />
+              )}
+
+              {/* Test Connection Button */}
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  type="button"
+                  onClick={handleTestStorageConnection}
+                  disabled={isTestingStorage}
+                  className="px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-800 dark:text-zinc-200 border border-black/10 dark:border-white/10 text-xs font-mono transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
+                >
+                  {isTestingStorage ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                  ) : (
+                    <Radio className="w-3.5 h-3.5 text-primaryColor-500 shrink-0" />
+                  )}
+                  <span>{isTestingStorage ? t('testing') : t('testConnection')}</span>
+                </button>
+              </div>
+
+              {testResult && (
+                <div
+                  className={`p-2 rounded-xl border text-xs font-mono flex items-start gap-2 ${
+                    testResult.success
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                      : 'bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-300'
+                  }`}
+                >
+                  {testResult.success ? (
+                    <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-500" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
+                  )}
+                  <p className="font-medium text-[11px]">{testResult.message}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleCreateVaultSubmit} className="space-y-4">
           <div>
             <label className="block text-xs text-zinc-700 dark:text-zinc-300 font-medium mb-1.5">
@@ -136,7 +354,7 @@ export const CreateVaultView: React.FC<CreateVaultViewProps> = ({
 
           <button
             type="submit"
-            disabled={loading || !newVaultName.trim()}
+            disabled={loading || !newVaultName.trim() || (!isR2Available && !isStorageValid)}
             className="w-full py-2.5 px-4 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 text-white font-semibold text-xs flex items-center justify-center gap-2 transition disabled:opacity-50 shadow-lg shadow-primaryColor-500/20 cursor-pointer"
           >
             {loading ? (

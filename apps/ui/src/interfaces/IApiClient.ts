@@ -208,6 +208,9 @@ export interface IApiClient {
   getVersionContent(id: string, timestamp: number): Promise<{ body: ArrayBuffer; encryptedDek: string; commitHash: string }>;
   revertNodeVersion(id: string, timestamp: number): Promise<VaultNodeResponse>;
 
+  // System Capabilities
+  getSystemCapabilities(): Promise<{ r2Available: boolean }>;
+
   // Admin Management Endpoints
   adminListUsers(): Promise<UserAdminSummary[]>;
   adminDeleteUser(id: string): Promise<{ message: string }>;

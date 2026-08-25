@@ -32,6 +32,8 @@ interface AppContextType {
   setToken: (token: string | null) => void;
   isAuthenticated: boolean;
   isInitializingAuth: boolean;
+  isR2Available: boolean;
+  setIsR2Available: (available: boolean) => void;
   isVaultUnlocked: boolean;
   lockVault: (vaultId?: string) => void;
   logoutAccount: () => void;
@@ -60,7 +62,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isInitializingAuth, setIsInitializingAuth] = useState<boolean>(() =>
     Boolean(localStorage.getItem('markspace_username'))
   );
+  const [isR2Available, setIsR2Available] = useState<boolean>(true);
   const [securityAlert, setSecurityAlert] = useState<string | null>(null);
+
+  // Fetch System Capabilities (R2 status)
+  useEffect(() => {
+    apiClient
+      .getSystemCapabilities()
+      .then((cap) => {
+        if (cap && typeof cap.r2Available === 'boolean') {
+          setIsR2Available(cap.r2Available);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Zero-Trust Session Initialization from HttpOnly Cookie
   useEffect(() => {
@@ -201,6 +216,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setToken,
     isAuthenticated: Boolean(token),
     isInitializingAuth,
+    isR2Available,
+    setIsR2Available,
     isVaultUnlocked: activeVmk !== null,
     lockVault,
     logoutAccount,

@@ -5,6 +5,7 @@ import { PasskeyCryptoService } from '../crypto/PasskeyCryptoService';
 import { TranslationKey } from '../i18n/i18nContext';
 import { VaultInfo } from '../interfaces/INoteModels';
 import { VaultStorageConfig } from '../services/storage/ThirdPartyStorageTypes';
+import { ThirdPartyStorageManager } from '../services/storage/ThirdPartyStorageManager';
 
 interface UseVaultsOptions {
   username: string | null;
@@ -77,7 +78,8 @@ export function useVaults({
     async (
       name: string,
       customRecoveryKey?: string,
-      providedPasskeyKey?: CryptoKey
+      providedPasskeyKey?: CryptoKey,
+      initialStorageConfig?: VaultStorageConfig
     ): Promise<{ vault: VaultInfo; recoveryKey: string; vmk: CryptoKey }> => {
       // 1. Pure standard UUID for Vault ID
       const vaultId = crypto.randomUUID();
@@ -130,8 +132,22 @@ export function useVaults({
         salt,
         wrappedVmkByPasskey,
         wrappedVmkByRecovery,
+        storageConfig: initialStorageConfig,
         createdAt: Date.now(),
       };
+
+      if (initialStorageConfig && initialStorageConfig.provider !== 'r2') {
+        ThirdPartyStorageManager.saveVaultStorageConfig(username, vaultId, initialStorageConfig);
+        try {
+          await ThirdPartyStorageManager.saveVaultStorageConfigEncrypted(
+            apiClient,
+            username,
+            vaultId,
+            initialStorageConfig,
+            vmk
+          );
+        } catch (_) {}
+      }
 
       setVaults((prev) => {
         const next = [...prev, newVault];

@@ -312,4 +312,16 @@ export class ApiClient implements IApiClient {
   async deleteVaultStorageConfig(vaultId: string): Promise<void> {
     return this.vaultNodes.deleteStorageConfig(vaultId);
   }
+
+  // --- System Capabilities API ---
+
+  async getSystemCapabilities(): Promise<{ r2Available: boolean }> {
+    try {
+      return await this.transport.request<{ r2Available: boolean }>('/system/capabilities', {
+        method: 'GET',
+      });
+    } catch {
+      return { r2Available: true };
+    }
+  }
 }

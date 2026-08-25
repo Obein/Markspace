@@ -271,11 +271,13 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
       </div>
 
       {/* Third-Party Storage Expandable Panel */}
-      <ThirdPartyStoragePanel
-        username={username}
-        activeVaultId={activeVault?.id || activeVaultId || 'default'}
-        onUpdateConfig={onUpdateVaultStorageConfig}
-      />
+      {!isCreateMode && mode !== 'setup-passkey' && activeVault && (
+        <ThirdPartyStoragePanel
+          username={username}
+          activeVaultId={activeVault.id}
+          onUpdateConfig={onUpdateVaultStorageConfig}
+        />
+      )}
     </div>
   </div>
   );

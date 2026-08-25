@@ -360,4 +360,7 @@ export const enUS = {
   customWebdavPreset: 'Custom WebDAV Protocol Server',
   aliyunDriveLabel: 'Aliyun Drive (阿里云盘)',
   quarkDriveLabel: 'Quark Drive (夸克网盘)',
+  r2NotConfiguredNotice: '⚠️ First-party Cloudflare R2 is not associated with this system. Please configure a third-party storage (S3 / Cloud Drive / WebDAV) before creating this vault.',
+  thirdPartyStorageRequired: 'Third-Party Storage Required',
+  configureStorageFirst: 'Please configure and save third-party storage first',
 };

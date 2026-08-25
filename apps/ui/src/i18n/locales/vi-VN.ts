@@ -362,4 +362,7 @@ export const viVN: typeof enUS = {
   customWebdavPreset: 'Máy chủ WebDAV tùy chỉnh',
   aliyunDriveLabel: 'Aliyun Drive (阿里云盘)',
   quarkDriveLabel: 'Quark Drive (夸克网盘)',
+  r2NotConfiguredNotice: '⚠️ Hệ thống chưa liên kết với Cloudflare R2. Vui lòng cấu hình lưu trữ bên thứ ba trước khi tạo vault.',
+  thirdPartyStorageRequired: 'Yêu cầu lưu trữ bên thứ ba',
+  configureStorageFirst: 'Vui lòng cấu hình và lưu bộ nhớ bên thứ ba trước',
 };

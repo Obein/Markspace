@@ -25,6 +25,7 @@
 
 - **更完善的零知识隐私**：基于浏览器原生非导出 Web Crypto 密钥（`extractable: false`），明文与密钥不出客户端内存沙箱。
 - **FastCDC 动态切分与 Merkle DAG 增量同步**：512B~4KB 内容感知微块同步，仅传输修改块（节省 >90% 带宽），提供不可篡改版本树与秒级回退。
+- **多元第三方存储与零知识凭据**：支持第一方 Cloudflare R2、标准 S3 兼容存储、主流商业网盘（Google Drive / OneDrive / Dropbox / 阿里云盘 / 夸克网盘）及 WebDAV 协议，敏感凭证全量客户端 AES-256-GCM 零知识加密。
 - **OPRF 盲化门禁与防重放安全**：NIST P-256 OPRF 盲校验凭据、RFC 9449 DPoP 设备绑定、挑战 Nonce 与 RFC 6238 TOTP 双重认证。
 - **一体化工程与科学排版套件**：原生集成 KaTeX 公式引擎、Mermaid 动态图表 AST 与支持实时公式计算的可视化表格。
 - **全球分布式边缘 Serverless 架构**：100% 部署于 Cloudflare 全球边缘网络（Workers + D1 + R2），零服务器运维负担，极速响应。
@@ -43,6 +44,7 @@
 | :--- | :--- | :--- | :--- |
 | **零知识隐私 (Zero-Knowledge)** | ❌ 服务端可明文检视所有笔记与附件 | ⚠️ 依赖插件；凭证与密钥多以明文存盘 | **✅ 更完善的零知识（Web Crypto 不可导出密钥）** |
 | **同步粒度 (Sync Granularity)** | ⚠️ 全量 JSON 覆盖或专有 Delta 数据流 | ❌ Git 全量 Blob 重写或繁重的 commit 树 | **✅ FastCDC (512B–4KB) 内容感知微块同步** |
+| **存储后端与云盘拓展** | ❌ 封闭私有云锁定 | ⚠️ 依赖本地文件或繁琐的第三方同步插件 | **✅ 原生 R2 + S3 兼容 + 商业网盘 + WebDAV 自由切换** |
 | **传输与带宽利用率** | ❌ 每次修改均涉及较多冗余元数据与上传 | ⚠️ 小改动需生成并打包完整 Git objects | **✅ 节省 >90% 传输带宽（仅传输增量差异块）** |
 | **版本控制与历史回退** | ⚠️ 云端托管快照；保留策略与隐私不透明 | ⚠️ 容易出现 Git 分支冲突与合并故障 | **✅ 加密 Merkle DAG 不可篡改时间线与秒级回退** |
 | **凭证传输与认证安全** | ❌ 明文密码传输 / 服务端 Hash 存储 | ⚠️ 个人访问令牌 (PAT) 或 SSH Key 存盘 | **✅ WebAuthn FIDO2 Passkeys + NIST P-256 OPRF 盲校验 + TOTP** |
@@ -102,6 +104,19 @@
 - **细粒度自适应切分**：采用 64-bit Gear-hash 滚动哈希自适应识别内容边界（`最小 512B`、`平均 1KB`、`最大 4KB`），彻底消除了固定分块带来的雪崩移位效应。
 - **差异块增量同步**：保存时自动探测服务端缺失块，仅上传变更的 512B ~ 1KB 增量密文块与轻量 Manifest 清单，上行带宽节省 90%+。
 - **IndexedDB 本地块缓存**：已解密的块与 Manifest 清单在浏览器本地 IndexedDB 中进行毫秒级缓存，历史版本检视与 Diff 对比 **0 网络请求极速重组**。
+
+### 🗄️ 多元第三方存储支持与零知识凭据加密 (S3 / 商业网盘 / WebDAV)
+- **多协议全生态存储接入**：
+  - **第一方原生存储 (First-Party)**：默认 Cloudflare R2 对象存储，开箱即用；
+  - **S3 兼容对象存储 (S3-Compatible)**：AWS S3、Cloudflare R2 (S3 API)、MinIO、阿里云 OSS、腾讯云 COS、Backblaze B2、Wasabi 及自定义 Endpoint / Path Style 支持；
+  - **主流商业网盘 (Commercial Cloud Drive)**：Google Drive、Microsoft OneDrive、Dropbox、阿里云盘、夸克网盘；
+  - **标准 WebDAV 协议 (WebDAV Protocol)**：坚果云 (Jianguoyun)、Nextcloud、ownCloud、Synology DSM 与自建 WebDAV 伺服器。
+- **端到端零知识加密凭据存储 (Zero-Knowledge E2EE)**：
+  - 存储凭证（如 Secret Access Key、WebDAV 密码、网盘 OAuth/API Token）在离开浏览器前使用客户端 **AES-256-GCM** 完成强加密；
+  - 服务端与 D1 数据库仅保存高强度密文与 IV，服务端无从知晓明文凭证；
+  - 登录新设备或切换浏览器时，后台自动从云端同步密文并在客户端本地解密还原。
+- **实时连通性探测 (Real-Time Connectivity Probe)**：提供即时网络与凭证连通性测试，在保存并绑定前预先验证权限与连通状态。
+- **无 R2 独立运行能力 (Smart Storage Fallback)**：系统智能感知后端环境是否绑定 R2 Bucket；在未关联第一方 R2 时，创建 Vault 自动前置引导并强制配置第三方存储方案，实现零 R2 强依赖下的完全独立运行。
 
 ### 🛡️ 确定性零知识盲块加密与 CAS 存储池
 - **非可导出密钥安全执行**：直接使用 Web Crypto API 的不可导出密钥（`extractable: false`）执行原生 AES-256-GCM 运算，杜绝堆内存转储与冷启动泄露。
@@ -240,7 +255,7 @@ npm run dev:ui
 | 绑定类型 (Binding Type) | 变量名称 (Variable Name) | 绑定目标与说明 |
 | :--- | :--- | :--- |
 | **D1 数据库** | `DB` | 绑定至 D1 数据库：`markspace-db` |
-| **R2 存储桶** | `BUCKET` | 绑定至 R2 存储桶：`markspace-media-bucket` |
+| **R2 存储桶** | `BUCKET` | 绑定至 R2 存储桶：`markspace-media-bucket`（可选，未绑定时支持纯第三方存储运行） |
 | **静态资产 (Static Assets)** | `ASSETS` | 通过 `wrangler.jsonc` 自动映射至 `apps/ui/dist` |
 
 > [!NOTE]

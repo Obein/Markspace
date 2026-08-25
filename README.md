@@ -25,6 +25,7 @@ English | [简体中文](README-zh-CN.md) | [正體中文](README-zh-TW.md)
 
 - **More Robust Zero-Knowledge Privacy**: End-to-end envelope encryption via hardware-isolated, non-extractable Web Crypto keys (`extractable: false`).
 - **FastCDC & Merkle DAG Block Sync**: Fine-grained content-defined chunking (`512B – 4KB`) transferring only modified blocks alongside immutable Merkle version trees.
+- **Multi-Tier Third-Party Storage & Zero-Knowledge Credentials**: Native Cloudflare R2, standard S3-compatible storage, commercial cloud drives (Google Drive / OneDrive / Dropbox / Aliyun / Quark), and WebDAV protocols, with all credentials encrypted via client-side AES-256-GCM.
 - **OPRF Blind Gate & Zero-Replay Security**: NIST P-256 OPRF oblivious credential evaluation, RFC 9449 DPoP device token binding, and RFC 6238 TOTP.
 - **Integrated Scientific & Engineering Workspace**: Hardware-accelerated KaTeX typesetting, dynamic Mermaid AST diagrams, and WYSIWYG spreadsheet table editor.
 - **Edge-Native Serverless Architecture**: 100% serverless deployment on Cloudflare global edge fabric (Workers + D1 + R2) with zero maintenance.
@@ -43,6 +44,7 @@ English | [简体中文](README-zh-CN.md) | [正體中文](README-zh-TW.md)
 | :--- | :--- | :--- | :--- |
 | **Zero-Knowledge Privacy** | ❌ Server can read all notes & attachments | ⚠️ Relies on plugins; keys often stored on disk | **✅ Robust Zero-Knowledge (Non-extractable Web Crypto AES-256-GCM)** |
 | **Sync Granularity** | ⚠️ Monolithic JSON or proprietary delta stream | ❌ Full-file Git blob rewrite or heavy commit trees | **✅ FastCDC (512B–4KB) Content-Defined CAS Chunking** |
+| **Storage Backends & Cloud Drive** | ❌ Closed proprietary cloud lock-in | ⚠️ Local-only or clunky third-party sync plugins | **✅ Native R2 + S3-Compatible + Commercial Drives + WebDAV** |
 | **Bandwidth Efficiency** | ❌ High overhead with metadata/asset re-uploads | ⚠️ Git object packing overhead on small changes | **✅ >90% bandwidth saved (only delta chunks uploaded)** |
 | **Version History & Rollback** | ⚠️ Cloud-managed snapshots; opaque retention | ⚠️ Git merge conflicts & branch divergence | **✅ Cryptographic Merkle DAG Immutable Version Tree** |
 | **Credential & Passkey Security** | ❌ Plaintext password / server-side hash | ⚠️ Basic PAT / SSH keys stored in plaintext | **✅ WebAuthn FIDO2 Passkeys + NIST P-256 OPRF Blind Gate + TOTP** |
@@ -102,6 +104,19 @@ English | [简体中文](README-zh-CN.md) | [正體中文](README-zh-TW.md)
 - **Fine-Grained Content-Defined Chunking**: Employs a 64-bit Gear-hash rolling algorithm to detect natural content boundaries (`Min: 512B`, `Avg: 1KB`, `Max: 4KB`), completely eliminating the boundary-shift avalanche effect of fixed-size chunking.
 - **Delta Block Synchronization**: Automatically identifies modified blocks on save. Uploads only the newly modified 512B–1KB chunks and an encrypted manifest, reducing network upload bandwidth by over 90%.
 - **Local IndexedDB Block Cache**: Decrypted blocks and manifests are cached locally in the browser's IndexedDB, enabling zero-network, sub-millisecond document reconstruction and instant version history diffs.
+
+### 🗄️ Multi-Tier Third-Party Storage & Zero-Knowledge Credential Encryption
+- **Broad Multi-Protocol Ecosystem Support**:
+  - **First-Party Native Storage**: Default zero-configuration Cloudflare R2 object storage;
+  - **S3-Compatible Storage**: Amazon S3, Cloudflare R2 (S3 API), MinIO, Alibaba Cloud OSS, Tencent Cloud COS, Backblaze B2, Wasabi, and custom endpoints with configurable path styles;
+  - **Commercial Cloud Drives**: Google Drive, Microsoft OneDrive, Dropbox, Aliyun Drive, and Quark Drive;
+  - **Standard WebDAV Protocol**: Jianguoyun, Nextcloud, ownCloud, Synology DSM, and custom self-hosted WebDAV servers.
+- **End-to-End Zero-Knowledge Credential Storage (E2EE)**:
+  - All sensitive storage credentials (Secret Access Keys, WebDAV passwords, OAuth/API access tokens) are encrypted on the client side via **AES-256-GCM** before transmission;
+  - The server and Cloudflare D1 database store only ciphertexts and IVs, ensuring the server is strictly oblivious to plaintext credentials;
+  - Configurations are seamlessly synced to D1 and restored across multi-device sessions via zero-knowledge client decryption.
+- **Real-Time Connectivity Probe**: One-click connection test to verify endpoint reachability and access permissions prior to binding.
+- **Standalone Zero-R2 Deployment**: Introspects Cloudflare Worker environment capabilities. When first-party R2 is not bound, vault creation automatically prompts and mandates third-party storage setup for standalone operation.
 
 ### 🛡️ Deterministic Zero-Knowledge Block Encryption & CAS
 - **Non-Extractable Key Operations**: Operates directly on non-extractable Web Crypto AES-256-GCM keys (`extractable: false`), preventing key export, heap scraping, or cold-boot memory dumps.
@@ -239,9 +254,9 @@ Navigate to **Cloudflare Dashboard** -> **Workers & Pages** -> **markspace** -> 
 
 | Binding Type | Variable Name | Resource Target / Details |
 | :--- | :--- | :--- |
-| **D1 Database** | `DB` | Target D1 database: `markspace-db` |
-| **R2 Bucket** | `BUCKET` | Target R2 bucket: `markspace-media-bucket` |
-| **Static Assets** | `ASSETS` | Auto-bound to `apps/ui/dist` via `wrangler.jsonc` |
+| **D1 Database** | `DB` | Bound to D1 Database: `markspace-db` |
+| **R2 Bucket** | `BUCKET` | Bound to R2 Bucket: `markspace-media-bucket` (Optional if using third-party storage only) |
+| **Static Assets** | `ASSETS` | Automatically mapped to `apps/ui/dist` via `wrangler.jsonc` |
 
 > [!NOTE]
 > **Database Initialization (D1 Migration)**:

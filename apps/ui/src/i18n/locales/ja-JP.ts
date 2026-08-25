@@ -362,4 +362,7 @@ export const jaJP: typeof enUS = {
   customWebdavPreset: 'カスタム WebDAV サーバー',
   aliyunDriveLabel: 'Aliyun Drive (阿里云盘)',
   quarkDriveLabel: 'Quark Drive (夸克网盘)',
+  r2NotConfiguredNotice: '⚠️ システムに Cloudflare R2 が関連付けられていません。保管庫を作成する前にサードパーティストレージを設定してください。',
+  thirdPartyStorageRequired: 'サードパーティストレージの設定が必要です',
+  configureStorageFirst: '最初にサードパーティストレージを設定・保存してください',
 };

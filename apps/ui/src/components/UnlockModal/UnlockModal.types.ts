@@ -10,7 +10,8 @@ export interface UnlockModalProps {
   onCreateVault: (
     name: string,
     customRecoveryKey?: string,
-    providedPasskeyKey?: CryptoKey
+    providedPasskeyKey?: CryptoKey,
+    initialStorageConfig?: VaultStorageConfig
   ) => Promise<{ vault: VaultInfo; recoveryKey: string; vmk: CryptoKey }>;
   onUnlockVaultWithPasskey?: (vaultId: string) => Promise<CryptoKey>;
   onUnlockVaultWithRecovery?: (vaultId: string, mnemonic: string) => Promise<CryptoKey>;
