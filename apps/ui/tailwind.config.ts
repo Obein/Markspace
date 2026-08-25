@@ -49,7 +49,7 @@ export default {
       },
       fontFamily: {
         sans: ['var(--font-preview-body)', 'Noto Sans', 'sans-serif'],
-        mono: ['var(--font-editor-mono)', 'Monaspace Neon', 'Monaspace', 'Noto Sans Mono', 'monospace'],
+        mono: ['var(--font-editor-mono)', 'Monaspace Neon', 'Monaspace Argon', 'Noto Sans Mono', 'monospace'],
         serif: ['var(--font-preview-heading)', 'Noto Serif', 'serif'],
       },
     },

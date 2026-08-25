@@ -17,7 +17,7 @@
     --glass-border: rgba(0, 0, 0, 0.08);
 
     /* Monaspace Monospace + Noto Sans Mono Fallback */
-    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono', monospace;
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Noto Sans Mono', monospace;
     /* Noto Serif Headings */
     --font-preview-heading: 'Noto Serif', serif;
     /* Noto Sans Body & UI */
@@ -35,25 +35,25 @@
   }
 
   [data-lang="zh-CN"] {
-    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK SC', 'Noto Sans Mono', 'Noto Sans SC', monospace;
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Noto Sans Mono CJK SC', 'Noto Sans Mono', 'Noto Sans SC', monospace;
     --font-preview-heading: 'Noto Serif SC', 'Noto Serif', serif;
     --font-preview-body: 'Noto Sans SC', 'Noto Sans', sans-serif;
   }
 
   [data-lang="zh-TW"] {
-    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK TC', 'Noto Sans Mono', 'Noto Sans TC', monospace;
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Noto Sans Mono CJK TC', 'Noto Sans Mono', 'Noto Sans TC', monospace;
     --font-preview-heading: 'Noto Serif TC', 'Noto Serif', serif;
     --font-preview-body: 'Noto Sans TC', 'Noto Sans', sans-serif;
   }
 
   [data-lang="ja-JP"] {
-    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK JP', 'Noto Sans Mono', 'Noto Sans JP', monospace;
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Noto Sans Mono CJK JP', 'Noto Sans Mono', 'Noto Sans JP', monospace;
     --font-preview-heading: 'Noto Serif JP', 'Noto Serif', serif;
     --font-preview-body: 'Noto Sans JP', 'Noto Sans', sans-serif;
   }
 
   [data-lang="ko-KR"] {
-    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Monaspace', 'Noto Sans Mono CJK KR', 'Noto Sans Mono', 'Noto Sans KR', monospace;
+    --font-editor-mono: 'Monaspace Neon', 'Monaspace Argon', 'Noto Sans Mono CJK KR', 'Noto Sans Mono', 'Noto Sans KR', monospace;
     --font-preview-heading: 'Noto Serif KR', 'Noto Serif', serif;
     --font-preview-body: 'Noto Sans KR', 'Noto Sans', sans-serif;
   }
