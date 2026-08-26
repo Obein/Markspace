@@ -8,18 +8,20 @@
     "apps/*"
   ],
   "scripts": {
-    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:api": "wrangler dev",
     "dev:ui": "npm run dev --workspace=apps/ui",
     "build": "npm run build:wasm && npm run build:ui",
     "build:ui": "npm run build --workspace=apps/ui",
     "build:wasm": "tsx scripts/build-wasm.ts",
+    "dash:build": "npm run build:wasm && npm run build:ui",
+    "dash:deploy": "npm run dash:build && npm run d1:migrate:prod && wrangler deploy",
     "typecheck": "tsc --noEmit && npm run typecheck --workspaces --if-present",
-    "deploy": "npm run build && npm run d1:migrate:prod && npm run deploy --workspace=apps/api",
-    "d1:create": "npm run d1:create --workspace=apps/api",
-    "d1:migrate:local": "npm run d1:migrate:local --workspace=apps/api",
-    "d1:migrate:prod": "npm run d1:migrate:prod --workspace=apps/api",
-    "d1:execute:local": "npm run d1:execute:local --workspace=apps/api",
-    "d1:execute:prod": "npm run d1:execute:prod --workspace=apps/api"
+    "deploy": "npm run dash:deploy",
+    "d1:create": "wrangler d1 create markspace-db --binding DB && wrangler d1 migrations apply markspace-db --remote",
+    "d1:migrate:local": "echo \"y\" | wrangler d1 migrations apply markspace-db --local",
+    "d1:migrate:prod": "echo \"y\" | wrangler d1 migrations apply markspace-db --remote",
+    "d1:execute:local": "echo \"y\" | wrangler d1 execute markspace-db --local",
+    "d1:execute:prod": "echo \"y\" | wrangler d1 execute markspace-db --remote"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",

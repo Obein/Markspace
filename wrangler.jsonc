@@ -1,0 +1,33 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "markspace",
+	"main": "apps/api/src/index.ts",
+	"compatibility_date": "2026-08-04",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"build": {
+		"command": "npm run dash:build"
+	},
+	"assets": {
+		"directory": "apps/ui/dist",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "markspace-db",
+			"database_id": "3437fa71-7efd-48c3-bd1b-0204d07cb631",
+			"migrations_dir": "apps/api/migrations"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "BUCKET",
+			"bucket_name": "markspace-media-bucket"
+		}
+	],
+	"vars": {
+		"ENVIRONMENT": "production"
+	}
+}

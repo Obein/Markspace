@@ -5,14 +5,9 @@
   "license": "AGPL-3.0",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "d1:create": "wrangler d1 create markspace-db --binding DB && wrangler d1 migrations apply markspace-db --remote",
-    "typecheck": "tsc --noEmit",
-    "d1:migrate:local": "echo \"y\" | wrangler d1 migrations apply markspace-db --local",
-    "d1:migrate:prod": "echo \"y\" | wrangler d1 migrations apply markspace-db --remote",
-    "d1:execute:local": "echo \"y\" | wrangler d1 execute markspace-db --local",
-    "d1:execute:prod": "echo \"y\" | wrangler d1 execute markspace-db --remote"
+    "dev": "wrangler dev -c ../../wrangler.jsonc",
+    "deploy": "wrangler deploy -c ../../wrangler.jsonc",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260823.1",
