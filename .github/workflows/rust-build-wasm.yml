@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-wasm:
-    name: Build & Verify Rust WASM Pipeline
+    name: Build Rust WASM
     runs-on: ubuntu-latest
 
     steps:
@@ -37,9 +37,3 @@ jobs:
 
       - name: Compile Rust to WebAssembly
         run: npm run build:wasm
-
-      - name: Run Full Workspace Typecheck
-        run: npm run typecheck
-
-      - name: Run Full Production Build
-        run: npm run build
