@@ -367,6 +367,5 @@ export const jaJP: typeof enUS = {
   configureStorageFirst: '先にサードパーティストレージを設定して保存してください',
   ipChangeAutoLockNotice: 'ゼロトラストセキュリティ通知：クライアントIPアドレスの変更が検出されたため、すべての保管庫が自動的にロックされました。',
   geoAnomalyNotice: 'ゼロトラスト警告：セッション開始位置から50km以上の位置変更が検出されました。データ保護のためセッションを終了しました。',
-  mtlsIdentityVerified: '相互TLS（mTLS）マシンID検証完了',
   boundIpBadge: 'バインドIP',
 };

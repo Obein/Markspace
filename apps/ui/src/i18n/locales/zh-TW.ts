@@ -367,6 +367,5 @@ export const zhTW: typeof enUS = {
   configureStorageFirst: '請先設定並儲存第三方儲存',
   ipChangeAutoLockNotice: '零信任安全提示：偵測到客戶端 IP 位址發生變動，已自動鎖定所有保險庫以防憑證劫持。',
   geoAnomalyNotice: '零信任安全告警：偵測到請求地理位置偏離初始工作階段 >50km，工作階段已被自動終止以保護資料安全。',
-  mtlsIdentityVerified: '雙向 TLS (mTLS) 機器身分驗證通過',
   boundIpBadge: '綁定 IP',
 };

@@ -6,9 +6,9 @@ export class ErrorHandler {
     let status = 500;
     let code = 'INTERNAL_SERVER_ERROR';
 
-    if (message.startsWith('FORBIDDEN:') || message.startsWith('MTLS_VERIFICATION_REQUIRED:')) {
+    if (message.startsWith('FORBIDDEN:')) {
       status = 403;
-      code = message.startsWith('MTLS_VERIFICATION_REQUIRED:') ? 'MTLS_VERIFICATION_REQUIRED' : 'FORBIDDEN';
+      code = 'FORBIDDEN';
     } else if (message.startsWith('UNAUTHORIZED:')) {
       status = 401;
       code = 'UNAUTHORIZED';

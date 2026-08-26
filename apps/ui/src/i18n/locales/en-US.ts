@@ -365,6 +365,5 @@ export const enUS = {
   configureStorageFirst: 'Please configure and save third-party storage first',
   ipChangeAutoLockNotice: 'Zero-Trust Notice: Client IP address changed. All active vaults have been automatically locked to prevent unauthorized access.',
   geoAnomalyNotice: 'Zero-Trust Security Alert: Request location shifted by >50km from initial session location. Session was terminated for data protection.',
-  mtlsIdentityVerified: 'Mutual TLS (mTLS) Machine Identity Verified',
   boundIpBadge: 'Bound IP',
 };

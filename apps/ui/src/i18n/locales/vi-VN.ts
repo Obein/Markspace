@@ -367,6 +367,5 @@ export const viVN: typeof enUS = {
   configureStorageFirst: 'Vui lòng cấu hình và lưu lưu trữ bên thứ ba trước',
   ipChangeAutoLockNotice: 'Thông báo Zero-Trust: Đã phát hiện thay đổi địa chỉ IP của máy khách. Tất cả các kho đã được tự động khóa để bảo vệ dữ liệu.',
   geoAnomalyNotice: 'Cảnh báo Zero-Trust: Đã phát hiện vị trí dịch chuyển >50km so với phiên ban đầu. Phiên đã tự động bị chấm dứt.',
-  mtlsIdentityVerified: 'Đã xác minh danh tính máy qua TLS hai chiều (mTLS)',
   boundIpBadge: 'IP liên kết',
 };

@@ -54,9 +54,7 @@ export interface AuditLogResponse {
     | 'ADMIN_UPDATE_ROLE'
     | 'ADMIN_UPDATE_QUOTA'
     | 'ADMIN_UPDATE_POLICY'
-    | 'USER_IDLE_DESTROYED'
-    | 'GEO_ANOMALY_SESSION_TERMINATED'
-    | 'MTLS_SECURITY_VIOLATION';
+    | 'GEO_ANOMALY_SESSION_TERMINATED';
   authMethod: string;
   ipAddress: string;
   userAgent: string;

@@ -14,6 +14,4 @@ export interface Env {
   MASTER_ENCRYPTION_KEY: string;
   /** Environment indicator (development, production) */
   ENVIRONMENT?: string;
-  /** Enforce mutual TLS (mTLS) machine certificate verification */
-  ENFORCE_MTLS?: string | boolean;
 }

@@ -367,6 +367,5 @@ export const esES: typeof enUS = {
   configureStorageFirst: 'Configure y guarde primero el almacenamiento de terceros',
   ipChangeAutoLockNotice: 'Aviso Zero-Trust: La dirección IP del cliente ha cambiado. Todas las bóvedas activas se han bloqueado automáticamente.',
   geoAnomalyNotice: 'Alerta de seguridad Zero-Trust: Desviación de ubicación >50 km detectada. Sesión terminada para proteger los datos.',
-  mtlsIdentityVerified: 'Identidad de máquina TLS mutuo (mTLS) verificada',
   boundIpBadge: 'IP vinculada',
 };

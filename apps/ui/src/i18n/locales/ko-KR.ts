@@ -367,6 +367,5 @@ export const koKR: typeof enUS = {
   configureStorageFirst: '먼저 타사 스토리지를 구성하고 저장하세요',
   ipChangeAutoLockNotice: '제로 트러스트 보안 알림: 클라이언트 IP 주소 변경이 감지되어 모든 활성 보관소가 자동으로 잠겼습니다.',
   geoAnomalyNotice: '제로 트러스트 보안 경고: 세션 시작 위치에서 50km 이상의 위치 이동이 감지되어 데이터 보호를 위해 세션이 종료되었습니다.',
-  mtlsIdentityVerified: '상호 TLS (mTLS) 머신 신원 검증 완료',
   boundIpBadge: '바인딩된 IP',
 };

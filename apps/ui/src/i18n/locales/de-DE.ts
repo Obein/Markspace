@@ -367,6 +367,5 @@ export const deDE: typeof enUS = {
   configureStorageFirst: 'Bitte konfigurieren und speichern Sie zuerst den Drittanbieterspeicher',
   ipChangeAutoLockNotice: 'Zero-Trust-Hinweis: Client-IP-Adresse hat sich geändert. Alle aktiven Tresore wurden automatisch gesperrt.',
   geoAnomalyNotice: 'Zero-Trust-Sicherheitswarnung: Standortabweichung >50 km erkannt. Sitzung wurde zum Datenschutz beendet.',
-  mtlsIdentityVerified: 'Gegenseitiges TLS (mTLS) Identität verifiziert',
   boundIpBadge: 'Gebundene IP',
 };

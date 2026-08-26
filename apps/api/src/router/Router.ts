@@ -6,7 +6,6 @@ import { SecurityHeadersMiddleware } from '../middleware/SecurityHeadersMiddlewa
 import { Env } from '../types/env';
 import { RequestContext } from '../types/http';
 import { DPoPVerifier } from '../services/DPoPVerifier';
-import { MtlsSecurityService } from '../services/security/MtlsSecurityService';
 
 export class Router {
   private routes: Array<{
@@ -284,24 +283,6 @@ export class Router {
       const corsRes = this.handleCorsOptions(origin);
       corsRes.headers.set('X-Client-IP', clientIp);
       return corsRes;
-    }
-
-    // AOP Aspect 0: Mutual TLS (mTLS) Machine Identity Verification
-    const mtlsCheck = MtlsSecurityService.checkAccess(request, env);
-    if (!mtlsCheck.allowed && mtlsCheck.errorResponse) {
-      const container = new ServiceContainer(env);
-      await container.auditLogRepository.recordLog({
-        userId: 'anonymous',
-        username: 'mtls_gatekeeper',
-        action: 'MTLS_SECURITY_VIOLATION',
-        authMethod: 'Mutual TLS (mTLS)',
-        ipAddress: clientIp,
-        userAgent: request.headers.get('User-Agent') || 'Unknown Client',
-        status: 'FAILED',
-        details: mtlsCheck.result.reason || 'mTLS machine identity verification failed',
-      });
-      mtlsCheck.errorResponse.headers.set('X-Client-IP', clientIp);
-      return SecurityHeadersMiddleware.applyHeaders(mtlsCheck.errorResponse, origin);
     }
 
     try {
