@@ -10,10 +10,11 @@
   "scripts": {
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:ui": "npm run dev --workspace=apps/ui",
-    "build": "npm run build --workspace=apps/ui",
+    "build": "npm run build:wasm && npm run build:ui",
     "build:ui": "npm run build --workspace=apps/ui",
-    "typecheck": "npm run typecheck --workspaces --if-present",
-    "deploy": "npm run build:ui && npm run deploy --workspace=apps/api",
+    "build:wasm": "tsx scripts/build-wasm.ts",
+    "typecheck": "tsc --noEmit && npm run typecheck --workspaces --if-present",
+    "deploy": "npm run build && npm run d1:migrate:prod && npm run deploy --workspace=apps/api",
     "d1:create": "npm run d1:create --workspace=apps/api",
     "d1:migrate:local": "npm run d1:migrate:local --workspace=apps/api",
     "d1:migrate:prod": "npm run d1:migrate:prod --workspace=apps/api",
@@ -21,6 +22,8 @@
     "d1:execute:prod": "npm run d1:execute:prod --workspace=apps/api"
   },
   "devDependencies": {
+    "@types/node": "^22.13.5",
+    "tsx": "^4.19.3",
     "typescript": "^7.0.2",
     "wrangler": "^4.125.0"
   }

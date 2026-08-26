@@ -30,6 +30,7 @@ export interface VaultFileItem {
   createdAt: number;
   updatedAt: number;
   blobUrl?: string;
+  isLoaded?: boolean;
 }
 
 export interface NoteItem extends VaultFileItem {

@@ -46,11 +46,11 @@ export function useVaultFiles({
   } = useFileEditorBuffer();
 
   // 2. Vault Tree Loader & Content Decryption
-  const { files, setFiles, isLoadingVaultTree } = useVaultFileLoader({
+  const { files, setFiles, isLoadingVaultTree, loadFileContent } = useVaultFileLoader({
     activeVaultId,
     showToast,
-    onInitialFilesLoaded: (decryptedList) => {
-      const fileOnlyList = decryptedList.filter((f) => f.mimeType !== 'inode/directory');
+    onInitialFilesLoaded: async (metadataList) => {
+      const fileOnlyList = metadataList.filter((f) => f.mimeType !== 'inode/directory');
       const lastSavedFileId = activeVaultId
         ? localStorage.getItem(`markspace_last_active_file_${activeVaultId}`)
         : null;
@@ -62,7 +62,8 @@ export function useVaultFiles({
       if (targetFile) {
         setActiveFileId(targetFile.id);
         setActiveTitle(targetFile.filename);
-        setActiveContent(targetFile.content);
+        const content = await loadFileContent(targetFile);
+        setActiveContent(content);
       } else {
         // Last opened file does not exist or no last file was saved
         setActiveFileId(null);
@@ -104,7 +105,7 @@ export function useVaultFiles({
     showToast,
   });
 
-  // 4. Background Debounced Auto-Saver to R2 Storage
+  // 4. Auto-Save & Debounced CAS Synchronization
   const { isSaving, isSaveFailed, handleRetrySave } = useFileAutoSaver({
     activeFileId,
     activeTitle,
@@ -115,24 +116,25 @@ export function useVaultFiles({
     showToast,
   });
 
-  // Derived Views
-  const activeVaultFiles = useMemo(() => {
-    if (!activeVaultId) return [];
-    return files.filter((f) => f.vaultId === activeVaultId || !f.vaultId);
-  }, [files, activeVaultId]);
+  // Derived Values
+  const activeVaultFiles = useMemo(
+    () => files.filter((f) => f.vaultId === (activeVaultId || 'vault_default')),
+    [files, activeVaultId]
+  );
 
-  const activeFile = useMemo(() => {
-    return files.find((f) => f.id === activeFileId) || null;
-  }, [files, activeFileId]);
+  const activeFile = useMemo(
+    () => files.find((f) => f.id === activeFileId) || null,
+    [files, activeFileId]
+  );
 
   const handleSelectFile = useCallback(
-    (id: string) => {
-      handleSelectFileFromBuffer(id, files);
+    async (id: string) => {
+      await handleSelectFileFromBuffer(id, files, loadFileContent);
       if (activeVaultId && id) {
         localStorage.setItem(`markspace_last_active_file_${activeVaultId}`, id);
       }
     },
-    [handleSelectFileFromBuffer, files, activeVaultId]
+    [handleSelectFileFromBuffer, files, loadFileContent, activeVaultId]
   );
 
   return {

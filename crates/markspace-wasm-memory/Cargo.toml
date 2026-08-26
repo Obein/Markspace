@@ -1,0 +1,20 @@
+[package]
+name = "markspace-wasm-memory"
+version = "0.1.0"
+edition = "2021"
+authors = ["Markspace Authors"]
+description = "Deterministic precision memory zeroization and scrubbing for WebAssembly"
+license = "AGPL-3.0-or-later"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+zeroize = { version = "1.8", default-features = false }
+
+[profile.release]
+opt-level = "z"     # Optimize for smallest binary size
+lto = true          # Enable link-time optimization
+codegen-units = 1   # Maximize optimization
+panic = "abort"     # Abort on panic
+strip = true        # Strip symbols

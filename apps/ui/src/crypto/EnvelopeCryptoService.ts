@@ -1,6 +1,7 @@
 import { ICryptoService } from '../interfaces/ICryptoService';
 import { MnemonicService } from './MnemonicService';
 import { WorkerCryptoBridge } from './WorkerCryptoBridge';
+import { MemoryScrubber } from './memoryScrubber';
 
 export class EnvelopeCryptoService implements ICryptoService {
   private base64ToBuffer(base64: string): ArrayBuffer {
@@ -25,7 +26,7 @@ export class EnvelopeCryptoService implements ICryptoService {
     const array = new Uint8Array(16);
     crypto.getRandomValues(array);
     const saltHex = Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('');
-    array.fill(0); // Memory scrubbing
+    MemoryScrubber.wipe(array); // Deterministic WASM memory scrubbing
     return saltHex;
   }
 
@@ -115,8 +116,7 @@ export class EnvelopeCryptoService implements ICryptoService {
         ['wrapKey', 'unwrapKey']
       );
     } finally {
-      pinBuffer.fill(0);
-      saltBuffer.fill(0);
+      MemoryScrubber.wipeMultiple(pinBuffer, saltBuffer);
     }
   }
 
@@ -183,8 +183,7 @@ export class EnvelopeCryptoService implements ICryptoService {
         ['wrapKey', 'unwrapKey']
       );
     } finally {
-      mnemonicBuffer.fill(0);
-      saltBuffer.fill(0);
+      MemoryScrubber.wipeMultiple(mnemonicBuffer, saltBuffer);
     }
   }
 
@@ -200,8 +199,7 @@ export class EnvelopeCryptoService implements ICryptoService {
     combined.set(new Uint8Array(wrappedBuffer), iv.length);
 
     const base64Str = this.bufferToBase64(combined.buffer);
-    combined.fill(0);
-    iv.fill(0);
+    MemoryScrubber.wipeMultiple(combined, iv);
     return base64Str;
   }
 
@@ -221,8 +219,7 @@ export class EnvelopeCryptoService implements ICryptoService {
         ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']
       );
     } finally {
-      combined.fill(0);
-      iv.fill(0);
+      MemoryScrubber.wipeMultiple(combined, iv);
     }
   }
 
@@ -258,8 +255,7 @@ export class EnvelopeCryptoService implements ICryptoService {
 
         return { cmk, salt };
       } finally {
-        pwdBuffer.fill(0);
-        saltBuffer.fill(0);
+        MemoryScrubber.wipeMultiple(pwdBuffer, saltBuffer);
       }
     }
   }
@@ -284,8 +280,7 @@ export class EnvelopeCryptoService implements ICryptoService {
     combined.set(new Uint8Array(wrappedBuffer), iv.length);
 
     const base64Str = this.bufferToBase64(combined.buffer);
-    combined.fill(0);
-    iv.fill(0);
+    MemoryScrubber.wipeMultiple(combined, iv);
     return base64Str;
   }
 
@@ -305,8 +300,7 @@ export class EnvelopeCryptoService implements ICryptoService {
         ['encrypt', 'decrypt']
       );
     } finally {
-      combined.fill(0);
-      iv.fill(0);
+      MemoryScrubber.wipeMultiple(combined, iv);
     }
   }
 
@@ -327,8 +321,7 @@ export class EnvelopeCryptoService implements ICryptoService {
       combined.set(new Uint8Array(cipherBuffer), iv.length);
       return combined;
     } finally {
-      plainBuffer.fill(0);
-      iv.fill(0);
+      MemoryScrubber.wipeMultiple(plainBuffer, iv);
     }
   }
 
@@ -360,9 +353,11 @@ export class EnvelopeCryptoService implements ICryptoService {
         cipherData
       );
 
-      return new TextDecoder().decode(plainBuffer);
+      const result = new TextDecoder().decode(plainBuffer);
+      MemoryScrubber.wipe(plainBuffer);
+      return result;
     } finally {
-      iv.fill(0);
+      MemoryScrubber.wipe(iv);
     }
   }
 
@@ -376,7 +371,7 @@ export class EnvelopeCryptoService implements ICryptoService {
         .join('');
       return hex;
     } finally {
-      data.fill(0);
+      MemoryScrubber.wipe(data);
     }
   }
 }

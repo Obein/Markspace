@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
+import { MemoryScrubber } from '../../crypto/memoryScrubber';
 import { VaultFileItem } from '../../interfaces/INoteModels';
 
 export interface UseFileEditorBufferReturn {
@@ -16,7 +17,11 @@ export interface UseFileEditorBufferReturn {
   selectedCharCount: number;
   setSelectedWordCount: React.Dispatch<React.SetStateAction<number>>;
   setSelectedCharCount: React.Dispatch<React.SetStateAction<number>>;
-  handleSelectFile: (id: string, files: VaultFileItem[]) => void;
+  handleSelectFile: (
+    id: string,
+    files: VaultFileItem[],
+    contentLoader?: (file: VaultFileItem) => Promise<string>
+  ) => Promise<void>;
   handleContentChange: (newContent: string) => void;
   handleUndo: () => void;
   handleRedo: () => void;
@@ -37,18 +42,58 @@ export function useFileEditorBuffer(): UseFileEditorBufferReturn {
   const [selectedWordCount, setSelectedWordCount] = useState(0);
   const [selectedCharCount, setSelectedCharCount] = useState(0);
 
-  const handleSelectFile = useCallback((id: string, files: VaultFileItem[]) => {
-    const selected = files.find((f) => f.id === id);
-    if (selected) {
+  /**
+   * Securely scrubs plaintext memory strings in history stacks.
+   */
+  const scrubHistoryStacks = useCallback((past: string[], future: string[]) => {
+    const encoder = new TextEncoder();
+    for (const text of past) {
+      if (text) {
+        const buf = encoder.encode(text);
+        MemoryScrubber.wipe(buf);
+      }
+    }
+    for (const text of future) {
+      if (text) {
+        const buf = encoder.encode(text);
+        MemoryScrubber.wipe(buf);
+      }
+    }
+  }, []);
+
+  const handleSelectFile = useCallback(
+    async (
+      id: string,
+      files: VaultFileItem[],
+      contentLoader?: (file: VaultFileItem) => Promise<string>
+    ) => {
+      const selected = files.find((f) => f.id === id);
+      if (!selected) return;
+
+      // 1. Scrub previous file plaintext and undo/redo stacks
+      scrubHistoryStacks(historyPast, historyFuture);
+      if (activeContent) {
+        const prevBuf = new TextEncoder().encode(activeContent);
+        MemoryScrubber.wipe(prevBuf);
+      }
+
       setActiveFileId(id);
       setActiveTitle(selected.filename);
-      setActiveContent(selected.content);
       setHistoryPast([]);
       setHistoryFuture([]);
       setSelectedWordCount(0);
       setSelectedCharCount(0);
-    }
-  }, []);
+
+      // 2. On-demand lazy decryption if not already in memory
+      if (!selected.isLoaded && contentLoader) {
+        const loadedContent = await contentLoader(selected);
+        setActiveContent(loadedContent);
+      } else {
+        setActiveContent(selected.content || '');
+      }
+    },
+    [activeContent, historyPast, historyFuture, scrubHistoryStacks]
+  );
 
   const handleContentChange = useCallback(
     (newContent: string) => {
@@ -77,6 +122,11 @@ export function useFileEditorBuffer(): UseFileEditorBufferReturn {
   }, [historyFuture, activeContent]);
 
   const resetEditorBuffer = useCallback(() => {
+    scrubHistoryStacks(historyPast, historyFuture);
+    if (activeContent) {
+      const buf = new TextEncoder().encode(activeContent);
+      MemoryScrubber.wipe(buf);
+    }
     setActiveFileId(null);
     setActiveTitle('');
     setActiveContent('');
@@ -84,7 +134,7 @@ export function useFileEditorBuffer(): UseFileEditorBufferReturn {
     setHistoryFuture([]);
     setSelectedWordCount(0);
     setSelectedCharCount(0);
-  }, []);
+  }, [activeContent, historyPast, historyFuture, scrubHistoryStacks]);
 
   return {
     activeFileId,

@@ -1,3 +1,5 @@
+import { MemoryScrubber } from './memoryScrubber';
+
 /**
  * StorageConfigCrypto
  * Zero-Knowledge AES-256-GCM Client-Side Encryption for Third-Party Storage Credentials.
@@ -28,14 +30,18 @@ export class StorageConfigCrypto {
   public static async deriveFallbackKey(username: string, vaultId: string): Promise<CryptoKey> {
     const encoder = new TextEncoder();
     const material = encoder.encode(`markspace-storage-sec:${username.toLowerCase().trim()}:${vaultId}`);
-    const hash = await crypto.subtle.digest('SHA-256', material);
-    return await crypto.subtle.importKey(
-      'raw',
-      hash,
-      { name: 'AES-GCM', length: 256 },
-      false,
-      ['encrypt', 'decrypt']
-    );
+    try {
+      const hash = await crypto.subtle.digest('SHA-256', material);
+      return await crypto.subtle.importKey(
+        'raw',
+        hash,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+      );
+    } finally {
+      MemoryScrubber.wipe(material);
+    }
   }
 
   /**
@@ -49,19 +55,23 @@ export class StorageConfigCrypto {
     const jsonString = JSON.stringify(config);
     const encoded = new TextEncoder().encode(jsonString);
 
-    const ciphertext = await crypto.subtle.encrypt(
-      {
-        name: 'AES-GCM',
-        iv,
-      },
-      key,
-      encoded
-    );
+    try {
+      const ciphertext = await crypto.subtle.encrypt(
+        {
+          name: 'AES-GCM',
+          iv,
+        },
+        key,
+        encoded
+      );
 
-    return {
-      encryptedConfig: this.bufferToBase64(ciphertext),
-      iv: this.bufferToBase64(iv.buffer),
-    };
+      return {
+        encryptedConfig: this.bufferToBase64(ciphertext),
+        iv: this.bufferToBase64(iv.buffer),
+      };
+    } finally {
+      MemoryScrubber.wipeMultiple(encoded, iv);
+    }
   }
 
   /**
@@ -75,16 +85,21 @@ export class StorageConfigCrypto {
     const iv = new Uint8Array(this.base64ToBuffer(ivBase64));
     const data = this.base64ToBuffer(encryptedConfig);
 
-    const decrypted = await crypto.subtle.decrypt(
-      {
-        name: 'AES-GCM',
-        iv,
-      },
-      key,
-      data
-    );
+    try {
+      const decrypted = await crypto.subtle.decrypt(
+        {
+          name: 'AES-GCM',
+          iv,
+        },
+        key,
+        data
+      );
 
-    const decoded = new TextDecoder().decode(decrypted);
-    return JSON.parse(decoded) as T;
+      const decoded = new TextDecoder().decode(decrypted);
+      MemoryScrubber.wipe(decrypted);
+      return JSON.parse(decoded) as T;
+    } finally {
+      MemoryScrubber.wipeMultiple(iv, data);
+    }
   }
 }

@@ -15,6 +15,7 @@ export interface UseVaultFileLoaderReturn {
   files: VaultFileItem[];
   setFiles: React.Dispatch<React.SetStateAction<VaultFileItem[]>>;
   isLoadingVaultTree: boolean;
+  loadFileContent: (file: VaultFileItem) => Promise<string>;
 }
 
 export function useVaultFileLoader({
@@ -34,23 +35,84 @@ export function useVaultFileLoader({
   const [files, setFiles] = useState<VaultFileItem[]>([]);
   const [isLoadingVaultTree, setIsLoadingVaultTree] = useState(false);
 
-  // Load Vault File Tree and fetch Object Storage content when unlocked
+  /**
+   * On-demand single file plaintext reconstructor / decryptor.
+   * Ensures unopened files never have plaintexts loaded in memory.
+   */
+  const loadFileContent = async (file: VaultFileItem): Promise<string> => {
+    if (file.isLoaded && file.content) {
+      return file.content;
+    }
+    if (file.mimeType === 'inode/directory' || file.size === 0) {
+      return '';
+    }
+    if (!cmk) return '';
+
+    try {
+      let contentText = '';
+      let blobUrl = '';
+
+      if (file.category === 'markdown' && file.activeManifestId) {
+        try {
+          const { contentText: docContent } = await ChunkSyncService.reconstructDocument(
+            apiClient,
+            file.activeManifestId,
+            cmk
+          );
+          contentText = docContent;
+        } catch (casErr) {
+          console.warn(`Failed to reconstruct node ${file.id} from manifest, falling back to legacy blob:`, casErr);
+          const { body, encryptedDek } = await apiClient.getVaultNodeContent(file.id);
+          const dek = await cryptoService.unwrapDEK(encryptedDek || file.encryptedDek, cmk);
+          contentText = await cryptoService.decryptText(body, dek);
+        }
+      } else {
+        const { body, encryptedDek } = await apiClient.getVaultNodeContent(file.id);
+        if (body.byteLength === 0) {
+          contentText = '';
+        } else if (file.category === 'markdown') {
+          const dek = await cryptoService.unwrapDEK(encryptedDek || file.encryptedDek, cmk);
+          contentText = await cryptoService.decryptText(body, dek);
+        } else {
+          const blob = new Blob([body], { type: file.mimeType });
+          blobUrl = URL.createObjectURL(blob);
+          contentText = blobUrl;
+        }
+      }
+
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id
+            ? { ...f, content: contentText, blobUrl, isLoaded: true }
+            : f
+        )
+      );
+
+      return contentText;
+    } catch (err) {
+      console.error(`Failed to decrypt file content for node ${file.id}`, err);
+      showToast(t('loadVaultFailed'), 'error');
+      return '';
+    }
+  };
+
+  // Load Vault File Tree (Metadata-Only: Zero Plaintext in RAM)
   useEffect(() => {
     if (!isAuthenticated || !isVaultUnlocked || !cmk) return;
 
     let isSubscribed = true;
 
-    const fetchAndDecryptVaultTree = async () => {
+    const fetchVaultTreeMetadata = async () => {
       try {
         setIsLoadingVaultTree(true);
         const treeNodes = await apiClient.getVaultTree();
-        const decryptedList: VaultFileItem[] = [];
+        const metadataList: VaultFileItem[] = [];
 
         for (const node of treeNodes) {
           if (!isSubscribed) return;
 
           if (node.isDirectory) {
-            decryptedList.push({
+            metadataList.push({
               id: node.id,
               name: node.name,
               filename: node.name,
@@ -65,6 +127,7 @@ export function useVaultFileLoader({
               vaultId: activeVaultId || 'vault_default',
               createdAt: node.createdAt,
               updatedAt: node.updatedAt,
+              isLoaded: true,
             });
             continue;
           }
@@ -73,112 +136,35 @@ export function useVaultFileLoader({
           const resolvedCategory = FileTreeBuilder.detectCategory(nodeFilename, node.mimeType);
           const resolvedMime = FileTreeBuilder.detectMimeType(nodeFilename, node.mimeType);
 
-          if (node.size === 0) {
-            decryptedList.push({
-              id: node.id,
-              name: nodeFilename,
-              filename: nodeFilename,
-              path: node.path,
-              category: resolvedCategory,
-              mimeType: resolvedMime,
-              size: 0,
-              content: '',
-              blobUrl: '',
-              encryptedTitle: nodeFilename,
-              encryptedPayload: '',
-              encryptedDek: node.encryptedDek,
-              vaultId: activeVaultId || 'vault_default',
-              createdAt: node.createdAt,
-              updatedAt: node.updatedAt,
-            });
-            continue;
-          }
-
-          try {
-            let contentText = '';
-            let blobUrl = '';
-
-            if (resolvedCategory === 'markdown' && node.activeManifestId) {
-              try {
-                const { contentText: docContent } = await ChunkSyncService.reconstructDocument(
-                  apiClient,
-                  node.activeManifestId,
-                  cmk
-                );
-                contentText = docContent;
-              } catch (casErr) {
-                console.warn(`Failed to reconstruct node ${node.id} from manifest, falling back to legacy blob:`, casErr);
-                const { body, encryptedDek } = await apiClient.getVaultNodeContent(node.id);
-                const dek = await cryptoService.unwrapDEK(encryptedDek || node.encryptedDek, cmk);
-                contentText = await cryptoService.decryptText(body, dek);
-              }
-            } else {
-              const { body, encryptedDek } = await apiClient.getVaultNodeContent(node.id);
-              if (body.byteLength === 0) {
-                contentText = '';
-              } else if (resolvedCategory === 'markdown') {
-                const dek = await cryptoService.unwrapDEK(encryptedDek || node.encryptedDek, cmk);
-                contentText = await cryptoService.decryptText(body, dek);
-              } else {
-                const blob = new Blob([body], { type: resolvedMime });
-                blobUrl = URL.createObjectURL(blob);
-                contentText = blobUrl;
-              }
-            }
-
-            decryptedList.push({
-              id: node.id,
-              name: nodeFilename,
-              filename: nodeFilename,
-              path: node.path,
-              category: resolvedCategory,
-              mimeType: resolvedMime,
-              size: node.size,
-              content: contentText,
-              blobUrl,
-              encryptedTitle: nodeFilename,
-              encryptedPayload: '',
-              encryptedDek: node.encryptedDek,
-              activeManifestId: node.activeManifestId,
-              vaultId: activeVaultId || 'vault_default',
-              createdAt: node.createdAt,
-              updatedAt: node.updatedAt,
-            });
-          } catch (err: any) {
-            if (err?.message?.includes('404')) {
-              console.warn(`Node ${node.id} content not found in storage, defaulting to empty note.`);
-            } else {
-              console.error(`Failed to decrypt file content for node ${node.id}`, err);
-            }
-            decryptedList.push({
-              id: node.id,
-              name: nodeFilename,
-              filename: nodeFilename,
-              path: node.path,
-              category: resolvedCategory,
-              mimeType: resolvedMime,
-              size: node.size,
-              content: '',
-              blobUrl: '',
-              encryptedTitle: nodeFilename,
-              encryptedPayload: '',
-              encryptedDek: node.encryptedDek,
-              vaultId: activeVaultId,
-              createdAt: node.createdAt,
-              updatedAt: node.updatedAt,
-            });
-          }
+          metadataList.push({
+            id: node.id,
+            name: nodeFilename,
+            filename: nodeFilename,
+            path: node.path,
+            category: resolvedCategory,
+            mimeType: resolvedMime,
+            size: node.size || 0,
+            content: '', // Lazy: plaintexts are NOT loaded in memory
+            blobUrl: '',
+            encryptedTitle: nodeFilename,
+            encryptedPayload: '',
+            encryptedDek: node.encryptedDek,
+            activeManifestId: node.activeManifestId,
+            vaultId: activeVaultId || 'vault_default',
+            createdAt: node.createdAt,
+            updatedAt: node.updatedAt,
+            isLoaded: false,
+          });
         }
 
         if (isSubscribed) {
-          setFiles(decryptedList);
+          setFiles(metadataList);
           if (onInitialFilesLoaded) {
-            onInitialFilesLoaded(decryptedList);
+            onInitialFilesLoaded(metadataList);
           }
         }
       } catch (err) {
         console.error('Failed to load Vault tree from backend', err);
-        showToast(t('loadVaultFailed'), 'error');
       } finally {
         if (isSubscribed) {
           setIsLoadingVaultTree(false);
@@ -186,25 +172,17 @@ export function useVaultFileLoader({
       }
     };
 
-    fetchAndDecryptVaultTree();
+    fetchVaultTreeMetadata();
 
     return () => {
       isSubscribed = false;
     };
-  }, [
-    isAuthenticated,
-    isVaultUnlocked,
-    cmk,
-    activeVaultId,
-    apiClient,
-    cryptoService,
-    showToast,
-    t,
-  ]);
+  }, [activeVaultId, apiClient, cmk, isAuthenticated, isVaultUnlocked]);
 
   return {
     files,
     setFiles,
     isLoadingVaultTree,
+    loadFileContent,
   };
 }

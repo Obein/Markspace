@@ -10,6 +10,8 @@
  * 2. Cross-user isolation: Different users with different VMKs produce completely unrelated Chunk IDs and ciphertexts for the same content.
  */
 
+import { MemoryScrubber } from './memoryScrubber';
+
 export interface ProcessedChunk {
   chunkId: string;        // Deterministic content-addressed identifier (64 hex chars)
   plainSize: number;      // Original plaintext byte length
@@ -57,21 +59,25 @@ export class ChunkCryptoEngine {
     );
     const iv = new Uint8Array(ivBuffer).slice(0, 12);
 
-    // 5. AES-256-GCM Encrypt chunk payload with VMK and synthetic IV
-    const cipherBuffer = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv: iv as unknown as BufferSource },
-      vmk,
-      chunkData as unknown as BufferSource
-    );
+    try {
+      // 5. AES-256-GCM Encrypt chunk payload with VMK and synthetic IV
+      const cipherBuffer = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: iv as unknown as BufferSource },
+        vmk,
+        chunkData as unknown as BufferSource
+      );
 
-    const cipherData = new Uint8Array(cipherBuffer);
+      const cipherData = new Uint8Array(cipherBuffer);
 
-    return {
-      chunkId,
-      plainSize: chunkData.byteLength,
-      cipherSize: cipherData.byteLength,
-      cipherData,
-    };
+      return {
+        chunkId,
+        plainSize: chunkData.byteLength,
+        cipherSize: cipherData.byteLength,
+        cipherData,
+      };
+    } finally {
+      MemoryScrubber.wipeMultiple(contentHashBytes, zeroIv, ivMsg, iv);
+    }
   }
 
   /**
@@ -95,14 +101,18 @@ export class ChunkCryptoEngine {
     );
     const iv = new Uint8Array(ivBuffer).slice(0, 12);
 
-    // 2. AES-256-GCM Decrypt
-    const plainBuffer = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: iv as unknown as BufferSource },
-      vmk,
-      cipherBytes as unknown as BufferSource
-    );
+    try {
+      // 2. AES-256-GCM Decrypt
+      const plainBuffer = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: iv as unknown as BufferSource },
+        vmk,
+        cipherBytes as unknown as BufferSource
+      );
 
-    return new Uint8Array(plainBuffer);
+      return new Uint8Array(plainBuffer);
+    } finally {
+      MemoryScrubber.wipeMultiple(ivMsg, iv);
+    }
   }
 
   /**
