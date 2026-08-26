@@ -92,8 +92,8 @@ export const enUS = {
   
   bentoMemoryTitle: 'Zero Disk Trace',
   bentoMemorySub: 'Non-Extractable Keys',
-  bentoMemoryDesc: 'All cryptographic keys are created with extractable: false in Web Crypto API. On vault lock or sign out, memory buffers are completely scrubbed to prevent cold-boot dumps.',
-  bentoMemoryTag: 'RAM Isolation',
+  bentoMemoryDesc: 'All cryptographic keys are created with extractable: false in Web Crypto API. Keys reside in ephemeral session memory only and are never written to disk or LocalStorage.',
+  bentoMemoryTag: 'Zero-Disk',
   
   bentoBufferTitle: 'Differential Block Save',
   bentoBufferSub: 'FastCDC Incremental Sync',

@@ -23,19 +23,19 @@ export const AuthBentoBottom: React.FC<AuthBentoBottomProps> = ({ isFormFocused 
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 sm:gap-3 lg:gap-3.5 flex-[1] min-h-0">
-      {/* Bottom Left: RAM Shield (Span 3 - Compact Card) */}
+      {/* Bottom Left: Ephemeral Crypto (Span 3 - Compact Card) */}
       <BentoCard
         className={`col-span-1 md:col-span-3 h-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isFormFocused ? 'lg:translate-y-[62%] lg:-translate-x-[20%] lg:opacity-40 lg:blur-[0.5px]' : 'translate-0 opacity-100 blur-0'
         }`}
-        heroTitle={<span className="text-2xl sm:text-3xl font-black text-zinc-100">RAM Shield</span>}
+        heroTitle={<span className="text-2xl sm:text-3xl font-black text-zinc-100">Zero-Disk</span>}
         heroSubtitle={t('bentoMemorySub')}
         svgGraphic={<SvgRamPurge />}
         detailTitle={t('bentoMemoryTitle')}
         detailText={t('bentoMemoryDesc')}
         detailSpecs={[
-          { label: 'Key Isolation', value: 'V8 Engine Heap' },
-          { label: 'Lock Action', value: 'Memory Zeroize' },
+          { label: 'Key Scope', value: 'Ephemeral RAM' },
+          { label: 'Disk Persistence', value: 'None' },
         ]}
       />
 

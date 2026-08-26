@@ -119,7 +119,7 @@
 - **無 R2 獨立運行能力 (Smart Storage Fallback)**：系統智慧感知後端環境是否綁定 R2 Bucket；在未關聯第一方 R2 時，建立 Vault 自動前置引導並強制設定第三方儲存方案，實現零 R2 強依賴下的完全獨立運行。
 
 ### 🛡️ 確定性零知識盲塊加密與 CAS 儲存池
-- **非可導出金鑰安全執行**：直接使用 Web Crypto API 的不可導出金鑰（`extractable: false`）執行原生 AES-256-GCM 運算，杜絕堆疊記憶體傾印與冷啟動洩漏。
+- **非可匯出金鑰安全執行**：使用 Web Crypto API 的不可匯出金鑰（`extractable: false`）執行原生 AES-256-GCM 運算，金鑰不寫入 LocalStorage 或磁碟介質，降低金鑰持久化洩漏風險。
 - **Vault 內部盲去重**：透過私有 $VMK$ 派生確定性 Chunk ID（$H = \text{SHA-256}(Chunk)$ 經由 $VMK$ 加密），同一 Vault 內相同內容自動去重。
 - **跨使用者強加密隔離**：不同使用者的私有 $VMK$ 完全隔離，相同明文生成截然不同的 Chunk ID 與密文，徹底免疫伺服端的頻次分析與字典攻擊。
 - **Raw Binary (0% 冗餘) 儲存**：徹底清除 Base64 編碼帶來的 33.3% 體積膨脹，原生採用 ArrayBuffer / Uint8Array 二進位流儲存在 R2 中。

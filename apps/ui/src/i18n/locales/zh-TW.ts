@@ -92,10 +92,10 @@ export const zhTW: typeof enUS = {
   bentoNonceDesc: '透過加密挑戰 Nonce 與裝置權杖即時綁定每次資料操作。任何重放嘗試均會立即觸發熔斷開關，自動作廢工作階段並鎖定資料。',
   bentoNonceTag: 'RFC 9449 DPoP',
   
-  bentoMemoryTitle: '零磁碟洩漏',
-  bentoMemorySub: '非可匯出金鑰 · 記憶體即時擦除',
-  bentoMemoryDesc: '所有加密金鑰均在 Web Crypto API 中使用 extractable: false 建立。在鎖定庫或登出帳號時，記憶體緩衝區將立即強制清零，杜絕冷啟動記憶體提取。',
-  bentoMemoryTag: 'RAM 記憶體隔離',
+  bentoMemoryTitle: '零磁碟留痕',
+  bentoMemorySub: '非可匯出金鑰 · 記憶體生命週期',
+  bentoMemoryDesc: '所有加密金鑰均使用 Web Crypto API 的 extractable: false 建立。金鑰僅駐留在工作階段記憶體中，絕不寫入 LocalStorage 或磁碟，退出時即刻清空。',
+  bentoMemoryTag: '無磁碟留痕',
   
   bentoBufferTitle: '塊級增量防抖同步',
   bentoBufferSub: 'FastCDC 差異化塊級同步',

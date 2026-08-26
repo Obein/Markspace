@@ -23,7 +23,7 @@ English | [简体中文](README-zh-CN.md) | [正體中文](README-zh-TW.md)
 
 ## 💡 Why Markspace?
 
-- **More Robust Zero-Knowledge Privacy**: End-to-end envelope encryption via hardware-isolated, non-extractable Web Crypto keys (`extractable: false`).
+- **More Robust Zero-Knowledge Privacy**: End-to-end envelope encryption via non-extractable Web Crypto keys (`extractable: false`), ensuring plaintext never leaves client memory unencrypted.
 - **FastCDC & Merkle DAG Block Sync**: Fine-grained content-defined chunking (`512B – 4KB`) transferring only modified blocks alongside immutable Merkle version trees.
 - **Multi-Tier Third-Party Storage & Zero-Knowledge Credentials**: Native Cloudflare R2, standard S3-compatible storage, commercial cloud drives (Google Drive / OneDrive / Dropbox / Aliyun / Quark), and WebDAV protocols, with all credentials encrypted via client-side AES-256-GCM.
 - **OPRF Blind Gate & Zero-Replay Security**: NIST P-256 OPRF oblivious credential evaluation, RFC 9449 DPoP device token binding, and RFC 6238 TOTP.
@@ -119,7 +119,7 @@ English | [简体中文](README-zh-CN.md) | [正體中文](README-zh-TW.md)
 - **Standalone Zero-R2 Deployment**: Introspects Cloudflare Worker environment capabilities. When first-party R2 is not bound, vault creation automatically prompts and mandates third-party storage setup for standalone operation.
 
 ### 🛡️ Deterministic Zero-Knowledge Block Encryption & CAS
-- **Non-Extractable Key Operations**: Operates directly on non-extractable Web Crypto AES-256-GCM keys (`extractable: false`), preventing key export, heap scraping, or cold-boot memory dumps.
+- **Non-Extractable Key Operations**: Operates directly on non-extractable Web Crypto AES-256-GCM keys (`extractable: false`), ensuring keys are never persisted to LocalStorage or unencrypted disk.
 - **Deterministic Blind Deduplication**: Generates deterministic Chunk IDs using VMK-keyed cryptographic tokens ($H = \text{SHA-256}(Chunk)$ encrypted via VMK). Chunks with identical content in the same vault share identical IDs for blind deduplication.
 - **Cross-User Cryptographic Isolation**: Because chunk derivation is salted with each user's private VMK, different users with identical text produce completely unrelated Chunk IDs and ciphertexts, fully immunizing against server-side frequency and dictionary attacks.
 - **Raw Binary (0% Overhead) Storage**: Eliminates Base64 encoding overhead (which inflates data by 33%), storing encrypted chunks and blobs directly as raw binary streams (`application/octet-stream`).

@@ -92,10 +92,10 @@ export const zhCN: typeof enUS = {
   bentoNonceDesc: '通过加密挑战 Nonce 与设备令牌实时绑定每次数据操作。任何重放尝试均会立即触发熔断开关，自动作废会话并锁定数据。',
   bentoNonceTag: 'RFC 9449 DPoP',
   
-  bentoMemoryTitle: '零磁盘泄露',
-  bentoMemorySub: '非可导出密钥 · 内存即时擦除',
-  bentoMemoryDesc: '所有加密密钥均在 Web Crypto API 中使用 extractable: false 创建。在锁定库或登出账号时，内存缓冲区将立即强制清零，杜绝冷启动内存提取。',
-  bentoMemoryTag: 'RAM 内存隔离',
+  bentoMemoryTitle: '零磁盘留痕',
+  bentoMemorySub: '非可导出密钥 · 内存生命周期',
+  bentoMemoryDesc: '所有加密密钥均使用 Web Crypto API 的 extractable: false 创建。密钥仅驻留在会话内存中，绝不写入 LocalStorage 或磁盘，退出时即刻清空。',
+  bentoMemoryTag: '无磁盘留痕',
   
   bentoBufferTitle: '块级增量防抖同步',
   bentoBufferSub: 'FastCDC 差异化块级同步',
