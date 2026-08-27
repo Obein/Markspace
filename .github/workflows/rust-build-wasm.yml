@@ -1,4 +1,4 @@
-name: Rust WASM Build
+name: Rust WASM Build & Deploy
 
 on:
   push:
@@ -7,9 +7,13 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-wasm:
-    name: Build Rust WASM
+  build-and-deploy:
+    name: Build WASM & Deploy to Cloudflare
     runs-on: ubuntu-latest
 
     steps:
@@ -35,5 +39,26 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Compile Rust to WebAssembly
+      - name: 1. Compile Rust to WebAssembly
         run: npm run build:wasm
+
+      - name: 2. Run Typecheck
+        run: npm run typecheck
+
+      - name: 3. Build UI Assets
+        run: npm run build:ui
+
+      - name: 4. Deploy to Cloudflare (on main branch only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "==> Running D1 production migrations..."
+            npm run d1:migrate:prod
+            echo "==> Deploying Worker and Assets to Cloudflare..."
+            npx wrangler deploy --no-build
+          else
+            echo "ℹ CLOUDFLARE_API_TOKEN secret not set in GitHub repository settings. Skipping deployment step."
+          fi
