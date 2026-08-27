@@ -128,71 +128,71 @@
 - **不可篡改版本清单**：每次保存均构建轻量加密 Manifest 记录有序 Chunk 拓扑并计算 Merkle Root Hash，形成不可篡改的 DAG 版本树。
 - **点对点精确时间回滚**：支持任意历史版本的无损检视与一键回退，无需服务端重新构建整个文件。
 
-### 🔑 硬件级 Passkeys (WebAuthn / FIDO2) 与 OPRF 灾难恢复
-- **零知识硬件绑定 Passkeys**：全面支持 WebAuthn / FIDO2 硬件标准（Touch ID、Windows Hello、Face ID、YubiKey、Google 密码管理工具、Apple iCloud 钥匙串与 1Password），通过 WebAuthn PRF 确定性派生 256 位高熵 Passkey Vault Key (PVK)。
-- **单用户多 Passkey 绑定与管理**：支持在个人中心集中查看、重命名与管理多个设备/硬件安全密钥。
-- **NIST P-256 椭圆曲线 OPRF 灾难恢复盲化门禁**：客户端在传输前对助记词凭据进行盲化计算，服务端在不知晓明文的情况下完成校验，彻底抵御离线字典与撞库爆破。
-- **8 词 BIP-39 助记词冷恢复**：创建 Vault 时生成标准 8 词助记词，全面支持空格与连字符（`-`）分词，提供极致离线容灾。
-- **RFC 6238 TOTP 双重认证**：支持 30 秒动态令牌轮转，兼容主流身份验证器。
-- **RFC 9449 DPoP 与 Nonce 熔断**：通过 6 字节挑战 Nonce 与设备令牌实时绑定，重放尝试立即触发熔断。
+### 🔑 硬體級 Passkeys (WebAuthn / FIDO2) 與 OPRF 災難恢復
+- **零知識硬體綁定 Passkeys**：全面支援 WebAuthn / FIDO2 硬體標準（Touch ID、Windows Hello、Face ID、YubiKey、Google 密碼管理工具、Apple iCloud 鑰匙圈與 1Password），透過 WebAuthn PRF 確定性派生 256 位高熵 Passkey Vault Key (PVK)。
+- **單一使用者多 Passkey 綁定與管理**：支援在個人中心集中檢視、重新命名與管理多個裝置/硬體安全金鑰。
+- **NIST P-256 橢圓曲線 OPRF 災難恢復盲化門禁**：客戶端在傳輸前對助記詞憑據進行盲化計算，伺服端在不知曉明文的情況下完成校驗，徹底抵禦離線字典與撞庫爆破。
+- **8 詞 BIP-39 助記詞冷恢復**：建立 Vault 時生成標準 8 詞助記詞，全面支援空格與連字號（`-`）分詞，提供極致離線容災。
+- **RFC 6238 TOTP 雙重認證**：支援 30 秒動態權杖輪轉，相容主流身分驗證器。
+- **RFC 9449 DPoP 與 Nonce 熔斷**：透過 6 位元組挑戰 Nonce 與裝置權杖即時綁定，重放嘗試立即觸發熔斷。
 
-### 👤 用户政策、存储配额与闲置自动销毁
-- **Unix 规范凭据**：用户名遵循 Unix 格式（`5–32` 字符，`/^[a-z_][a-z0-9_-]{4,31}$/`，仅限小写字母、数字、下划线与短横线，首字符为字母或下划线），系统内全局唯一；密码采用 Unix 格式（`12–128` 字符），不强制字符成分复杂度。
-- **全局唯一 User UUID**：每位用户绑定唯一的 UUID 标识符，支持控制台一键快捷复制。
-- **精细化存储配额管控 (1MB – 1TB)**：非管理员用户默认拥有 `10MB` 存储配额，系统管理员可按需在 `1MB` 到 `1TB` 区间内调整全局默认或指定用户配额，分块与文件写入执行硬上限拦截。
-- **100 条审计日志保留上限**：每位用户的零信任安全与操作审计日志自动剪裁并最多保留最新 100 条记录，UI 显式声明。
-- **闲置账户生命周期销毁机制**：非管理员用户最后在线时间超过闲置阈值（默认 `1 个月`，支持管理员配置 `1 个月` 至 `1 年`，亦可关闭）将自动由 Worker Cron 定时任务彻底级联销毁用户与其全部 Vault 数据，UI 关键节点显式声明备份与自部署提示。
-- **系统管理员控制台**：支持系统管理员集中查看所有用户的 UUID、创建时间、最后在线时间、存储消耗、调整用户角色/配额，以及手动或定时触发闲置用户清理。
+### 👤 使用者政策、儲存配額與閒置自動銷毀
+- **Unix 規範憑據**：使用者名稱遵循 Unix 格式（`5–32` 字元，`/^[a-z_][a-z0-9_-]{4,31}$/`，僅限小寫字母、數字、底線與短橫線，首字元為字母或底線），系統內全域唯一；密碼採用 Unix 格式（`12–128` 字元），不強制字元成分複雜度。
+- **全域唯一 User UUID**：每位使用者綁定唯一的 UUID 識別碼，支援主控台一鍵快捷複製。
+- **精細化儲存配額管控 (1MB – 1TB)**：非管理員使用者預設擁有 `10MB` 儲存配額，系統管理員可按需在 `1MB` 到 `1TB` 區間內調整全域預設或指定使用者配額，分塊與檔案寫入執行硬上限攔截。
+- **100 條稽核日誌保留上限**：每位使用者的零信任安全與操作稽核日誌自動剪裁並最多保留最新 100 條記錄，UI 顯式宣告。
+- **閒置帳戶生命週期銷毀機制**：非管理員使用者最後上線時間超過閒置閾值（預設 `1 個月`，支援管理員設定 `1 個月` 至 `1 年`，亦可關閉）將自動由 Worker Cron 排程任務徹底串聯銷毀使用者與其全部 Vault 數據，UI 關鍵節點顯式宣告備份與自部署提示。
+- **系統管理員主控台**：支援系統管理員集中檢視所有使用者的 UUID、建立時間、最後上線時間、儲存消耗、調整使用者角色/配額，以及手動或排程觸發閒置使用者清理。
 
-### 📊 交互式可视化表格编辑器
-- **所见即所得表格网格**：在 Markdown 笔记中直接增删行列、调整对齐与单元格内容。
-- **实时公式引擎**：内置数学计算引擎，支持 `SUM`、`AVG`、`COUNT`、`MIN`、`MAX`、`IF` 及基础算术表达式。
-- **GFM 无损转换**：与标准 GitHub Flavored Markdown 表格语法无缝互转。
+### 📊 互動式視覺化表格編輯器
+- **所見即所得表格網格**：在 Markdown 筆記中直接增刪行列、調整對齊與儲存格內容。
+- **即時公式引擎**：內建數學計算引擎，支援 `SUM`、`AVG`、`COUNT`、`MIN`、`MAX`、`IF` 及基礎算術表達式。
+- **GFM 無損轉換**：與標準 GitHub Flavored Markdown 表格語法無縫互轉。
 
-### 📐 科学与工程排版套件
-- **KaTeX 数学公式引擎**：支持行内公式（`$...$`）与块级公式（`$$...$$`）的高性能渲染。
-- **Mermaid 动态图表 AST**：直接根据代码块生成流程图、时序图、类图与甘特图。
-- **Lezer 增量语法解析**：支持 Markdown、JavaScript、Python、CSS、HTML、JSON 等语言的高速语法高亮。
+### 📐 科學與工程排版套件
+- **KaTeX 數學公式引擎**：支援行內公式（`$...$`）與區塊公式（`$$...$$`）的高性能渲染。
+- **Mermaid 動態圖表 AST**：直接根據程式碼區塊生成流程圖、循序圖、類別圖與甘特圖。
+- **Lezer 增量語法解析**：支援 Markdown、JavaScript、Python、CSS、HTML、JSON 等語言的高速語法突顯。
 
-### 🌐 全要素国际化多语言 (i18n)
-- 原生支持 8 种主流语言无缝切换：
-  - 🇨🇳 简体中文 (`zh-CN`) | 🇭🇰/🇹🇼 正體中文 (`zh-TW`) | 🇺🇸 English (`en-US`) | 🇯🇵 日本語 (`ja-JP`)
+### 🌐 全要素國際化多語言 (i18n)
+- 原生支援 8 種主流語言無縫切換：
+  - 🇨🇳 簡體中文 (`zh-CN`) | 🇭🇰/🇹🇼 正體中文 (`zh-TW`) | 🇺🇸 English (`en-US`) | 🇯🇵 日本語 (`ja-JP`)
   - 🇰🇷 한국어 (`ko-KR`) | 🇩🇪 Deutsch (`de-DE`) | 🇪🇸 Español (`es-ES`) | 🇻🇳 Tiếng Việt (`vi-VN`)
 
-### 🎨 OLED 纯黑美学与排版
-- 针对纯黑 OLED 背景（`#050507`）调校的高对比度视觉体验。
-- 深度集成 **GitHub Monaspace Neon** 代码等宽字体与 **Noto 全语言多文种字族**。
+### 🎨 OLED 純黑美學與排版
+- 針對純黑 OLED 背景（`#050507`）調校的高對比視覺體驗。
+- 深度整合 **GitHub Monaspace Neon** 程式碼等寬字型與 **Noto 全語言多文種字族**。
 
 ---
 
-## 🏗️ 架构与存储拓扑
+## 🏗️ 架構與儲存拓撲
 
 ```mermaid
 flowchart TB
-    subgraph Client ["客户端 (Web Browser / WebCrypto & IndexedDB)"]
-        PlainDoc["文档明文内容"] --> FastCDC["FastCDC 动态切分 (512B - 4KB)"]
-        FastCDC --> ProcessChunks["处理数据块 [A, B', C]"]
+    subgraph Client ["客戶端 (Web Browser / WebCrypto & IndexedDB)"]
+        PlainDoc["文件明文內容"] --> FastCDC["FastCDC 動態切分 (512B - 4KB)"]
+        FastCDC --> ProcessChunks["處理資料塊 [A, B', C]"]
         
-        subgraph Crypto ["确定性零知识盲加密引擎"]
-            ProcessChunks --> DetID["确定性 Chunk ID: Hex(SHA256(AES_VMK(H)))"]
+        subgraph Crypto ["確定性零知識盲加密引擎"]
+            ProcessChunks --> DetID["確定性 Chunk ID: Hex(SHA256(AES_VMK(H)))"]
             DetID --> SynthIV["合成 IV: SHA256('chunk-iv:' + ChunkID)[0..12]"]
-            SynthIV --> AESEnc["AES-256-GCM 原生二进制加密"]
+            SynthIV --> AESEnc["AES-256-GCM 原生二進位加密"]
         end
         
-        AESEnc --> CheckMissing["1. 批量探测缺失块: POST /vault/chunks/check-missing"]
-        AESEnc --> UploadDelta["2. 仅上传差异块: PUT /vault/chunks/:id"]
+        AESEnc --> CheckMissing["1. 批次探測缺失塊: POST /vault/chunks/check-missing"]
+        AESEnc --> UploadDelta["2. 僅上傳差異塊: PUT /vault/chunks/:id"]
         
-        Manifest["构建 Merkle Manifest 与根哈希"] --> EncManifest["VMK 加密 Manifest"]
-        EncManifest --> CommitManifest["3. 提交版本清单: POST /vault/manifests/commit"]
+        Manifest["構建 Merkle Manifest 與根雜湊"] --> EncManifest["VMK 加密 Manifest"]
+        EncManifest --> CommitManifest["3. 提交版本清單: POST /vault/manifests/commit"]
         
-        LocalCache[("IndexedDB 块与清单缓存")] <--> FastCDC
+        LocalCache[("IndexedDB 塊與清單快取")] <--> FastCDC
     end
 
-    subgraph Edge ["Cloudflare 全球边缘服务"]
+    subgraph Edge ["Cloudflare 全球邊緣服務"]
         CheckMissing --> D1Chunks["D1 SQL (vault_chunks 索引)"]
-        UploadDelta --> R2Chunks["R2 CAS 存储池 (vaults/{userId}/chunks/{chunkId})"]
-        CommitManifest --> R2Manifests["R2 Manifests 目录 (vaults/{userId}/manifests/{manifestId})"]
-        CommitManifest --> D1Nodes["D1 SQL (active_manifest_id 指针)"]
+        UploadDelta --> R2Chunks["R2 CAS 儲存池 (vaults/{userId}/chunks/{chunkId})"]
+        CommitManifest --> R2Manifests["R2 Manifests 目錄 (vaults/{userId}/manifests/{manifestId})"]
+        CommitManifest --> D1Nodes["D1 SQL (active_manifest_id 指標)"]
     end
 ```
 
@@ -200,70 +200,59 @@ flowchart TB
 
 ## 🚀 快速上手
 
-### 环境准备
+### 環境準備
 - [Node.js](https://nodejs.org/) (v18.0.0 或更高版本)
 - [npm](https://www.npmjs.com/) (v9.0.0 或更高版本) 或 [pnpm](https://pnpm.io/)
 - [Cloudflare Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
 
-### 1. 克隆并安装依赖
+### 1. 複製並安裝依賴
 ```bash
 git clone https://github.com/your-username/markspace.git
 cd markspace
 npm install
 ```
 
-### 2. 本地数据库迁移 (Cloudflare D1)
+### 2. 本地資料庫遷移 (Cloudflare D1)
 ```bash
 npm run d1:migrate:local
 ```
 
-### 3. 启动开发服务器
+### 3. 啟動開發伺服器
 ```bash
-# 终端 1：启动边缘 API 后端
+# 終端機 1：啟動邊緣 API 後端
 npm run dev:api
 
-# 终端 2：启动前端 UI 开发服务器
+# 終端機 2：啟動前端 UI 開發伺服器
 npm run dev:ui
 ```
-在浏览器中打开 `http://localhost:5173` 即可开始使用。
+在瀏覽器中打開 `http://localhost:5173` 即可開始使用。
 
 ---
 
-## 🚢 部署发布
+## 🚢 部署發布
 
-### 🌐 方式一：Cloudflare 控制台 Web 界面一键部署 (推荐)
+> [!IMPORTANT]
+> **建置環境說明（Rust to WebAssembly）**：  
+> 本專案的零信任記憶體抹除模組依賴 Rust 編譯環境。由於 **Cloudflare Dashboard 主控台的預設建置容器未預裝 Rust / Cargo 工具鏈**，線上全自動建置與發布**僅採用 GitHub Actions (`build-and-deploy.yml`)**（或透過本地終端機 CLI 部署）。請避免在 Cloudflare 主控台直接開啟 Git 自動建置，以免因缺少 Cargo 報錯。
 
-通过 Cloudflare 官方部署按钮一键直达全球边缘网络：
+### 🌐 方式一：GitHub Actions 自動化全流程部署 (推薦)
 
-<p align="center">
-  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Obein/Markspace">
-    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" />
-  </a>
-</p>
+專案已內建自動化 CI/CD 流水線 [`.github/workflows/build-and-deploy.yml`](.github/workflows/build-and-deploy.yml)。當程式碼合併或推送到 `main` 分支時，GitHub Actions 會自動在具備完整 Rust + Node.js 環境的 Runner 中循序完成：**Rust WASM 編譯 $\rightarrow$ 型別檢查 $\rightarrow$ 前端打包 $\rightarrow$ D1 生產資料庫綱要遷移 $\rightarrow$ Cloudflare Workers 邊緣網路發布**。
 
-#### 1. 建置與路徑設定 (Build Settings)
-在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 匯入或設定專案時：
-- **根目錄 (Root Directory)**：`/` (專案根目錄)
-- **建置命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
-- **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
-- **靜態資產輸出目錄 (Build Output Directory)**：`apps/ui/dist`
-- **Worker 後端進入點**：`apps/api/src/index.ts`
+#### 1. 設定 GitHub 部署機密 (Repository Secrets)
+進入 GitHub 存放庫頁面 $\rightarrow$ **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions** $\rightarrow$ 點選 **New repository secret** 新增以下機密：
 
-#### 2. Cloudflare 資源綁定 (Bindings)
-進入 **Cloudflare 控制台** -> **Workers 和 Pages** -> **markspace** -> **設定 (Settings)** -> **綁定 (Bindings)**：
-
-| 綁定類型 (Binding Type) | 變數名稱 (Variable Name) | 綁定目標與說明 |
+| 機密名稱 (Secret Name) | 是否必填 | 說明與取得方式 |
 | :--- | :--- | :--- |
-| **D1 資料庫** | `DB` | 綁定至 D1 資料庫：`markspace-db` |
-| **R2 儲存貯體** | `BUCKET` | 綁定至 R2 儲存貯體：`markspace-media-bucket`（選填，未綁定時支援純第三方儲存運行） |
-| **靜態資產 (Static Assets)** | `ASSETS` | 透過 `wrangler.jsonc` 自動對應至 `apps/ui/dist` |
+| `CLOUDFLARE_API_TOKEN` | **必填** | 具備 Cloudflare Workers、D1 與 Pages 部署權限的 API Token（在 [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) 中建立，選擇 **Edit Cloudflare Workers** 範本） |
+| `CLOUDFLARE_ACCOUNT_ID` | 選填 | 您的 Cloudflare 帳戶 ID（可在 Workers 主控台右側側邊欄取得） |
 
-> [!NOTE]
-> **資料庫初次初始化 (D1 Migrations)**：
-> 在 **Cloudflare 控制台** -> **儲存與資料庫** -> **D1** -> `markspace-db` -> **主控台 (Console)** 中執行 [`apps/api/migrations/0001_initial_schema.sql`](apps/api/migrations/0001_initial_schema.sql) 內的 SQL 語句，或在本地透過 Wrangler 執行 `npm run d1:migrate:prod`。
+#### 2. 自動觸發上線
+- 提交或合併程式碼至 `main` 分支，GitHub Actions 將自動執行 **`Rust WASM Build & Deploy`** 流水線並完成全量部署上線；
+- 亦可在 GitHub 存放庫的 **Actions** 索引標籤手動點選 **Run workflow** 觸發部署。
 
 #### 3. 環境變數與機密金鑰設定 (Variables and Secrets)
-進入 **設定 (Settings)** -> **變數與機密 (Variables and Secrets)**，新增以下必填設定：
+在 **Cloudflare 主控台** $\rightarrow$ **Workers 和 Pages** $\rightarrow$ `markspace` $\rightarrow$ **設定 (Settings)** $\rightarrow$ **變數與機密 (Variables and Secrets)** 中設定運行期憑證：
 
 | 名稱 (Name) | 類型 (Type) | 說明 (Description) | 產生命令/範例 |
 | :--- | :--- | :--- | :--- |
@@ -273,42 +262,44 @@ npm run dev:ui
 
 ---
 
-### 💻 方式二：CLI 命令列部署 (Cloudflare Wrangler)
+### 💻 方式二：本地 CLI 命令列部署 (Cloudflare Wrangler)
+
+若您本地已安裝 Rust/Cargo 與 Node.js 環境，可直接使用專案整合的 NPM 腳本一鍵設定並發布：
 
 ```bash
-# 1. 首次建立生產 D1 資料庫與 R2 儲存貯體 (選填)
-npx wrangler d1 create markspace-db
-npx wrangler r2 bucket create markspace-media-bucket
+# 1. 首次建立生產 D1 資料庫與 R2 儲存貯體 (開箱初始化)
+npm run d1:create
+npm run r2:create
 
-# 2. 設定生產機密金鑰
-npx wrangler secret put JWT_SECRET --workspace=apps/api
-npx wrangler secret put MASTER_ENCRYPTION_KEY --workspace=apps/api
+# 2. 設定生產機密金鑰 (首次部署設定)
+npx wrangler secret put JWT_SECRET
+npx wrangler secret put MASTER_ENCRYPTION_KEY
 
-# 3. 執行 D1 遠端資料庫遷移
-npm run d1:migrate:prod
+# 3. 本地建置驗證 (編譯 Rust WASM 與打包前端)
+npm run build
 
-# 4. 建置前端產物並一鍵部署 Worker
+# 4. 一鍵部署上線 (串聯 WASM 編譯、前端打包、D1 遠端遷移與 Worker 部署)
 npm run deploy
 ```
 
 ---
 
-## 🛠️ 技术栈清单
+## 🛠️ 技術棧清單
 
-| 层次 | 核心技术 |
+| 層次 | 核心技術 |
 | :--- | :--- |
 | **前端框架** | React 18, TypeScript, Vite |
-| **样式与设计** | Tailwind CSS, Lucide React, Monaspace Neon |
-| **文档处理** | Marked, Lezer AST, KaTeX, Mermaid.js |
-| **分块与版本控制** | FastCDC (Gear-Hash), Merkle DAG, IndexedDB Local Cache |
-| **密码学套件** | Web Crypto API (SubtleCrypto, 非导出密钥), AES-256-GCM, OPRF NIST P-256, DPoP RFC 9449 |
-| **边缘计算与存储** | Cloudflare Workers, Cloudflare D1 SQL, Cloudflare R2 CAS 对象存储 |
-| **Monorepo 工具链** | npm workspaces, TypeScript Project References |
+| **樣式與設計** | Tailwind CSS, Lucide React, Monaspace Neon |
+| **文件處理** | Marked, Lezer AST, KaTeX, Mermaid.js |
+| **分塊與版本控制** | FastCDC (Gear-Hash), Merkle DAG, IndexedDB Local Cache |
+| **密碼學套件** | Web Crypto API (SubtleCrypto, 非導出金鑰), AES-256-GCM, OPRF NIST P-256, DPoP RFC 9449 |
+| **邊緣計算與儲存** | Cloudflare Workers, Cloudflare D1 SQL, Cloudflare R2 CAS 物件儲存 |
+| **Monorepo 工具鏈** | npm workspaces, TypeScript Project References |
 
 ---
 
-## 📄 开源许可证
+## 📄 開源許可證
 
-本项目采用 **GNU Affero General Public License v3.0 (AGPLv3)** 开源许可证。  
-详细信息请参阅 [LICENSE](LICENSE) 文件。
+本專案採用 **GNU Affero General Public License v3.0 (AGPLv3)** 開源許可證。  
+詳細資訊請參閱 [LICENSE](LICENSE) 檔案。
 

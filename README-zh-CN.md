@@ -231,39 +231,28 @@ npm run dev:ui
 
 ## 🚢 部署发布
 
-### 🌐 方式一：Cloudflare 控制台 Web 界面一键部署 (推荐)
+> [!IMPORTANT]
+> **构建环境说明（Rust to WebAssembly）**：  
+> 本项目的零信任内存擦除模块依赖 Rust 编译环境。由于 **Cloudflare Dashboard 控制台的默认构建容器未预装 Rust / Cargo 工具链**，线上全自动构建与发布**仅采用 GitHub Actions (`build-and-deploy.yml`)**（或通过本地终端 CLI 部署）。请避免在 Cloudflare 控制台直接开启 Git 自动构建，以免因缺少 Cargo 报错。
 
-通过 Cloudflare 官方部署按钮一键直达全球边缘网络：
+### 🌐 方式一：GitHub Actions 自动化全流程部署 (推荐)
 
-<p align="center">
-  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Obein/Markspace">
-    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" />
-  </a>
-</p>
+项目已内置自动化 CI/CD 流水线 [`.github/workflows/build-and-deploy.yml`](.github/workflows/build-and-deploy.yml)。当代码合并或推送到 `main` 分支时，GitHub Actions 会自动在具备完整 Rust + Node.js 环境的 Runner 中按序完成：**Rust WASM 编译 $\rightarrow$ 类型校验 $\rightarrow$ 前端打包 $\rightarrow$ D1 生产数据库表结构迁移 $\rightarrow$ Cloudflare Workers 边缘网络发布**。
 
-#### 1. 构建与路径设置 (Build Settings)
-在 Cloudflare 控制台 (Workers & Pages / Workers Builds) 导入或配置项目时：
-- **根目录 (Root Directory)**：`/` (项目根目录)
-- **构建命令 (Build Command)**：`npm run build` (或 `npm run build:ui`)
-- **部署命令 (Deploy Command)**：`npm run deploy` (或 `npx wrangler deploy --workspace=apps/api`)
-- **静态资源输出目录 (Build Output Directory)**：`apps/ui/dist`
-- **Worker 后端入口**：`apps/api/src/index.ts`
+#### 1. 配置 GitHub 部署机密 (Repository Secrets)
+进入 GitHub 仓库页面 $\rightarrow$ **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions** $\rightarrow$ 点击 **New repository secret** 添加以下机密：
 
-#### 2. Cloudflare 资源绑定 (Bindings)
-进入 **Cloudflare 控制台** -> **Workers 和 Pages** -> **markspace** -> **设置 (Settings)** -> **绑定 (Bindings)**：
-
-| 绑定类型 (Binding Type) | 变量名称 (Variable Name) | 绑定目标与说明 |
+| 机密名称 (Secret Name) | 是否必填 | 说明与获取方式 |
 | :--- | :--- | :--- |
-| **D1 数据库** | `DB` | 绑定至 D1 数据库：`markspace-db` |
-| **R2 存储桶** | `BUCKET` | 绑定至 R2 存储桶：`markspace-media-bucket`（可选，未绑定时支持纯第三方存储运行） |
-| **静态资产 (Static Assets)** | `ASSETS` | 通过 `wrangler.jsonc` 自动映射至 `apps/ui/dist` |
+| `CLOUDFLARE_API_TOKEN` | **必填** | 具备 Cloudflare Workers、D1 与 Pages 部署权限的 API Token（在 [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) 中创建，选择 **Edit Cloudflare Workers** 模板） |
+| `CLOUDFLARE_ACCOUNT_ID` | 可选 | 您的 Cloudflare 账户 ID（可在 Workers 控制台右侧侧边栏获取） |
 
-> [!NOTE]
-> **数据库初次初始化 (D1 Migrations)**：
-> 在 **Cloudflare 控制台** -> **存储和数据库** -> **D1** -> `markspace-db` -> **控制台 (Console)** 中执行 [`apps/api/migrations/0001_initial_schema.sql`](apps/api/migrations/0001_initial_schema.sql) 内的 SQL 语句，或在本地通过 Wrangler 执行 `npm run d1:migrate:prod`。
+#### 2. 自动触发上线
+- 提交或合并代码至 `main` 分支，GitHub Actions 将自动执行 **`Rust WASM Build & Deploy`** 流水线并完成全量部署上线；
+- 支持在 GitHub 仓库的 **Actions** 选项卡手动点击 **Run workflow** 触发部署。
 
-#### 3. 环境变量与密钥配置 (Variables and Secrets)
-进入 **设置 (Settings)** -> **变量和机密 (Variables and Secrets)**，添加以下必填配置：
+#### 3. 环境变量与生产机密设置 (Variables and Secrets)
+在 **Cloudflare 控制台** $\rightarrow$ **Workers 和 Pages** $\rightarrow$ `markspace` $\rightarrow$ **设置 (Settings)** $\rightarrow$ **变量和机密 (Variables and Secrets)** 中配置运行期凭据：
 
 | 名称 (Name) | 类型 (Type) | 说明 (Description) | 生成命令/示例 |
 | :--- | :--- | :--- | :--- |
@@ -273,21 +262,23 @@ npm run dev:ui
 
 ---
 
-### 💻 方式二：CLI 命令行部署 (Cloudflare Wrangler)
+### 💻 方式二：本地 CLI 命令行部署 (Cloudflare Wrangler)
+
+若您本地已安装 Rust/Cargo 与 Node.js 环境，可直接使用项目集成的 NPM 脚本一键配置并发布：
 
 ```bash
-# 1. 首次创建生产 D1 数据库与 R2 存储桶
-npx wrangler d1 create markspace-db
-npx wrangler r2 bucket create markspace-media-bucket
+# 1. 首次创建生产 D1 数据库与 R2 存储桶 (开箱初始化)
+npm run d1:create
+npm run r2:create
 
-# 2. 设置生产机密密钥
-npx wrangler secret put JWT_SECRET --workspace=apps/api
-npx wrangler secret put MASTER_ENCRYPTION_KEY --workspace=apps/api
+# 2. 设置生产机密密钥 (首次部署配置)
+npx wrangler secret put JWT_SECRET
+npx wrangler secret put MASTER_ENCRYPTION_KEY
 
-# 3. 执行 D1 远程数据库迁移
-npm run d1:migrate:prod
+# 3. 本地构建验证 (编译 Rust WASM 与打包前端)
+npm run build
 
-# 4. 构建前端产物并一键部署 Worker
+# 4. 一键部署上线 (串联 WASM 编译、前端打包、D1 远程迁移与 Worker 部署)
 npm run deploy
 ```
 

@@ -231,39 +231,28 @@ Open `http://localhost:5173` to access the workspace.
 
 ## 🚢 Deployment
 
-### 🌐 Option 1: Cloudflare Dashboard Web Deployment (One-Click / Web GUI)
+> [!IMPORTANT]
+> **Build Environment Notice (Rust to WebAssembly)**:  
+> Markspace's zero-trust memory scrubber relies on Rust WebAssembly compilation. Because **Cloudflare Dashboard's default build runner does not have the Rust / Cargo toolchain preinstalled**, automated edge deployments are **powered exclusively via GitHub Actions (`build-and-deploy.yml`)** (or via local CLI). Please avoid enabling direct Git automatic builds in Cloudflare Dashboard to prevent errors caused by missing Cargo.
 
-Deploy directly to Cloudflare global edge network with one click:
+### 🌐 Option 1: Automated Deployment via GitHub Actions (Recommended)
 
-<p align="center">
-  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Obein/Markspace">
-    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" />
-  </a>
-</p>
+The repository includes an automated CI/CD pipeline in [`.github/workflows/build-and-deploy.yml`](.github/workflows/build-and-deploy.yml). When code is pushed or merged into the `main` branch, GitHub Actions automatically executes the full sequence inside an environment with complete Rust and Node.js toolchains: **Rust WASM Compilation $\rightarrow$ Typecheck $\rightarrow$ UI Bundling $\rightarrow$ Production D1 Migrations $\rightarrow$ Cloudflare Workers Deployment**.
 
-#### 1. Build & Project Configuration
-When importing or deploying the repository in Cloudflare Dashboard / Workers Builds:
-- **Root Directory**: `/` (repository root)
-- **Build Command**: `npm run build` (or `npm run build:ui`)
-- **Deploy Command**: `npm run deploy` (or `npx wrangler deploy --workspace=apps/api`)
-- **Build Output Directory (Static Assets)**: `apps/ui/dist`
-- **Worker Main Entrypoint**: `apps/api/src/index.ts`
+#### 1. Configure GitHub Repository Secrets
+Navigate to your GitHub repository $\rightarrow$ **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions** $\rightarrow$ click **New repository secret** and add:
 
-#### 2. Cloudflare Resource Bindings
-Navigate to **Cloudflare Dashboard** -> **Workers & Pages** -> **markspace** -> **Settings** -> **Bindings**:
-
-| Binding Type | Variable Name | Resource Target / Details |
+| Secret Name | Required | Description |
 | :--- | :--- | :--- |
-| **D1 Database** | `DB` | Bound to D1 Database: `markspace-db` |
-| **R2 Bucket** | `BUCKET` | Bound to R2 Bucket: `markspace-media-bucket` (Optional if using third-party storage only) |
-| **Static Assets** | `ASSETS` | Automatically mapped to `apps/ui/dist` via `wrangler.jsonc` |
+| `CLOUDFLARE_API_TOKEN` | **Yes** | Cloudflare API Token with Workers, D1, and Pages deployment permissions (Create at [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) using the **Edit Cloudflare Workers** template) |
+| `CLOUDFLARE_ACCOUNT_ID` | Optional | Your Cloudflare Account ID (located in the right sidebar of the Workers Dashboard) |
 
-> [!NOTE]
-> **Database Initialization (D1 Migration)**:
-> In **Cloudflare Dashboard** -> **Storage & Databases** -> **D1** -> `markspace-db` -> **Console**, execute the SQL statements in [`apps/api/migrations/0001_initial_schema.sql`](apps/api/migrations/0001_initial_schema.sql), or run `npm run d1:migrate:prod` locally via Wrangler.
+#### 2. Automatic Production Deployment
+- Pushing or merging code to `main` automatically triggers the **`Rust WASM Build & Deploy`** workflow.
+- You can also manually trigger the pipeline anytime under the **Actions** tab by clicking **Run workflow**.
 
-#### 3. Required Environment Variables & Secrets
-In **Settings** -> **Variables and Secrets**, configure the following runtime variables:
+#### 3. Production Variables and Secrets Configuration
+In **Cloudflare Dashboard** $\rightarrow$ **Workers & Pages** $\rightarrow$ `markspace` $\rightarrow$ **Settings** $\rightarrow$ **Variables and Secrets**, configure runtime credentials:
 
 | Name | Type | Description | Generation Command / Example |
 | :--- | :--- | :--- | :--- |
@@ -273,21 +262,23 @@ In **Settings** -> **Variables and Secrets**, configure the following runtime va
 
 ---
 
-### 💻 Option 2: CLI Deployment (Cloudflare Wrangler)
+### 💻 Option 2: Local CLI Deployment (Cloudflare Wrangler)
+
+If you have Rust/Cargo and Node.js installed locally, you can use the integrated NPM scripts to initialize and deploy:
 
 ```bash
-# 1. Provision D1 Database & R2 Bucket
-npx wrangler d1 create markspace-db
-npx wrangler r2 bucket create markspace-media-bucket
+# 1. Provision D1 Database & R2 Bucket (First time setup)
+npm run d1:create
+npm run r2:create
 
-# 2. Set Production Secrets
-npx wrangler secret put JWT_SECRET --workspace=apps/api
-npx wrangler secret put MASTER_ENCRYPTION_KEY --workspace=apps/api
+# 2. Set Production Secrets (First time setup)
+npx wrangler secret put JWT_SECRET
+npx wrangler secret put MASTER_ENCRYPTION_KEY
 
-# 3. Apply D1 Migrations to Production
-npm run d1:migrate:prod
+# 3. Build & Verify Locally (Compiles Rust WASM & Bundles UI)
+npm run build
 
-# 4. Build UI & Deploy Worker
+# 4. Deploy to Production (Runs WASM build, UI bundle, D1 migrations & Worker deployment)
 npm run deploy
 ```
 
