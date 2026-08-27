@@ -18,25 +18,25 @@ export interface WasmExports {
  */
 export class MemoryScrubber {
   private static instancePromise: Promise<WasmExports> | null = null;
-  private static wasmExports: WasmExports | null = null;
+  private static memoryScrubberWasmExports: WasmExports | null = null;
 
   /**
    * Initializes the underlying WebAssembly memory module from compiled Rust binary.
    */
   public static async init(): Promise<WasmExports> {
-    if (this.wasmExports) return this.wasmExports;
+    if (this.memoryScrubberWasmExports) return this.memoryScrubberWasmExports;
     if (this.instancePromise) return this.instancePromise;
 
     this.instancePromise = (async () => {
       try {
         const instance = await initWasm({});
-        this.wasmExports = instance.exports as unknown as WasmExports;
-        return this.wasmExports;
+        this.memoryScrubberWasmExports = instance.exports as unknown as WasmExports;
+        return this.memoryScrubberWasmExports;
       } catch (err) {
         console.warn('WASM Memory Scrubber fallback: WebAssembly loading failed, falling back to JS CSPRNG wipe.', err);
         // Fallback mock using JS Memory
         const fallbackMemory = new WebAssembly.Memory({ initial: 1, maximum: 16 });
-        this.wasmExports = {
+        this.memoryScrubberWasmExports = {
           memory: fallbackMemory,
           ms_alloc: (_size: number) => 1024,
           ms_dealloc: () => {},
@@ -46,7 +46,7 @@ export class MemoryScrubber {
           ms_constant_time_eq: () => 1,
           ms_secure_copy: () => {},
         };
-        return this.wasmExports;
+        return this.memoryScrubberWasmExports;
       }
     })();
 
@@ -68,13 +68,13 @@ export class MemoryScrubber {
       bytes.fill(0);
 
       // Pass 2: If WASM is active, pass memory through volatile WASM memory loop
-      if (this.wasmExports && this.wasmExports.memory) {
+      if (this.memoryScrubberWasmExports && this.memoryScrubberWasmExports.memory) {
         const len = Math.min(bytes.byteLength, 1024);
         if (len > 0) {
-          const tempPtr = this.wasmExports.ms_alloc(len);
+          const tempPtr = this.memoryScrubberWasmExports.ms_alloc(len);
           if (tempPtr > 0) {
-            this.wasmExports.ms_zeroize(tempPtr, len);
-            this.wasmExports.ms_dealloc(tempPtr, len);
+            this.memoryScrubberWasmExports.ms_zeroize(tempPtr, len);
+            this.memoryScrubberWasmExports.ms_dealloc(tempPtr, len);
           }
         }
       }
