@@ -15,6 +15,7 @@ export const jaJP: typeof enUS = {
   searchPlaceholder: 'ノートとファイルを検索...',
   loadingVaultTree: '暗号化ファイルツリーを読み込み中...',
   noFilesFound: 'ファイルが見つかりません',
+  selectOrCreateNote: 'ノートを選択または作成して開始',
   download: 'ダウンロード',
   rename: '名前を変更',
   delete: '削除',

@@ -15,6 +15,7 @@ export const koKR: typeof enUS = {
   searchPlaceholder: '노트 및 파일 검색...',
   loadingVaultTree: '암호화된 파일 트리를 불러오는 중...',
   noFilesFound: '파일을 찾을 수 없습니다',
+  selectOrCreateNote: '노트를 선택하거나 생성하여 시작하세요',
   download: '다운로드',
   rename: '이름 바꾸기',
   delete: '삭제',

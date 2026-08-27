@@ -9,7 +9,6 @@ import {
 export interface UseVaultFilesOptions {
   activeVaultId: string;
   showToast: (msg: string, type?: 'error' | 'success' | 'info') => string | void;
-  dismissToast?: (id: string) => void;
 }
 
 /**
@@ -23,7 +22,6 @@ export interface UseVaultFilesOptions {
 export function useVaultFiles({
   activeVaultId,
   showToast,
-  dismissToast,
 }: UseVaultFilesOptions) {
   // 1. Editor State, Undo/Redo Stacks & Selection Stats
   const {
@@ -35,6 +33,12 @@ export function useVaultFiles({
     setActiveContent,
     searchQuery,
     setSearchQuery,
+    isDecryptingFile,
+    setIsDecryptingFile,
+    decryptingFileName,
+    setDecryptingFileName,
+    decryptingFileId,
+    setDecryptingFileId,
     historyPast,
     historyFuture,
     selectedWordCount,
@@ -51,7 +55,6 @@ export function useVaultFiles({
   const { files, setFiles, isLoadingVaultTree, loadFileContent } = useVaultFileLoader({
     activeVaultId,
     showToast,
-    dismissToast,
     onInitialFilesLoaded: async (metadataList) => {
       const fileOnlyList = metadataList.filter((f) => f.mimeType !== 'inode/directory');
       const lastSavedFileId = activeVaultId
@@ -63,10 +66,25 @@ export function useVaultFiles({
         : null;
 
       if (targetFile) {
-        setActiveFileId(targetFile.id);
-        setActiveTitle(targetFile.filename);
-        const content = await loadFileContent(targetFile);
-        setActiveContent(content);
+        if (!targetFile.isLoaded) {
+          setIsDecryptingFile(true);
+          setDecryptingFileName(targetFile.filename);
+          setDecryptingFileId(targetFile.id);
+          try {
+            const content = await loadFileContent(targetFile);
+            setActiveFileId(targetFile.id);
+            setActiveTitle(targetFile.filename);
+            setActiveContent(content);
+          } finally {
+            setIsDecryptingFile(false);
+            setDecryptingFileName(null);
+            setDecryptingFileId(null);
+          }
+        } else {
+          setActiveFileId(targetFile.id);
+          setActiveTitle(targetFile.filename);
+          setActiveContent(targetFile.content || '');
+        }
       } else {
         // Last opened file does not exist or no last file was saved
         setActiveFileId(null);
@@ -151,6 +169,9 @@ export function useVaultFiles({
     setActiveContent,
     searchQuery,
     setSearchQuery,
+    isDecryptingFile,
+    decryptingFileName,
+    decryptingFileId,
     isSaving,
     isSaveFailed,
     handleRetrySave,

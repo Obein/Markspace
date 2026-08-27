@@ -15,6 +15,7 @@ export const zhCN: typeof enUS = {
   searchPlaceholder: '搜索笔记与文件...',
   loadingVaultTree: '解密加载文件树中...',
   noFilesFound: '未找到相关文件',
+  selectOrCreateNote: '选择或创建笔记以开始',
   download: '下载',
   rename: '重命名',
   delete: '删除',

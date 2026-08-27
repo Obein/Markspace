@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { FileText } from 'lucide-react';
+import { FileText, Loader2 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useI18n } from '../../i18n/i18nContext';
 import { VisualTableEditor } from '../VisualTableEditor';
 import { EditorCanvasProps } from './EditorCanvas.types';
 import {
@@ -33,10 +34,13 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   isPreview,
   isSplitView,
   hasBottomCapsule = false,
+  isDecryptingFile = false,
+  decryptingFileName = null,
   onDownloadFile,
   onSelectionStatsChange,
 }) => {
   const { previewService, highlightService } = useApp();
+  const { t } = useI18n();
 
   const [isFullWidth, setIsFullWidth] = useState<boolean>(false);
   const [activeLineIndex, setActiveLineIndex] = useState<number>(0);
@@ -202,10 +206,35 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   });
 
   if (!activeFile) {
+    if (isDecryptingFile) {
+      return (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-zinc-400 dark:text-zinc-500 font-editor-mono font-mono text-sm select-none animate-in fade-in duration-200">
+          <div className="relative mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-primaryColor-500/10 dark:bg-primaryColor-500/15 border border-primaryColor-500/20 flex items-center justify-center shadow-lg shadow-primaryColor-500/10">
+              <Loader2 className="w-7 h-7 text-primaryColor-500 dark:text-primaryColor-400 animate-spin" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 animate-ping opacity-75" />
+          </div>
+          <p className="text-zinc-800 dark:text-zinc-200 font-medium text-base mb-1">
+            {t('decryptingFile') || '正在解密文件明文...'}
+          </p>
+          {decryptingFileName && (
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm text-center truncate font-mono">
+              {decryptingFileName}
+            </p>
+          )}
+          <div className="mt-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 text-[11px] text-zinc-500 dark:text-zinc-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span>AES-256-GCM / Zero-Knowledge</span>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 font-editor-mono font-mono text-sm select-none">
         <FileText className="w-12 h-12 mb-3 opacity-20 text-primaryColor-500 dark:text-primaryColor-400" />
-        <p>Select or create a note to begin</p>
+        <p>{t('selectOrCreateNote') || 'Select or create a note to begin'}</p>
       </div>
     );
   }

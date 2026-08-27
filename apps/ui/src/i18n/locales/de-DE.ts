@@ -15,6 +15,7 @@ export const deDE: typeof enUS = {
   searchPlaceholder: 'Notizen & Dateien suchen...',
   loadingVaultTree: 'Verschlüsselter Dateibaum wird geladen...',
   noFilesFound: 'Keine Dateien gefunden',
+  selectOrCreateNote: 'Wähle oder erstelle eine Notiz, um zu beginnen',
   download: 'Herunterladen',
   rename: 'Umbenennen',
   delete: 'Löschen',

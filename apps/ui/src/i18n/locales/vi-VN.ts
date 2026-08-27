@@ -15,6 +15,7 @@ export const viVN: typeof enUS = {
   searchPlaceholder: 'Tìm kiếm ghi chú & tệp...',
   loadingVaultTree: 'Đang tải cây tệp mã hóa...',
   noFilesFound: 'Không tìm thấy tệp nào',
+  selectOrCreateNote: 'Chọn hoặc tạo ghi chú để bắt đầu',
   download: 'Tải Về',
   rename: 'Đổi tên',
   delete: 'Xóa',

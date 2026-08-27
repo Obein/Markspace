@@ -9,6 +9,8 @@ export interface EditorCanvasProps {
   isPreview: boolean;
   isSplitView: boolean;
   hasBottomCapsule?: boolean;
+  isDecryptingFile?: boolean;
+  decryptingFileName?: string | null;
   onDownloadFile?: () => void;
   onSelectionStatsChange?: (selectedWords: number, selectedChars: number) => void;
 }

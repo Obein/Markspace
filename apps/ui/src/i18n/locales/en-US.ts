@@ -13,6 +13,7 @@ export const enUS = {
   searchPlaceholder: 'Search notes & files...',
   loadingVaultTree: 'Loading vault tree...',
   noFilesFound: 'No files found',
+  selectOrCreateNote: 'Select or create a note to begin',
   download: 'Download',
   rename: 'Rename',
   delete: 'Delete',

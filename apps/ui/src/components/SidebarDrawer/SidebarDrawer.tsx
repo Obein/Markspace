@@ -40,6 +40,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
   isCreatingFolderLoading,
   isDeletingNodeId,
   isUploadingFiles,
+  decryptingFileId,
 }) => {
   const { t } = useI18n();
 
@@ -155,6 +156,7 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
           <FileTreeItem
             nodes={treeNodes}
             activeFileId={activeFileId}
+            decryptingFileId={decryptingFileId}
             expandedFolders={expandedFolders}
             dragOverFolderPath={dragOverFolderPath}
             editingNodeId={editingNodeId}

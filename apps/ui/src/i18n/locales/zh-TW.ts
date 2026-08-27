@@ -15,6 +15,7 @@ export const zhTW: typeof enUS = {
   searchPlaceholder: '搜尋筆記與檔案...',
   loadingVaultTree: '解密載入檔案樹中...',
   noFilesFound: '未找到相關檔案',
+  selectOrCreateNote: '選取或建立筆記以開始',
   download: '下載',
   rename: '重新命名',
   delete: '刪除',

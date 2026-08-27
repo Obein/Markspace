@@ -130,6 +130,9 @@ export const AppContent: React.FC = () => {
     setActiveContent,
     searchQuery,
     setSearchQuery,
+    isDecryptingFile,
+    decryptingFileName,
+    decryptingFileId,
     isSaving,
     isSaveFailed,
     handleRetrySave,
@@ -162,7 +165,6 @@ export const AppContent: React.FC = () => {
   } = useVaultFiles({
     activeVaultId,
     showToast,
-    dismissToast,
   });
 
   const handleSelectVaultInModals = useCallback(
@@ -297,6 +299,7 @@ export const AppContent: React.FC = () => {
             isCreatingFolderLoading={isCreatingFolderLoading}
             isDeletingNodeId={isDeletingNodeId}
             isUploadingFiles={isUploadingFiles}
+            decryptingFileId={decryptingFileId}
           />
 
           <section className="flex-1 flex flex-col h-full relative overflow-hidden">
@@ -309,6 +312,8 @@ export const AppContent: React.FC = () => {
               isPreview={isPreview}
               isSplitView={isSplitView}
               hasBottomCapsule={isAuthenticated && isVaultUnlocked}
+              isDecryptingFile={isDecryptingFile}
+              decryptingFileName={decryptingFileName}
               onDownloadFile={handleDownloadActiveFile}
               onSelectionStatsChange={(selWords, selChars) => {
                 setSelectedWordCount(selWords);

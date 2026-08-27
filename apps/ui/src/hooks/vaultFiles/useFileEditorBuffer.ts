@@ -11,6 +11,12 @@ export interface UseFileEditorBufferReturn {
   setActiveContent: React.Dispatch<React.SetStateAction<string>>;
   searchQuery: string;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+  isDecryptingFile: boolean;
+  setIsDecryptingFile: React.Dispatch<React.SetStateAction<boolean>>;
+  decryptingFileName: string | null;
+  setDecryptingFileName: React.Dispatch<React.SetStateAction<string | null>>;
+  decryptingFileId: string | null;
+  setDecryptingFileId: React.Dispatch<React.SetStateAction<string | null>>;
   historyPast: string[];
   historyFuture: string[];
   selectedWordCount: number;
@@ -33,6 +39,11 @@ export function useFileEditorBuffer(): UseFileEditorBufferReturn {
   const [activeTitle, setActiveTitle] = useState('');
   const [activeContent, setActiveContent] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Plaintext Decryption Loading State
+  const [isDecryptingFile, setIsDecryptingFile] = useState(false);
+  const [decryptingFileName, setDecryptingFileName] = useState<string | null>(null);
+  const [decryptingFileId, setDecryptingFileId] = useState<string | null>(null);
 
   // Undo / Redo History Stack
   const [historyPast, setHistoryPast] = useState<string[]>([]);
@@ -77,8 +88,6 @@ export function useFileEditorBuffer(): UseFileEditorBufferReturn {
         MemoryScrubber.wipe(prevBuf);
       }
 
-      setActiveFileId(id);
-      setActiveTitle(selected.filename);
       setHistoryPast([]);
       setHistoryFuture([]);
       setSelectedWordCount(0);
@@ -86,9 +95,27 @@ export function useFileEditorBuffer(): UseFileEditorBufferReturn {
 
       // 2. On-demand lazy decryption if not already in memory
       if (!selected.isLoaded && contentLoader) {
-        const loadedContent = await contentLoader(selected);
-        setActiveContent(loadedContent);
+        // Keep activeFileId null until decryption succeeds
+        setActiveFileId(null);
+        setActiveTitle('');
+        setActiveContent('');
+        setIsDecryptingFile(true);
+        setDecryptingFileName(selected.filename);
+        setDecryptingFileId(selected.id);
+
+        try {
+          const loadedContent = await contentLoader(selected);
+          setActiveFileId(id);
+          setActiveTitle(selected.filename);
+          setActiveContent(loadedContent);
+        } finally {
+          setIsDecryptingFile(false);
+          setDecryptingFileName(null);
+          setDecryptingFileId(null);
+        }
       } else {
+        setActiveFileId(id);
+        setActiveTitle(selected.filename);
         setActiveContent(selected.content || '');
       }
     },
@@ -145,6 +172,12 @@ export function useFileEditorBuffer(): UseFileEditorBufferReturn {
     setActiveContent,
     searchQuery,
     setSearchQuery,
+    isDecryptingFile,
+    setIsDecryptingFile,
+    decryptingFileName,
+    setDecryptingFileName,
+    decryptingFileId,
+    setDecryptingFileId,
     historyPast,
     historyFuture,
     selectedWordCount,

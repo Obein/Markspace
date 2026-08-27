@@ -15,6 +15,7 @@ export const esES: typeof enUS = {
   searchPlaceholder: 'Buscar notas y archivos...',
   loadingVaultTree: 'Cargando árbol de archivos cifrados...',
   noFilesFound: 'No se encontraron archivos',
+  selectOrCreateNote: 'Seleccione o cree una nota para comenzar',
   download: 'Descargar',
   rename: 'Renombrar',
   delete: 'Eliminar',

@@ -19,6 +19,7 @@ interface FileTreeItemProps {
   nodes: FileTreeNode[];
   depth?: number;
   activeFileId: string | null;
+  decryptingFileId?: string | null;
   expandedFolders: Record<string, boolean>;
   dragOverFolderPath: string | null;
   editingNodeId: string | null;
@@ -56,6 +57,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
   nodes,
   depth = 0,
   activeFileId,
+  decryptingFileId,
   expandedFolders,
   dragOverFolderPath,
   editingNodeId,
@@ -213,6 +215,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
                     nodes={node.children}
                     depth={depth + 1}
                     activeFileId={activeFileId}
+                    decryptingFileId={decryptingFileId}
                     expandedFolders={expandedFolders}
                     dragOverFolderPath={dragOverFolderPath}
                     editingNodeId={editingNodeId}
@@ -238,7 +241,8 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
         }
 
         const fileItem = node.fileItem!;
-        const isActive = fileItem.id === activeFileId;
+        const isDecrypting = !!decryptingFileId && fileItem.id === decryptingFileId;
+        const isActive = fileItem.id === activeFileId || isDecrypting;
         const isDeleting = isDeletingNodeId === fileItem.id;
 
         if (editingNodeId === node.id) {
@@ -286,7 +290,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
         return (
           <button
             key={node.id}
-            draggable={!isDeleting}
+            draggable={!isDeleting && !isDecrypting}
             onDragStart={(e) => onNodeDragStart(e, fileItem.id)}
             onClick={() => onSelectFile(fileItem.id)}
             onContextMenu={(e) =>
@@ -297,17 +301,19 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
             }
             onTouchEnd={onTouchEndOrMove}
             onTouchMove={onTouchEndOrMove}
-            disabled={isDeleting}
+            disabled={isDeleting || isDecrypting}
             className={`w-full text-left px-2 py-1.5 rounded-lg transition flex items-center justify-between text-xs font-mono border cursor-grab active:cursor-grabbing ${
               isActive
                 ? 'bg-primaryColor-500/20 dark:bg-primaryColor-500/25 border-black/15 dark:border-white/20 backdrop-blur-md text-zinc-950 dark:text-white font-bold shadow-sm'
                 : 'bg-white/0 hover:bg-black/5 dark:hover:bg-white/5 border-transparent text-zinc-600 dark:text-zinc-400'
-            } ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${isDeleting || isDecrypting ? 'opacity-70' : ''}`}
             style={{ paddingLeft: `${depth * 12 + 12}px` }}
           >
             <div className="flex items-center gap-2 truncate pr-2">
               {isDeleting ? (
                 <Loader2 className="w-3.5 h-3.5 text-red-400 animate-spin shrink-0" />
+              ) : isDecrypting ? (
+                <Loader2 className="w-3.5 h-3.5 text-primaryColor-600 dark:text-primaryColor-400 animate-spin shrink-0" />
               ) : (
                 getFileIcon(fileItem.category, isActive)
               )}

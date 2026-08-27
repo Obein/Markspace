@@ -24,6 +24,7 @@ export interface SidebarDrawerProps {
   isCreatingFolderLoading?: boolean;
   isDeletingNodeId?: string | null;
   isUploadingFiles?: boolean;
+  decryptingFileId?: string | null;
 }
 
 export interface ContextMenuState {
