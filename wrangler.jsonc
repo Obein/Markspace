@@ -7,7 +7,7 @@
 		"nodejs_compat"
 	],
 	"build": {
-		"command": "npm run dash:build"
+		"command": "npm run build"
 	},
 	"assets": {
 		"directory": "apps/ui/dist",
