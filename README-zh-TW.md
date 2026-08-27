@@ -239,12 +239,17 @@ npm run dev:ui
 
 專案已內建自動化 CI/CD 流水線 [`.github/workflows/build-and-deploy.yml`](.github/workflows/build-and-deploy.yml)。當程式碼合併或推送到 `main` 分支時，GitHub Actions 會自動在具備完整 Rust + Node.js 環境的 Runner 中循序完成：**Rust WASM 編譯 $\rightarrow$ 型別檢查 $\rightarrow$ 前端打包 $\rightarrow$ D1 生產資料庫綱要遷移 $\rightarrow$ Cloudflare Workers 邊緣網路發布**。
 
-#### 1. 設定 GitHub 部署機密 (Repository Secrets)
-進入 GitHub 存放庫頁面 $\rightarrow$ **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions** $\rightarrow$ 點選 **New repository secret** 新增以下機密：
+#### 1. 設定 Cloudflare 部署鑑權 (兩種方式任選其一)
+
+* **方式 A：連接官方 GitHub App（推薦 · 免手動填寫金鑰）**  
+  在 GitHub 帳戶或組織中安裝並授權官方應用程式 **[Cloudflare Workers and Pages](https://github.com/apps/cloudflare-workers-and-pages)**，勾選本存放庫即可自動完成帳戶與存放庫的無縫連接與部署鑑權。
+
+* **方式 B：手動設定 GitHub 存放庫機密 (Repository Secrets)**  
+  進入 GitHub 存放庫頁面 $\rightarrow$ **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions** $\rightarrow$ 點選 **New repository secret** 新增以下機密：
 
 | 機密名稱 (Secret Name) | 是否必填 | 說明與取得方式 |
 | :--- | :--- | :--- |
-| `CLOUDFLARE_API_TOKEN` | **必填** | 具備 Cloudflare Workers、D1 與 Pages 部署權限的 API Token（在 [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) 中建立，選擇 **Edit Cloudflare Workers** 範本） |
+| `CLOUDFLARE_API_TOKEN` | 方式 B 必填 | 具備 Cloudflare Workers、D1 與 Pages 部署權限的 API Token（在 [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) 中建立，選擇 **Edit Cloudflare Workers** 範本） |
 | `CLOUDFLARE_ACCOUNT_ID` | 選填 | 您的 Cloudflare 帳戶 ID（可在 Workers 主控台右側側邊欄取得） |
 
 #### 2. 自動觸發上線

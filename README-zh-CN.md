@@ -239,12 +239,17 @@ npm run dev:ui
 
 项目已内置自动化 CI/CD 流水线 [`.github/workflows/build-and-deploy.yml`](.github/workflows/build-and-deploy.yml)。当代码合并或推送到 `main` 分支时，GitHub Actions 会自动在具备完整 Rust + Node.js 环境的 Runner 中按序完成：**Rust WASM 编译 $\rightarrow$ 类型校验 $\rightarrow$ 前端打包 $\rightarrow$ D1 生产数据库表结构迁移 $\rightarrow$ Cloudflare Workers 边缘网络发布**。
 
-#### 1. 配置 GitHub 部署机密 (Repository Secrets)
-进入 GitHub 仓库页面 $\rightarrow$ **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions** $\rightarrow$ 点击 **New repository secret** 添加以下机密：
+#### 1. 配置 Cloudflare 部署鉴权 (两种方式任选其一)
+
+* **方式 A：连接官方 GitHub App（推荐 · 免手动填写密钥）**  
+  在 GitHub 账户或组织中安装并授权官方应用 **[Cloudflare Workers and Pages](https://github.com/apps/cloudflare-workers-and-pages)**，勾选本仓库即可自动完成账户与仓库的无缝连接与部署鉴权。
+
+* **方式 B：手动配置 GitHub 仓库机密 (Repository Secrets)**  
+  进入 GitHub 仓库页面 $\rightarrow$ **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions** $\rightarrow$ 点击 **New repository secret** 添加以下机密：
 
 | 机密名称 (Secret Name) | 是否必填 | 说明与获取方式 |
 | :--- | :--- | :--- |
-| `CLOUDFLARE_API_TOKEN` | **必填** | 具备 Cloudflare Workers、D1 与 Pages 部署权限的 API Token（在 [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) 中创建，选择 **Edit Cloudflare Workers** 模板） |
+| `CLOUDFLARE_API_TOKEN` | 方式 B 必填 | 具备 Cloudflare Workers、D1 与 Pages 部署权限的 API Token（在 [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) 中创建，选择 **Edit Cloudflare Workers** 模板） |
 | `CLOUDFLARE_ACCOUNT_ID` | 可选 | 您的 Cloudflare 账户 ID（可在 Workers 控制台右侧侧边栏获取） |
 
 #### 2. 自动触发上线

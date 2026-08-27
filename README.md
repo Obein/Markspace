@@ -239,12 +239,17 @@ Open `http://localhost:5173` to access the workspace.
 
 The repository includes an automated CI/CD pipeline in [`.github/workflows/build-and-deploy.yml`](.github/workflows/build-and-deploy.yml). When code is pushed or merged into the `main` branch, GitHub Actions automatically executes the full sequence inside an environment with complete Rust and Node.js toolchains: **Rust WASM Compilation $\rightarrow$ Typecheck $\rightarrow$ UI Bundling $\rightarrow$ Production D1 Migrations $\rightarrow$ Cloudflare Workers Deployment**.
 
-#### 1. Configure GitHub Repository Secrets
-Navigate to your GitHub repository $\rightarrow$ **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions** $\rightarrow$ click **New repository secret** and add:
+#### 1. Configure Cloudflare Deployment Authentication (Choose Option A or B)
+
+* **Option A: Connect via Official GitHub App (Recommended · No Manual Secrets Needed)**  
+  Install and authorize the official **[Cloudflare Workers and Pages GitHub App](https://github.com/apps/cloudflare-workers-and-pages)** on your account/organization and grant access to this repository to link your Cloudflare account seamlessly.
+
+* **Option B: Configure GitHub Repository Secrets (Manual)**  
+  Navigate to your GitHub repository $\rightarrow$ **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions** $\rightarrow$ click **New repository secret** and add:
 
 | Secret Name | Required | Description |
 | :--- | :--- | :--- |
-| `CLOUDFLARE_API_TOKEN` | **Yes** | Cloudflare API Token with Workers, D1, and Pages deployment permissions (Create at [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) using the **Edit Cloudflare Workers** template) |
+| `CLOUDFLARE_API_TOKEN` | Required for Option B | Cloudflare API Token with Workers, D1, and Pages deployment permissions (Create at [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) using the **Edit Cloudflare Workers** template) |
 | `CLOUDFLARE_ACCOUNT_ID` | Optional | Your Cloudflare Account ID (located in the right sidebar of the Workers Dashboard) |
 
 #### 2. Automatic Production Deployment
