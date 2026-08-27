@@ -242,6 +242,7 @@ export const zhTW: typeof enUS = {
   accentCyan: '碧海青',
 
   // Toasts & Messages
+  decryptingFile: '正在解密檔案明文...',
   loadVaultFailed: '載入檔案列表失敗，請檢查網路設定。',
   createNoteFailed: '新增筆記失敗，請重試。',
   createFolderFailed: '新增資料夾失敗，請重試。',

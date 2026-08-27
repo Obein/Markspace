@@ -242,6 +242,7 @@ export const koKR: typeof enUS = {
   accentCyan: '틸 시안',
 
   // Toasts & Messages
+  decryptingFile: '파일 평문 복호화 중...',
   loadVaultFailed: '파일 트리를 불러오지 못했습니다. 네트워크 설정을 확인하세요.',
   createNoteFailed: '노트 생성을 실패했습니다. 다시 시도해 주세요.',
   createFolderFailed: '폴더 생성을 실패했습니다. 다시 시도해 주세요.',

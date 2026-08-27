@@ -242,6 +242,7 @@ export const esES: typeof enUS = {
   accentCyan: 'Cian azulado',
 
   // Toasts & Messages
+  decryptingFile: 'Descifrando texto en claro del archivo...',
   loadVaultFailed: 'Error al cargar el árbol de archivos. Compruebe su conexión.',
   createNoteFailed: 'Error al crear la nota. Inténtelo de nuevo.',
   createFolderFailed: 'Error al crear el directorio. Inténtelo de nuevo.',

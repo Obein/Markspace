@@ -242,6 +242,7 @@ export const zhCN: typeof enUS = {
   accentCyan: '碧海青',
 
   // Toasts & Messages
+  decryptingFile: '正在解密文件明文...',
   loadVaultFailed: '加载文件列表失败，请检查网络设置。',
   createNoteFailed: '新建笔记失败，请重试。',
   createFolderFailed: '新建文件夹失败，请重试。',

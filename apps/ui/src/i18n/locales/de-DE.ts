@@ -242,6 +242,7 @@ export const deDE: typeof enUS = {
   accentCyan: 'Türkisblau',
 
   // Toasts & Messages
+  decryptingFile: 'Entschlüssele Datei-Klartext...',
   loadVaultFailed: 'Fehler beim Laden der Dateiliste. Bitte Netzwerkeinstellungen prüfen.',
   createNoteFailed: 'Erstellen der Notiz fehlgeschlagen. Bitte erneut versuchen.',
   createFolderFailed: 'Erstellen des Ordners fehlgeschlagen. Bitte erneut versuchen.',

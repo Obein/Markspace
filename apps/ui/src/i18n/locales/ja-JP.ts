@@ -242,6 +242,7 @@ export const jaJP: typeof enUS = {
   accentCyan: 'ティールシアン',
 
   // Toasts & Messages
+  decryptingFile: 'ファイルの平文を復号中...',
   loadVaultFailed: 'ファイルツリーの読み込みに失敗しました。ネットワークを確認してください。',
   createNoteFailed: 'ノートの作成に失敗しました。もう一度お試しください。',
   createFolderFailed: 'フォルダの作成に失敗しました。もう一度お試しください。',

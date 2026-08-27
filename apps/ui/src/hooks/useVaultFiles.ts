@@ -8,7 +8,8 @@ import {
 
 export interface UseVaultFilesOptions {
   activeVaultId: string;
-  showToast: (msg: string, type?: 'error' | 'success' | 'info') => void;
+  showToast: (msg: string, type?: 'error' | 'success' | 'info') => string | void;
+  dismissToast?: (id: string) => void;
 }
 
 /**
@@ -22,6 +23,7 @@ export interface UseVaultFilesOptions {
 export function useVaultFiles({
   activeVaultId,
   showToast,
+  dismissToast,
 }: UseVaultFilesOptions) {
   // 1. Editor State, Undo/Redo Stacks & Selection Stats
   const {
@@ -49,6 +51,7 @@ export function useVaultFiles({
   const { files, setFiles, isLoadingVaultTree, loadFileContent } = useVaultFileLoader({
     activeVaultId,
     showToast,
+    dismissToast,
     onInitialFilesLoaded: async (metadataList) => {
       const fileOnlyList = metadataList.filter((f) => f.mimeType !== 'inode/directory');
       const lastSavedFileId = activeVaultId

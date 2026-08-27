@@ -240,6 +240,7 @@ export const enUS = {
   accentCyan: 'Teal Cyan',
 
   // Toasts & Messages
+  decryptingFile: 'Decrypting file plaintext...',
   loadVaultFailed: 'Failed to load vault tree. Please check network settings.',
   createNoteFailed: 'Failed to create note. Please try again.',
   createFolderFailed: 'Failed to create directory. Please try again.',

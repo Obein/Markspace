@@ -242,6 +242,7 @@ export const viVN: typeof enUS = {
   accentCyan: 'Xanh lơ biển',
 
   // Toasts & Messages
+  decryptingFile: 'Đang giải mã văn bản gốc của tệp...',
   loadVaultFailed: 'Không thể tải danh sách tệp. Vui lòng kiểm tra kết nối.',
   createNoteFailed: 'Tạo ghi chú thất bại. Vui lòng thử lại.',
   createFolderFailed: 'Tạo thư mục thất bại. Vui lòng thử lại.',

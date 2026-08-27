@@ -7,7 +7,8 @@ import { FileTreeBuilder } from '../../utils/FileTreeBuilder';
 
 export interface UseVaultFileLoaderOptions {
   activeVaultId: string;
-  showToast: (msg: string, type?: 'error' | 'success' | 'info') => void;
+  showToast: (msg: string, type?: 'error' | 'success' | 'info') => string | void;
+  dismissToast?: (id: string) => void;
   onInitialFilesLoaded?: (files: VaultFileItem[]) => void;
 }
 
@@ -21,6 +22,7 @@ export interface UseVaultFileLoaderReturn {
 export function useVaultFileLoader({
   activeVaultId,
   showToast,
+  dismissToast,
   onInitialFilesLoaded,
 }: UseVaultFileLoaderOptions): UseVaultFileLoaderReturn {
   const {
@@ -47,6 +49,12 @@ export function useVaultFileLoader({
       return '';
     }
     if (!cmk) return '';
+
+    // Show toast indicating decryption in progress
+    const toastId = showToast(
+      `${t('decryptingFile') || '正在解密文件明文...'} (${file.filename})`,
+      'info'
+    );
 
     try {
       let contentText = '';
@@ -93,6 +101,12 @@ export function useVaultFileLoader({
       console.error(`Failed to decrypt file content for node ${file.id}`, err);
       showToast(t('loadVaultFailed'), 'error');
       return '';
+    } finally {
+      if (toastId && typeof toastId === 'string' && dismissToast) {
+        setTimeout(() => {
+          dismissToast(toastId);
+        }, 600);
+      }
     }
   };
 

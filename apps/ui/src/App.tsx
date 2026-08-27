@@ -162,6 +162,7 @@ export const AppContent: React.FC = () => {
   } = useVaultFiles({
     activeVaultId,
     showToast,
+    dismissToast,
   });
 
   const handleSelectVaultInModals = useCallback(
