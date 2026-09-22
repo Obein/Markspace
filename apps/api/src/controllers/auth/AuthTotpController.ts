@@ -1,5 +1,6 @@
 import { D1AuditLogRepository } from '../../infrastructure/D1AuditLogRepository';
 import { AuthService } from '../../services/AuthService';
+import { KekProvider } from '../../services/security/KekProvider';
 import { DisableTotpDTO, EnableTotpDTO } from '../../types/domain';
 import { ApiResponse, RequestContext } from '../../types/http';
 
@@ -10,7 +11,8 @@ import { ApiResponse, RequestContext } from '../../types/http';
 export class AuthTotpController {
   constructor(
     private readonly authService: AuthService,
-    private readonly auditLogRepo: D1AuditLogRepository
+    private readonly auditLogRepo: D1AuditLogRepository,
+    private readonly kekProvider?: KekProvider
   ) {}
 
   public async setupTotp(ctx: RequestContext): Promise<Response> {
@@ -43,7 +45,7 @@ export class AuthTotpController {
     }
 
     try {
-      await this.authService.enableTotp(userId, body, ctx.env.MASTER_ENCRYPTION_KEY);
+      await this.authService.enableTotp(userId, body, this.kekProvider || ctx.env.MASTER_ENCRYPTION_KEY);
 
       await this.auditLogRepo.recordLog({
         userId,
@@ -93,7 +95,7 @@ export class AuthTotpController {
     }
 
     try {
-      await this.authService.disableTotp(userId, body, ctx.env.MASTER_ENCRYPTION_KEY);
+      await this.authService.disableTotp(userId, body, this.kekProvider || ctx.env.MASTER_ENCRYPTION_KEY);
 
       await this.auditLogRepo.recordLog({
         userId,

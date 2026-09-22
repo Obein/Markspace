@@ -261,8 +261,17 @@ npm run dev:ui
 | 名称 (Name) | 类型 (Type) | 说明 (Description) | 生成命令/示例 |
 | :--- | :--- | :--- | :--- |
 | `JWT_SECRET` | **机密 (Secret / 加密)** | 用户会话 JWT 鉴权签名密钥（建议 ≥32 字符高熵字符串） | `openssl rand -base64 32` (或密码生成器随机字符串) |
-| `MASTER_ENCRYPTION_KEY` | **机密 (Secret / 加密)** | 256 位十六进制主密钥（64 位 Hex 字符），用于 TOTP 与 OPRF 信封加密 | `openssl rand -hex 32` (或 64 位十六进制生成器) |
+| `MASTER_ENCRYPTION_KEY` | **机密 (Secret / 加密)** | 独立/历史主加密密钥（要求 ≥30 字符，默认作为 `v0` 版本） | `openssl rand -base64 32` |
+| `MASTER_ENCRYPTION_KEYS` | **机密 (Secret / 加密)** | 多版本密钥轮换 JSON 映射（例如 `{"1":"k1...","2":"k2..."}`） | 扁平 JSON 映射（每项密钥 ≥30 字符），系统自动采用最大数字版本作为最新加密密钥 |
 | `ENVIRONMENT` | **变量 (Variable / 明文)** | 运行环境标识 | `production` |
+
+> [!TIP]
+> **零停机密钥轮换 (KEK Rotation)**：  
+> Markspace 支持在零停机、无感知的状态下轮换主加密密钥（Key Encryption Key）：  
+> 1. 配置 `MASTER_ENCRYPTION_KEYS` 为 JSON 格式的版本映射（例如：`{"1": "first-secret-at-least-30-chars...", "2": "second-secret-at-least-30-chars..."}`）。  
+> 2. 每个密钥仅需满足长度 ≥30 字符，系统会自动通过 SHA-256 散列函数派生出标准的 256 位加密密钥。  
+> 3. 系统会自动选择版本号最大的密钥作为当前最新密钥用于新密文加密。  
+> 4. 历史密文（包括由 `MASTER_ENCRYPTION_KEY` 加密的 `v0` 数据）在用户下次登录时通过对应版本解密，并通过**惰性重新加密 (Lazy Re-encryption)** 无缝升级至最新版本密钥。
 
 ---
 

@@ -1,6 +1,20 @@
+import { DerivedKek, KekProvider } from './security/KekProvider';
+
+export interface EncryptedTotpPayload {
+  v?: number;
+  salt: string;
+  iv: string;
+  ciphertext: string;
+}
+
+export interface DecryptedTotpResult {
+  secret: string;
+  version: number;
+}
+
 /**
  * TOTP Service: Implements RFC 6238 Time-Based One-Time Password and Base32 encoding
- * with AES-GCM Envelope Encryption backed by MASTER_ENCRYPTION_KEY (KEK).
+ * with AES-GCM Envelope Encryption backed by MASTER_ENCRYPTION_KEY (KEK) with multi-version rotation.
  */
 export class TotpService {
   private static readonly BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -58,7 +72,7 @@ export class TotpService {
   }
 
   /**
-   * Generate a random 20-byte Base32 TOTP secret key (160 bits).
+   * Generates a cryptographically secure 20-byte Base32 TOTP secret key (160 bits).
    */
   public generateSecret(): string {
     const randomBytes = new Uint8Array(20);
@@ -67,7 +81,7 @@ export class TotpService {
   }
 
   /**
-   * Generate standard otpauth:// URI for authenticator applications.
+   * Generates standard otpauth:// URI for authenticator applications.
    */
   public generateOtpauthUri(username: string, secret: string, issuer: string = 'Markspace'): string {
     const encodedUser = encodeURIComponent(username);
@@ -76,17 +90,17 @@ export class TotpService {
   }
 
   /**
-   * Generate TOTP 6-digit code for a given timestamp and secret.
+   * Generates a 6-digit TOTP code for a given timestamp and secret.
    */
-  public async generateCode(secret: string, timestamp: number = Date.now()): Promise<string> {
-    const keyBytes = TotpService.decodeBase32(secret);
-    const timeStep = Math.floor(timestamp / 1000 / 30);
+  public async generateCode(secretBase32: string, timestampMs = Date.now(), stepSeconds = 30): Promise<string> {
+    const keyBytes = TotpService.decodeBase32(secretBase32);
+    const counter = Math.floor(timestampMs / 1000 / stepSeconds);
 
     const counterBuffer = new ArrayBuffer(8);
     const counterView = new DataView(counterBuffer);
-    counterView.setBigUint64(0, BigInt(timeStep), false); // Big-endian
+    counterView.setBigUint64(0, BigInt(counter), false);
 
-    const cryptoKey = await crypto.subtle.importKey(
+    const hmacKey = await crypto.subtle.importKey(
       'raw',
       keyBytes,
       { name: 'HMAC', hash: 'SHA-1' },
@@ -94,34 +108,47 @@ export class TotpService {
       ['sign']
     );
 
-    const hmacSig = await crypto.subtle.sign('HMAC', cryptoKey, counterBuffer);
-    const hmacBytes = new Uint8Array(hmacSig);
+    const signature = await crypto.subtle.sign('HMAC', hmacKey, counterBuffer);
+    const hmac = new Uint8Array(signature);
 
-    const offset = hmacBytes[hmacBytes.length - 1] & 0x0f;
+    const offset = hmac[hmac.length - 1] & 0x0f;
     const binary =
-      ((hmacBytes[offset] & 0x7f) << 24) |
-      ((hmacBytes[offset + 1] & 0xff) << 16) |
-      ((hmacBytes[offset + 2] & 0xff) << 8) |
-      (hmacBytes[offset + 3] & 0xff);
+      ((hmac[offset] & 0x7f) << 24) |
+      ((hmac[offset + 1] & 0xff) << 16) |
+      ((hmac[offset + 2] & 0xff) << 8) |
+      (hmac[offset + 3] & 0xff);
 
     const otp = binary % 1000000;
     return otp.toString().padStart(6, '0');
   }
 
   /**
-   * Verify TOTP code with ±1 step (±30 seconds) clock drift tolerance.
+   * Verifies a TOTP code against a secret, with clock skew tolerance (+/- 1 step).
+   * Automatically detects parameter order for both (code, secret) and (secret, code).
    */
-  public async verifyCode(secret: string, code: string, timestamp: number = Date.now()): Promise<boolean> {
-    if (!code || code.trim().length !== 6) {
-      return false;
+  public async verifyCode(
+    arg1: string,
+    arg2: string,
+    timestampMs = Date.now(),
+    stepSeconds = 30,
+    window = 1
+  ): Promise<boolean> {
+    let code: string;
+    let secretBase32: string;
+    if (arg1.trim().length === 6 && arg2.trim().length !== 6) {
+      code = arg1.trim();
+      secretBase32 = arg2.trim();
+    } else {
+      code = arg2.trim();
+      secretBase32 = arg1.trim();
     }
-    const cleanCode = code.trim();
 
-    // Check t-1, t, t+1
-    for (const offset of [-1, 0, 1]) {
-      const checkTime = timestamp + offset * 30 * 1000;
-      const expectedCode = await this.generateCode(secret, checkTime);
-      if (expectedCode === cleanCode) {
+    if (!code || code.length !== 6) return false;
+
+    for (let i = -window; i <= window; i++) {
+      const checkTime = timestampMs + i * stepSeconds * 1000;
+      const expected = await this.generateCode(secretBase32, checkTime, stepSeconds);
+      if (expected === code) {
         return true;
       }
     }
@@ -130,17 +157,28 @@ export class TotpService {
   }
 
   /**
-   * Envelope encrypt the TOTP secret using the MASTER_ENCRYPTION_KEY (KEK).
+   * Helper to normalize KEK buffer.
    */
-  public async encryptSecret(secret: string, kek?: string): Promise<string> {
-    if (!kek || kek.trim().length === 0) {
-      throw new Error(
-        'CONFIG_ERROR: MASTER_ENCRYPTION_KEY environment binding is missing. Please set MASTER_ENCRYPTION_KEY in your Cloudflare Worker environment (.dev.vars or wrangler secret put MASTER_ENCRYPTION_KEY).'
-      );
+  private async resolveKeyBuffer(keyInput: DerivedKek | string): Promise<{ buffer: Uint8Array; version: number }> {
+    if (typeof keyInput === 'object' && 'rawKey' in keyInput) {
+      return { buffer: keyInput.rawKey, version: keyInput.version };
     }
-
     const encoder = new TextEncoder();
-    const kekBuffer = encoder.encode(kek);
+    const hash = await crypto.subtle.digest('SHA-256', encoder.encode(keyInput.trim()));
+    return { buffer: new Uint8Array(hash), version: 0 };
+  }
+
+  /**
+   * Envelope encrypt the TOTP secret using a KEK (versioned).
+   */
+  public async encryptSecret(
+    secret: string,
+    keyInput: DerivedKek | string,
+    version?: number
+  ): Promise<string> {
+    const { buffer: kekBuffer, version: resolvedVersion } = await this.resolveKeyBuffer(keyInput);
+    const ver = version !== undefined ? version : resolvedVersion;
+
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
 
@@ -158,6 +196,7 @@ export class TotpService {
       ['encrypt']
     );
 
+    const encoder = new TextEncoder();
     const secretBuffer = encoder.encode(secret);
     const encrypted = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv },
@@ -165,7 +204,8 @@ export class TotpService {
       secretBuffer
     );
 
-    const payload = {
+    const payload: EncryptedTotpPayload = {
+      v: ver,
       salt: btoa(String.fromCharCode(...salt)),
       iv: btoa(String.fromCharCode(...iv)),
       ciphertext: btoa(String.fromCharCode(...new Uint8Array(encrypted))),
@@ -176,21 +216,27 @@ export class TotpService {
 
   /**
    * Envelope decrypt the TOTP secret using the MASTER_ENCRYPTION_KEY (KEK).
+   * Supports both KekProvider (auto version lookup) and legacy string key.
    */
-  public async decryptSecret(encryptedJson: string, kek?: string): Promise<string> {
-    if (!kek || kek.trim().length === 0) {
-      throw new Error(
-        'CONFIG_ERROR: MASTER_ENCRYPTION_KEY environment binding is missing. Please set MASTER_ENCRYPTION_KEY in your Cloudflare Worker environment.'
-      );
+  public async decryptSecret(
+    encryptedJson: string,
+    kekInput: KekProvider | DerivedKek | string
+  ): Promise<DecryptedTotpResult> {
+    const payload = JSON.parse(encryptedJson) as EncryptedTotpPayload;
+    const version = payload.v !== undefined ? payload.v : 0;
+
+    let kekBuffer: Uint8Array;
+    if (kekInput instanceof KekProvider) {
+      const derived = await kekInput.getKey(version);
+      kekBuffer = derived.rawKey;
+    } else {
+      const resolved = await this.resolveKeyBuffer(kekInput);
+      kekBuffer = resolved.buffer;
     }
 
-    const payload = JSON.parse(encryptedJson);
     const salt = Uint8Array.from(atob(payload.salt), (c) => c.charCodeAt(0));
     const iv = Uint8Array.from(atob(payload.iv), (c) => c.charCodeAt(0));
     const ciphertext = Uint8Array.from(atob(payload.ciphertext), (c) => c.charCodeAt(0));
-
-    const encoder = new TextEncoder();
-    const kekBuffer = encoder.encode(kek);
 
     const baseKey = await crypto.subtle.importKey('raw', kekBuffer, 'PBKDF2', false, ['deriveKey']);
     const derivedKey = await crypto.subtle.deriveKey(
@@ -212,6 +258,9 @@ export class TotpService {
       ciphertext
     );
 
-    return new TextDecoder().decode(decrypted);
+    return {
+      secret: new TextDecoder().decode(decrypted),
+      version,
+    };
   }
 }

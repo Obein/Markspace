@@ -24,6 +24,7 @@ import { PasskeyAuthController } from '../controllers/auth/PasskeyAuthController
 import { UserVaultController } from '../controllers/UserVaultController';
 import { D1WebAuthnRepository } from '../infrastructure/D1WebAuthnRepository';
 import { D1UserVaultRepository } from '../infrastructure/D1UserVaultRepository';
+import { KekProvider } from '../services/security/KekProvider';
 import { Env } from '../types/env';
 
 import { D1UserStorageConfigRepository } from '../infrastructure/D1UserStorageConfigRepository';
@@ -44,6 +45,7 @@ export class ServiceContainer {
   public readonly userStorageConfigRepository: D1UserStorageConfigRepository;
   public readonly webAuthnRepository: D1WebAuthnRepository;
   public readonly userVaultRepository: D1UserVaultRepository;
+  public readonly kekProvider: KekProvider;
 
   constructor(env: Env) {
     const userRepository = new D1UserRepository(env.DB);
@@ -54,6 +56,7 @@ export class ServiceContainer {
     this.userStorageConfigRepository = new D1UserStorageConfigRepository(env.DB);
     this.webAuthnRepository = new D1WebAuthnRepository(env.DB);
     this.userVaultRepository = new D1UserVaultRepository(env.DB);
+    this.kekProvider = new KekProvider(env);
 
     const storageService = new R2StorageService(env.BUCKET as any);
     const objectStorageService = new R2ObjectStorageService(env.BUCKET as any);
@@ -74,7 +77,7 @@ export class ServiceContainer {
     const mediaService = new MediaService(mediaRepository, storageService);
     const vaultService = new VaultService(vaultNodeRepository, objectStorageService, userRepository);
 
-    this.authController = new AuthController(authService, this.nonceService, this.auditLogRepository);
+    this.authController = new AuthController(authService, this.nonceService, this.auditLogRepository, this.kekProvider);
     this.passkeyAuthController = new PasskeyAuthController(passkeyAuthService, this.auditLogRepository);
     this.userVaultController = new UserVaultController(this.userVaultRepository, this.auditLogRepository);
     this.noteController = new NoteController(noteService);
@@ -83,7 +86,8 @@ export class ServiceContainer {
       vaultService,
       this.vaultSecurityService,
       this.auditLogRepository,
-      this.userStorageConfigRepository
+      this.userStorageConfigRepository,
+      this.kekProvider
     );
     this.adminController = new AdminController(userRepository, this.auditLogRepository);
   }

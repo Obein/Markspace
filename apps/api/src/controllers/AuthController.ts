@@ -1,6 +1,7 @@
 import { D1AuditLogRepository } from '../infrastructure/D1AuditLogRepository';
 import { AuthService } from '../services/AuthService';
 import { NonceService } from '../services/NonceService';
+import { KekProvider } from '../services/security/KekProvider';
 import { RequestContext } from '../types/http';
 import { AuthSessionController } from './auth/AuthSessionController';
 import { AuthCredentialController } from './auth/AuthCredentialController';
@@ -23,11 +24,12 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly nonceService: NonceService,
-    private readonly auditLogRepo: D1AuditLogRepository
+    private readonly auditLogRepo: D1AuditLogRepository,
+    private readonly kekProvider?: KekProvider
   ) {
     this.sessionController = new AuthSessionController(this.authService, this.nonceService, this.auditLogRepo);
-    this.credentialController = new AuthCredentialController(this.authService, this.auditLogRepo);
-    this.totpController = new AuthTotpController(this.authService, this.auditLogRepo);
+    this.credentialController = new AuthCredentialController(this.authService, this.auditLogRepo, this.kekProvider);
+    this.totpController = new AuthTotpController(this.authService, this.auditLogRepo, this.kekProvider);
   }
 
   // ── Session & Nonce Endpoints ───────────────────────────────────────────────

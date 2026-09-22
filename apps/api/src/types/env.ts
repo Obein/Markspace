@@ -10,8 +10,10 @@ export interface Env {
   ASSETS?: Fetcher;
   /** JWT Secret Key for signing and verifying tokens */
   JWT_SECRET: string;
-  /** Master Key Encryption Key (KEK) for envelope encrypting TOTP secrets */
-  MASTER_ENCRYPTION_KEY: string;
+  /** Master Key Encryption Key (KEK) legacy single key (v0) */
+  MASTER_ENCRYPTION_KEY?: string;
+  /** Multi-version Master Key Encryption Keys map (JSON format: { "1": "key1", "2": "key2" }) */
+  MASTER_ENCRYPTION_KEYS?: string;
   /** Environment indicator (development, production) */
   ENVIRONMENT?: string;
 }

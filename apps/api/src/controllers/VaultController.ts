@@ -2,6 +2,7 @@ import { D1AuditLogRepository } from '../infrastructure/D1AuditLogRepository';
 import { D1UserStorageConfigRepository, UserStorageConfigRecord } from '../infrastructure/D1UserStorageConfigRepository';
 import { VaultSecurityService } from '../services/VaultSecurityService';
 import { VaultService } from '../services/VaultService';
+import { KekProvider } from '../services/security/KekProvider';
 import { RequestContext } from '../types/http';
 import { VaultOprfController } from './vault/VaultOprfController';
 import { VaultNodeController } from './vault/VaultNodeController';
@@ -28,9 +29,10 @@ export class VaultController {
     private readonly vaultService: VaultService,
     private readonly vaultSecurityService: VaultSecurityService,
     private readonly auditLogRepo: D1AuditLogRepository,
-    private readonly storageConfigRepo?: D1UserStorageConfigRepository
+    private readonly storageConfigRepo?: D1UserStorageConfigRepository,
+    private readonly kekProvider?: KekProvider
   ) {
-    this.oprfController = new VaultOprfController(this.vaultSecurityService, this.auditLogRepo);
+    this.oprfController = new VaultOprfController(this.vaultSecurityService, this.auditLogRepo, this.kekProvider);
     this.nodeController = new VaultNodeController(this.vaultService);
     this.versionController = new VaultVersionController(this.vaultService);
     this.merkleController = new VaultMerkleController(this.vaultService);

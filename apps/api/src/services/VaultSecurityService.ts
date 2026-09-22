@@ -1,7 +1,10 @@
+import { DerivedKek, KekProvider } from './security/KekProvider';
+
 export interface VaultSecurityRecord {
   vault_id: string;
   user_id: string;
   server_salt: string;
+  kek_version?: number;
   fail_count: number;
   locked_until: number;
   created_at: number;
@@ -27,20 +30,30 @@ export class VaultSecurityService {
   constructor(private readonly db: D1Database) {}
 
   /**
-   * Derives vault-specific OPRF server evaluation key k.
+   * Derives vault-specific OPRF server evaluation key k based on KEK version.
    */
   private async deriveOprfKey(
     userId: string,
     vaultId: string,
     serverSalt: string,
-    kek?: string
+    kekInput?: KekProvider | DerivedKek | string,
+    kekVersion?: number
   ): Promise<CryptoKey> {
-    const secret = kek || 'markspace-zero-trust-oprf-server-master-secret-v1';
-    if (!secret || secret.length < 16) {
-      throw new Error('SECURITY_ERROR: Server KEK (Key Encryption Key) master secret is not configured.');
+    let keyData: Uint8Array;
+
+    if (kekInput instanceof KekProvider) {
+      const derived = await kekInput.getKey(kekVersion ?? 0);
+      keyData = derived.rawKey;
+    } else if (typeof kekInput === 'object' && 'rawKey' in kekInput) {
+      keyData = kekInput.rawKey;
+    } else {
+      const secret = kekInput || 'markspace-zero-trust-oprf-server-master-secret-v1';
+      const encoder = new TextEncoder();
+      const hash = await crypto.subtle.digest('SHA-256', encoder.encode(secret));
+      keyData = new Uint8Array(hash);
     }
+
     const encoder = new TextEncoder();
-    const keyData = encoder.encode(secret);
     const message = encoder.encode(`oprf_vault_key:${userId}:${vaultId}:${serverSalt}`);
 
     const masterHmacKey = await crypto.subtle.importKey(
@@ -76,13 +89,13 @@ export class VaultSecurityService {
   }
 
   /**
-   * OPRF Evaluation for Vault Creation (Initial setup, no failure count penalty).
+   * OPRF Evaluation for Vault Creation (Initial setup, binds to current active kek_version).
    */
   public async setupVaultOprf(
     userId: string,
     vaultId: string,
     blindedPoint: string,
-    kek?: string
+    kekInput?: KekProvider | string
   ): Promise<string> {
     let existing = await this.db
       .prepare('SELECT * FROM vault_security WHERE vault_id = ? AND user_id = ?')
@@ -90,21 +103,27 @@ export class VaultSecurityService {
       .first<VaultSecurityRecord>();
 
     let serverSalt: string;
+    let targetKekVersion: number = 0;
     const now = Date.now();
+
+    if (kekInput instanceof KekProvider) {
+      targetKekVersion = kekInput.getCurrentVersion();
+    }
 
     if (!existing) {
       serverSalt = crypto.randomUUID();
       await this.db
         .prepare(
-          'INSERT INTO vault_security (vault_id, user_id, server_salt, fail_count, locked_until, created_at, updated_at) VALUES (?, ?, ?, 0, 0, ?, ?)'
+          'INSERT INTO vault_security (vault_id, user_id, server_salt, kek_version, fail_count, locked_until, created_at, updated_at) VALUES (?, ?, ?, ?, 0, 0, ?, ?)'
         )
-        .bind(vaultId, userId, serverSalt, now, now)
+        .bind(vaultId, userId, serverSalt, targetKekVersion, now, now)
         .run();
     } else {
       serverSalt = existing.server_salt;
+      targetKekVersion = existing.kek_version ?? 0;
     }
 
-    const oprfKey = await this.deriveOprfKey(userId, vaultId, serverSalt, kek);
+    const oprfKey = await this.deriveOprfKey(userId, vaultId, serverSalt, kekInput, targetKekVersion);
     return this.computeOprfEvaluation(oprfKey, blindedPoint);
   }
 
@@ -116,7 +135,7 @@ export class VaultSecurityService {
     userId: string,
     vaultId: string,
     blindedPoint: string,
-    kek?: string
+    kekInput?: KekProvider | string
   ): Promise<OprfEvaluationResponse> {
     let existing = await this.db
       .prepare('SELECT * FROM vault_security WHERE vault_id = ? AND user_id = ?')
@@ -124,20 +143,25 @@ export class VaultSecurityService {
       .first<VaultSecurityRecord>();
 
     const now = Date.now();
+    let currentKekVersion = 0;
+    if (kekInput instanceof KekProvider) {
+      currentKekVersion = kekInput.getCurrentVersion();
+    }
 
     if (!existing) {
       const serverSalt = crypto.randomUUID();
       await this.db
         .prepare(
-          'INSERT INTO vault_security (vault_id, user_id, server_salt, fail_count, locked_until, created_at, updated_at) VALUES (?, ?, ?, 0, 0, ?, ?)'
+          'INSERT INTO vault_security (vault_id, user_id, server_salt, kek_version, fail_count, locked_until, created_at, updated_at) VALUES (?, ?, ?, ?, 0, 0, ?, ?)'
         )
-        .bind(vaultId, userId, serverSalt, now, now)
+        .bind(vaultId, userId, serverSalt, currentKekVersion, now, now)
         .run();
 
       existing = {
         vault_id: vaultId,
         user_id: userId,
         server_salt: serverSalt,
+        kek_version: currentKekVersion,
         fail_count: 0,
         locked_until: 0,
         created_at: now,
@@ -176,8 +200,9 @@ export class VaultSecurityService {
       .bind(newFailCount, lockedUntil, now, vaultId, userId)
       .run();
 
-    // 3. Compute OPRF response
-    const oprfKey = await this.deriveOprfKey(userId, vaultId, existing.server_salt, kek);
+    // 3. Compute OPRF response using the vault's specific kek_version
+    const vaultKekVersion = existing.kek_version ?? 0;
+    const oprfKey = await this.deriveOprfKey(userId, vaultId, existing.server_salt, kekInput, vaultKekVersion);
     const evaluatedPoint = await this.computeOprfEvaluation(oprfKey, blindedPoint);
 
     return {

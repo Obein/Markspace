@@ -1,5 +1,6 @@
 import { D1AuditLogRepository } from '../../infrastructure/D1AuditLogRepository';
 import { AuthService } from '../../services/AuthService';
+import { KekProvider } from '../../services/security/KekProvider';
 import {
   LoginDTO,
   LoginTotpPasswordlessDTO,
@@ -39,7 +40,8 @@ export function parseDeviceName(ua: string): string {
 export class AuthCredentialController {
   constructor(
     private readonly authService: AuthService,
-    private readonly auditLogRepo: D1AuditLogRepository
+    private readonly auditLogRepo: D1AuditLogRepository,
+    private readonly kekProvider?: KekProvider
   ) {}
 
   public async prelogin(ctx: RequestContext): Promise<Response> {
@@ -144,7 +146,7 @@ export class AuthCredentialController {
         ctx.env.DB,
         body,
         ctx.env.JWT_SECRET,
-        ctx.env.MASTER_ENCRYPTION_KEY,
+        this.kekProvider || ctx.env.MASTER_ENCRYPTION_KEY,
         {
           rememberMe: body.rememberMe,
           ipAddress: ip,
@@ -213,7 +215,7 @@ export class AuthCredentialController {
         ctx.env.DB,
         body,
         ctx.env.JWT_SECRET,
-        ctx.env.MASTER_ENCRYPTION_KEY,
+        this.kekProvider || ctx.env.MASTER_ENCRYPTION_KEY,
         {
           rememberMe: body.rememberMe,
           ipAddress: ip,

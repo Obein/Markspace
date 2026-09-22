@@ -6,6 +6,7 @@ import { SecurityHeadersMiddleware } from '../middleware/SecurityHeadersMiddlewa
 import { Env } from '../types/env';
 import { RequestContext } from '../types/http';
 import { DPoPVerifier } from '../services/DPoPVerifier';
+import { KekProvider } from '../services/security/KekProvider';
 
 export class Router {
   private routes: Array<{
@@ -28,8 +29,9 @@ export class Router {
       if (!ctx.env.JWT_SECRET || ctx.env.JWT_SECRET.trim().length === 0) {
         missingSecrets.push('JWT_SECRET');
       }
-      if (!ctx.env.MASTER_ENCRYPTION_KEY || ctx.env.MASTER_ENCRYPTION_KEY.trim().length === 0) {
-        missingSecrets.push('MASTER_ENCRYPTION_KEY');
+      const kekProvider = new KekProvider(ctx.env);
+      if (!kekProvider.isConfigured()) {
+        missingSecrets.push('MASTER_ENCRYPTION_KEY or MASTER_ENCRYPTION_KEYS (min 30 chars)');
       }
 
       return new Response(
@@ -356,8 +358,9 @@ export class Router {
       if (!env.JWT_SECRET || env.JWT_SECRET.trim().length === 0) {
         missing.push('JWT_SECRET (Secret for signing session JWT tokens)');
       }
-      if (!env.MASTER_ENCRYPTION_KEY || env.MASTER_ENCRYPTION_KEY.trim().length === 0) {
-        missing.push('MASTER_ENCRYPTION_KEY (256-bit hex Secret for envelope encryption)');
+      const kekProvider = new KekProvider(env);
+      if (!kekProvider.isConfigured()) {
+        missing.push('MASTER_ENCRYPTION_KEY or MASTER_ENCRYPTION_KEYS (Key Encryption Key, min 30 chars for envelope encryption)');
       }
 
       if (missing.length > 0) {

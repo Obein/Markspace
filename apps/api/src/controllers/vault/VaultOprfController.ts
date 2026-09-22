@@ -1,5 +1,6 @@
 import { D1AuditLogRepository } from '../../infrastructure/D1AuditLogRepository';
 import { VaultSecurityService } from '../../services/VaultSecurityService';
+import { KekProvider } from '../../services/security/KekProvider';
 import { ApiResponse, RequestContext } from '../../types/http';
 
 /**
@@ -9,7 +10,8 @@ import { ApiResponse, RequestContext } from '../../types/http';
 export class VaultOprfController {
   constructor(
     private readonly vaultSecurityService: VaultSecurityService,
-    private readonly auditLogRepo: D1AuditLogRepository
+    private readonly auditLogRepo: D1AuditLogRepository,
+    private readonly kekProvider?: KekProvider
   ) {}
 
   public async setupOprf(ctx: RequestContext): Promise<Response> {
@@ -29,7 +31,7 @@ export class VaultOprfController {
       userId,
       vaultId,
       blindedPoint,
-      ctx.env.MASTER_ENCRYPTION_KEY
+      this.kekProvider || ctx.env.MASTER_ENCRYPTION_KEY
     );
 
     const response: ApiResponse = {
@@ -65,7 +67,7 @@ export class VaultOprfController {
       userId,
       vaultId,
       blindedPoint,
-      ctx.env.MASTER_ENCRYPTION_KEY
+      this.kekProvider || ctx.env.MASTER_ENCRYPTION_KEY
     );
 
     if (result.remainingSeconds > 0) {

@@ -2,6 +2,7 @@ import { IPasswordHasher } from '../interfaces/IPasswordHasher';
 import { ActiveSessionInfo, IssueTokenOptions, ITokenService } from '../interfaces/ITokenService';
 import { IUserRepository } from '../interfaces/IUserRepository';
 import { TotpService } from './TotpService';
+import { KekProvider } from './security/KekProvider';
 import {
   DisableTotpDTO,
   EnableTotpDTO,
@@ -128,7 +129,7 @@ export class AuthService {
     db: D1Database,
     dto: LoginDTO,
     jwtSecret: string,
-    kek?: string,
+    kek?: KekProvider | string,
     options?: IssueTokenOptions
   ): Promise<AuthResult> {
     if (!dto.username || !dto.authToken) {
@@ -152,10 +153,19 @@ export class AuthService {
         throw new Error('TOTP_REQUIRED: 6-digit TOTP authentication code is required');
       }
 
-      const secret = await this.totpService.decryptSecret(user.encryptedTotpSecret, kek);
-      const isTotpValid = await this.totpService.verifyCode(secret, dto.totpCode);
+      const { secret, version } = await this.totpService.decryptSecret(user.encryptedTotpSecret, kek || '');
+      const isTotpValid = await this.totpService.verifyCode(dto.totpCode, secret);
       if (!isTotpValid) {
         throw new Error('INVALID_TOTP: Invalid or expired TOTP code');
+      }
+
+      // Lazy Re-encryption: If stored version < currentVersion and kek is KekProvider
+      if (kek instanceof KekProvider) {
+        const current = await kek.getCurrentKey();
+        if (version < current.version) {
+          const reEncrypted = await this.totpService.encryptSecret(secret, current, current.version);
+          await this.userRepository.updateTotpSecret(user.id, reEncrypted, true);
+        }
       }
     }
 
@@ -190,7 +200,7 @@ export class AuthService {
     db: D1Database,
     dto: LoginTotpPasswordlessDTO,
     jwtSecret: string,
-    kek?: string,
+    kek?: KekProvider | string,
     options?: IssueTokenOptions
   ): Promise<AuthResult> {
     if (!dto.username || !dto.totpCode) {
@@ -207,10 +217,19 @@ export class AuthService {
       throw new Error('TOTP_NOT_ENABLED: TOTP multi-factor authentication is not enabled for this account');
     }
 
-    const secret = await this.totpService.decryptSecret(user.encryptedTotpSecret, kek);
-    const isValid = await this.totpService.verifyCode(secret, dto.totpCode);
+    const { secret, version } = await this.totpService.decryptSecret(user.encryptedTotpSecret, kek || '');
+    const isValid = await this.totpService.verifyCode(dto.totpCode, secret);
     if (!isValid) {
       throw new Error('INVALID_TOTP: Invalid or expired TOTP verification code');
+    }
+
+    // Lazy Re-encryption: If stored version < currentVersion and kek is KekProvider
+    if (kek instanceof KekProvider) {
+      const current = await kek.getCurrentKey();
+      if (version < current.version) {
+        const reEncrypted = await this.totpService.encryptSecret(secret, current, current.version);
+        await this.userRepository.updateTotpSecret(user.id, reEncrypted, true);
+      }
     }
 
     // Update last active timestamp
@@ -374,24 +393,30 @@ export class AuthService {
     };
   }
 
-  async enableTotp(userId: string, dto: EnableTotpDTO, kek?: string): Promise<boolean> {
-    const isValid = await this.totpService.verifyCode(dto.secret, dto.code);
+  async enableTotp(userId: string, dto: EnableTotpDTO, kek?: KekProvider | string): Promise<boolean> {
+    const isValid = await this.totpService.verifyCode(dto.code, dto.secret);
     if (!isValid) {
       throw new Error('INVALID_TOTP: Verification code does not match the secret key');
     }
 
-    const encryptedSecret = await this.totpService.encryptSecret(dto.secret, kek);
+    let encryptedSecret: string;
+    if (kek instanceof KekProvider) {
+      const current = await kek.getCurrentKey();
+      encryptedSecret = await this.totpService.encryptSecret(dto.secret, current, current.version);
+    } else {
+      encryptedSecret = await this.totpService.encryptSecret(dto.secret, kek || '');
+    }
     return this.userRepository.updateTotpSecret(userId, encryptedSecret, true);
   }
 
-  async disableTotp(userId: string, dto: DisableTotpDTO, kek?: string): Promise<boolean> {
+  async disableTotp(userId: string, dto: DisableTotpDTO, kek?: KekProvider | string): Promise<boolean> {
     const user = await this.userRepository.findById(userId);
     if (!user || !user.encryptedTotpSecret) {
       return true;
     }
 
-    const secret = await this.totpService.decryptSecret(user.encryptedTotpSecret, kek);
-    const isValid = await this.totpService.verifyCode(secret, dto.code);
+    const { secret } = await this.totpService.decryptSecret(user.encryptedTotpSecret, kek || '');
+    const isValid = await this.totpService.verifyCode(dto.code, secret);
     if (!isValid) {
       throw new Error('INVALID_TOTP: Invalid verification code. Cannot disable TOTP.');
     }
