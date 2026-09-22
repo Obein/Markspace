@@ -322,6 +322,21 @@ export class Router {
       return corsRes;
     }
 
+    // Static asset serving for Cloudflare Pages or Workers with Assets binding
+    if (env.ASSETS && !path.startsWith('/api/')) {
+      const assetRes = await env.ASSETS.fetch(request);
+      if (assetRes.status !== 404) {
+        return assetRes;
+      }
+      // SPA Fallback: for GET/HEAD requests without file extensions or requesting HTML, serve index.html
+      const acceptsHtml = request.headers.get('Accept')?.includes('text/html');
+      const hasFileExtension = /\.[a-zA-Z0-9]+$/.test(path);
+      if ((method === 'GET' || method === 'HEAD') && (acceptsHtml || !hasFileExtension)) {
+        return env.ASSETS.fetch(new Request(new URL('/', request.url), request));
+      }
+      return assetRes;
+    }
+
     try {
       for (const route of this.routes) {
         if (route.method !== method) continue;

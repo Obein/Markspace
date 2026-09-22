@@ -8,6 +8,7 @@ yarn.lock
 dist/
 dist-ssr/
 build/
+static/
 *.tsbuildinfo
 
 # Rust & WebAssembly Build Outputs
