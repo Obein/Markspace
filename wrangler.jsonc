@@ -25,7 +25,7 @@
 	"r2_buckets": [
 		{
 			"binding": "BUCKET",
-			"bucket_name": "markspace-media-bucket"
+			"bucket_name": "markspace-bucket"
 		}
 	],
 	"vars": {
