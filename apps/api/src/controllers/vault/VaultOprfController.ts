@@ -31,7 +31,7 @@ export class VaultOprfController {
       userId,
       vaultId,
       blindedPoint,
-      this.kekProvider || ctx.env.MASTER_ENCRYPTION_KEY
+      this.kekProvider
     );
 
     const response: ApiResponse = {
@@ -67,7 +67,7 @@ export class VaultOprfController {
       userId,
       vaultId,
       blindedPoint,
-      this.kekProvider || ctx.env.MASTER_ENCRYPTION_KEY
+      this.kekProvider
     );
 
     if (result.remainingSeconds > 0) {

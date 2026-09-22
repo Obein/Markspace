@@ -14,7 +14,7 @@ export interface DecryptedTotpResult {
 
 /**
  * TOTP Service: Implements RFC 6238 Time-Based One-Time Password and Base32 encoding
- * with AES-GCM Envelope Encryption backed by MASTER_ENCRYPTION_KEY (KEK) with multi-version rotation.
+ * with AES-GCM Envelope Encryption backed by Key Encryption Key (KEK / MEK_v*) with multi-version rotation.
  */
 export class TotpService {
   private static readonly BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -215,7 +215,7 @@ export class TotpService {
   }
 
   /**
-   * Envelope decrypt the TOTP secret using the MASTER_ENCRYPTION_KEY (KEK).
+   * Envelope decrypt the TOTP secret using the Key Encryption Key (KEK / MEK_v*).
    * Supports both KekProvider (auto version lookup) and legacy string key.
    */
   public async decryptSecret(

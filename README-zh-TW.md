@@ -261,17 +261,16 @@ npm run dev:ui
 | 名稱 (Name) | 類型 (Type) | 說明 (Description) | 產生命令/範例 |
 | :--- | :--- | :--- | :--- |
 | `JWT_SECRET` | **機密 (Secret / 加密)** | 使用者工作階段 JWT 鑑權簽章金鑰（要求 ≥30 字元高熵字串，經 SHA-256 衍生） | `openssl rand -base64 32` (或密碼產生器隨機字串) |
-| `MASTER_ENCRYPTION_KEY` | **機密 (Secret / 加密)** | 獨立/歷史主加密金鑰（要求 ≥30 字元，預設作為 `v0` 版本） | `openssl rand -base64 32` |
-| `MASTER_ENCRYPTION_KEYS` | **機密 (Secret / 加密)** | 多版本金鑰輪換 JSON 映射（例如 `{"1":"k1...","2":"k2..."}`） | 扁平 JSON 映射（每項金鑰 ≥30 字元），系統自動採用最大數字版本作為最新加密金鑰 |
+| `MEK_v1`, `MEK_v2`, ... | **機密 (Secret / 加密)** | 獨立版本化主加密金鑰（每個金鑰要求 ≥30 字元），用於零停機金鑰輪換 | `openssl rand -base64 32` |
 | `ENVIRONMENT` | **變數 (Variable / 明文)** | 運行環境識別標記 | `production` |
 
 > [!TIP]
 > **零停機金鑰輪換 (KEK Rotation)**：  
-> Markspace 支援在零停機、無感知的狀態下輪換主加密金鑰（Key Encryption Key）：  
-> 1. 設定 `MASTER_ENCRYPTION_KEYS` 為 JSON 格式的版本映射（例如：`{"1": "first-secret-at-least-30-chars...", "2": "second-secret-at-least-30-chars..."}`）。  
+> 由於 Cloudflare Secrets 在儲存後無法再次檢視明文，Markspace 採用獨立版本化機密（`MEK_v1`, `MEK_v2`, `MEK_v3`, ...）實現零停機金鑰輪换：  
+> 1. 需要輪換金鑰時，只需在 Cloudflare Dashboard（或透過 `npx wrangler secret put MEK_v2`）直接新增下一個版本的金鑰，無需讀取或修改歷史金鑰。  
 > 2. 每個金鑰僅需滿足長度 ≥30 字元，系統會自動透過 SHA-256 雜湊函數衍生出標準的 256 位元加密金鑰。  
 > 3. 系統會自動選擇版本號最大的金鑰作為當前最新金鑰用於新密文加密。  
-> 4. 歷史密文（包括由 `MASTER_ENCRYPTION_KEY` 加密的 `v0` 資料）在使用者下次登入時透過對應版本解密，並透過**惰性重新加密 (Lazy Re-encryption)** 無縫升級至最新版本金鑰。
+> 4. 歷史密文在使用者下次登入時透過對應版本解密，並透過**惰性重新加密 (Lazy Re-encryption)** 無縫升級至最新版本金鑰。
 
 ---
 
@@ -286,7 +285,7 @@ npm run r2:create
 
 # 2. 設定生產機密金鑰 (首次部署設定)
 npx wrangler secret put JWT_SECRET
-npx wrangler secret put MASTER_ENCRYPTION_KEY
+npx wrangler secret put MEK_v1
 
 # 3. 本地建置驗證 (編譯 Rust WASM 與打包前端)
 npm run build

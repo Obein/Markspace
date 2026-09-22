@@ -36,10 +36,10 @@ export class Router {
       try {
         const kekProvider = new KekProvider(ctx.env);
         if (!kekProvider.isConfigured()) {
-          missingSecrets.push('MASTER_ENCRYPTION_KEY 或 MASTER_ENCRYPTION_KEYS (未配置有效主密钥，至少需要 30 字符)');
+          missingSecrets.push('MEK_v1, MEK_v2... (未配置有效主密钥，至少需要 30 字符)');
         }
       } catch (err: any) {
-        missingSecrets.push(err.message?.replace('CONFIG_ERROR: ', '') || 'MASTER_ENCRYPTION_KEYS (配置错误)');
+        missingSecrets.push(err.message?.replace('CONFIG_ERROR: ', '') || 'MEK (配置错误)');
       }
 
       return new Response(
@@ -373,10 +373,10 @@ export class Router {
       try {
         const kekProvider = new KekProvider(env);
         if (!kekProvider.isConfigured()) {
-          missing.push('MASTER_ENCRYPTION_KEY or MASTER_ENCRYPTION_KEYS (Key Encryption Key, min 30 chars for envelope encryption)');
+          missing.push('MEK_v1, MEK_v2... (Key Encryption Key, min 30 chars for envelope encryption)');
         }
       } catch (err: any) {
-        missing.push(err.message?.replace('CONFIG_ERROR: ', '') || 'MASTER_ENCRYPTION_KEYS (configuration error)');
+        missing.push(err.message?.replace('CONFIG_ERROR: ', '') || 'MEK (configuration error)');
       }
 
       if (missing.length > 0) {

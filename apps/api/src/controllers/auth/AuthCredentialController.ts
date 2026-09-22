@@ -146,7 +146,7 @@ export class AuthCredentialController {
         ctx.env.DB,
         body,
         ctx.env.JWT_SECRET,
-        this.kekProvider || ctx.env.MASTER_ENCRYPTION_KEY,
+        this.kekProvider,
         {
           rememberMe: body.rememberMe,
           ipAddress: ip,
@@ -215,7 +215,7 @@ export class AuthCredentialController {
         ctx.env.DB,
         body,
         ctx.env.JWT_SECRET,
-        this.kekProvider || ctx.env.MASTER_ENCRYPTION_KEY,
+        this.kekProvider,
         {
           rememberMe: body.rememberMe,
           ipAddress: ip,

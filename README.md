@@ -261,17 +261,16 @@ In **Cloudflare Dashboard** $\rightarrow$ **Workers & Pages** $\rightarrow$ `mar
 | Name | Type | Description | Generation Command / Example |
 | :--- | :--- | :--- | :--- |
 | `JWT_SECRET` | **Secret (Encrypted)** | High-entropy secret (min 30 chars, derived via SHA-256) for signing session JWT tokens | `openssl rand -base64 32` (or password generator) |
-| `MASTER_ENCRYPTION_KEY` | **Secret (Encrypted)** | Legacy / standalone Key Encryption Key (min 30 chars, treated as `v0`) | `openssl rand -base64 32` |
-| `MASTER_ENCRYPTION_KEYS` | **Secret (Encrypted)** | Multi-version KEK rotation map in JSON (e.g. `{"1":"k1...","2":"k2..."}`) | Flat JSON map of keys ($\ge 30$ chars); highest numeric key is active |
+| `MEK_v1`, `MEK_v2`, ... | **Secret (Encrypted)** | Individual versioned KEK secrets for zero-downtime rotation (min 30 chars each) | `openssl rand -base64 32` |
 | `ENVIRONMENT` | **Variable (Plaintext)** | Execution environment identifier | `production` |
 
 > [!TIP]
 > **Zero-Downtime Key Rotation (KEK)**:  
-> Markspace supports non-destructive Key Encryption Key (KEK) rotation without server downtime or forced user logouts.  
-> 1. Set `MASTER_ENCRYPTION_KEYS` to a JSON map of version-to-secret pairs (e.g., `{"1": "first-secret-at-least-30-chars...", "2": "second-secret-at-least-30-chars..."}`).  
+> Because Cloudflare Secrets are write-only once set, Markspace supports zero-downtime Key Encryption Key (KEK) rotation via individual versioned secrets (`MEK_v1`, `MEK_v2`, `MEK_v3`, ...):  
+> 1. When rotating keys, simply add the next version secret (e.g. `npx wrangler secret put MEK_v2` or in the Cloudflare Dashboard).  
 > 2. Each secret must be at least 30 characters and is deterministically derived into a 256-bit key via SHA-256.  
 > 3. The system automatically adopts the highest numeric version as the active key for new encryptions.  
-> 4. Historical ciphertexts (including `v0` from `MASTER_ENCRYPTION_KEY`) are decrypted using their respective version and seamlessly upgraded to the latest version via **lazy re-encryption** upon next login.
+> 4. Historical ciphertexts are decrypted using their respective version and seamlessly upgraded to the latest version via **lazy re-encryption** upon next login.
 
 ---
 
@@ -286,7 +285,7 @@ npm run r2:create
 
 # 2. Set Production Secrets (First time setup)
 npx wrangler secret put JWT_SECRET
-npx wrangler secret put MASTER_ENCRYPTION_KEY
+npx wrangler secret put MEK_v1
 
 # 3. Build & Verify Locally (Compiles Rust WASM & Bundles UI)
 npm run build

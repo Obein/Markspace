@@ -3,10 +3,9 @@
  * 
  * Manages Master Encryption Key (KEK) versions, validation, and SHA-256 derivation.
  * Supports:
- * 1. Legacy v0 key: MASTER_ENCRYPTION_KEY (string >= 30 chars).
- * 2. Multi-version key rotation: MASTER_ENCRYPTION_KEYS (JSON map of { "1": "key1", "2": "key2" }).
- * 3. Auto-detects current active version as the highest numeric version.
- * 4. Derives a deterministic 256-bit key from raw strings via SHA-256 hash.
+ * 1. Versioned environment secrets: MEK_v1, MEK_v2, MEK_v3... (string >= 30 chars).
+ * 2. Auto-detects current active version as the highest numeric version.
+ * 3. Derives a deterministic 256-bit key from raw strings via SHA-256 hash.
  */
 
 export interface DerivedKek {
@@ -22,50 +21,27 @@ export class KekProvider {
   private currentVersion: number = 0;
   private configured: boolean = false;
 
-  constructor(env: { MASTER_ENCRYPTION_KEYS?: string; MASTER_ENCRYPTION_KEY?: string }) {
+  constructor(env: Record<string, any>) {
     this.init(env);
   }
 
-  private init(env: { MASTER_ENCRYPTION_KEYS?: string; MASTER_ENCRYPTION_KEY?: string }): void {
-    // 1. Parse multi-version key map
-    if (env.MASTER_ENCRYPTION_KEYS && env.MASTER_ENCRYPTION_KEYS.trim().length > 0) {
-      try {
-        const parsed = JSON.parse(env.MASTER_ENCRYPTION_KEYS) as Record<string, string>;
-        if (parsed && typeof parsed === 'object') {
-          for (const [vStr, keySecret] of Object.entries(parsed)) {
-            const v = Number(vStr);
-            if (!isNaN(v) && typeof keySecret === 'string' && keySecret.trim().length > 0) {
-              const trimmed = keySecret.trim();
-              if (trimmed.length < KekProvider.MIN_KEY_LENGTH) {
-                throw new Error(
-                  `CONFIG_ERROR: MASTER_ENCRYPTION_KEYS version ${v} must be at least ${KekProvider.MIN_KEY_LENGTH} characters long (current: ${trimmed.length}).`
-                );
-              }
-              this.rawSecrets.set(v, trimmed);
-            }
-          }
+  private init(env: Record<string, any>): void {
+    // Scan all versioned environment secrets: MEK_v1, MEK_v2, MEK_v3, ...
+    for (const [key, value] of Object.entries(env)) {
+      const match = key.match(/^MEK_v(\d+)$/i);
+      if (match && typeof value === 'string' && value.trim().length > 0) {
+        const v = parseInt(match[1], 10);
+        const trimmed = value.trim();
+        if (trimmed.length < KekProvider.MIN_KEY_LENGTH) {
+          throw new Error(
+            `CONFIG_ERROR: ${key} must be at least ${KekProvider.MIN_KEY_LENGTH} characters long (current: ${trimmed.length}).`
+          );
         }
-      } catch (err: any) {
-        if (err.message?.startsWith('CONFIG_ERROR:')) {
-          throw err;
-        }
-        console.warn('Failed to parse MASTER_ENCRYPTION_KEYS JSON map:', err);
+        this.rawSecrets.set(v, trimmed);
       }
     }
 
-    // 2. Register legacy / standalone MASTER_ENCRYPTION_KEY as version 0.
-    // Note: MASTER_ENCRYPTION_KEY has higher priority and will overwrite MASTER_ENCRYPTION_KEYS[0] if both exist.
-    if (env.MASTER_ENCRYPTION_KEY && env.MASTER_ENCRYPTION_KEY.trim().length > 0) {
-      const trimmed = env.MASTER_ENCRYPTION_KEY.trim();
-      if (trimmed.length < KekProvider.MIN_KEY_LENGTH) {
-        throw new Error(
-          `CONFIG_ERROR: MASTER_ENCRYPTION_KEY must be at least ${KekProvider.MIN_KEY_LENGTH} characters long (current: ${trimmed.length}).`
-        );
-      }
-      this.rawSecrets.set(0, trimmed);
-    }
-
-    // 3. Determine current version (highest numeric version)
+    // Determine current version (highest numeric version)
     if (this.rawSecrets.size > 0) {
       const versions = Array.from(this.rawSecrets.keys());
       this.currentVersion = Math.max(...versions);
@@ -124,7 +100,7 @@ export class KekProvider {
     const secret = this.rawSecrets.get(targetVersion);
     if (!secret) {
       throw new Error(
-        `CONFIG_ERROR: MASTER_ENCRYPTION_KEY for version ${targetVersion} is not configured in Cloudflare environment.`
+        `CONFIG_ERROR: MEK_v${targetVersion} is not configured in Cloudflare environment.`
       );
     }
 

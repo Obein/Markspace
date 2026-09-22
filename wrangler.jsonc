@@ -30,10 +30,10 @@
 	],
 	"vars": {
 		"ENVIRONMENT": "production",
-		"JWT_SECRET": "",
-		"MASTER_ENCRYPTION_KEYS": {
-			"1": "k1...",
-			// "2": "k2..."
-		}
+		// MUST be at least 30 characters long for security reasons. You can generate a secure key using `openssl rand -hex 32`
+		"JWT_SECRET": "...",
+		// MUST be at least 30 characters long for security reasons. You can generate a secure key using `openssl rand -hex 32`
+		"MEK_v1": "k1...",
+		// "MEK_v2": "k2..."
 	}
 }

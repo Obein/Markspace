@@ -45,7 +45,7 @@ export class AuthTotpController {
     }
 
     try {
-      await this.authService.enableTotp(userId, body, this.kekProvider || ctx.env.MASTER_ENCRYPTION_KEY);
+      await this.authService.enableTotp(userId, body, this.kekProvider);
 
       await this.auditLogRepo.recordLog({
         userId,
@@ -95,7 +95,7 @@ export class AuthTotpController {
     }
 
     try {
-      await this.authService.disableTotp(userId, body, this.kekProvider || ctx.env.MASTER_ENCRYPTION_KEY);
+      await this.authService.disableTotp(userId, body, this.kekProvider);
 
       await this.auditLogRepo.recordLog({
         userId,
