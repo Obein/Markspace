@@ -4,6 +4,7 @@ import {
   IApiClient,
   NodeVersionResponse,
   PasskeyAuthResult,
+  SystemCapabilities,
   SystemConfig,
   UserAdminSummary,
   UserRole,
@@ -410,13 +411,13 @@ export class ApiClient implements IApiClient {
 
   // --- System Capabilities API ---
 
-  async getSystemCapabilities(): Promise<{ r2Available: boolean }> {
+  async getSystemCapabilities(): Promise<SystemCapabilities> {
     try {
-      return await this.transport.request<{ r2Available: boolean }>('/system/capabilities', {
+      return await this.transport.request<SystemCapabilities>('/system/capabilities', {
         method: 'GET',
       });
     } catch {
-      return { r2Available: true };
+      return { r2Available: true, configured: true, missingSecrets: [] };
     }
   }
 }

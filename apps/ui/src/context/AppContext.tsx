@@ -42,6 +42,7 @@ interface AppContextType {
   isInitializingAuth: boolean;
   isR2Available: boolean;
   setIsR2Available: (available: boolean) => void;
+  systemConfigErrors: string[];
   isVaultUnlocked: boolean;
   lockVault: (vaultId?: string) => void;
   logoutAccount: () => void;
@@ -76,6 +77,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
   const [isR2Available, setIsR2Available] = useState<boolean>(true);
   const [securityAlert, setSecurityAlert] = useState<string | null>(null);
+  const [systemConfigErrors, setSystemConfigErrors] = useState<string[]>([]);
 
   const unlockAllVaultsWithUmk = async (umkKey: CryptoKey, vaultsList: UserVaultItem[]) => {
     setUmk(umkKey);
@@ -98,13 +100,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Fetch System Capabilities (R2 status)
+  // Fetch System Capabilities (R2 status & Secrets validation)
   useEffect(() => {
     apiClient
       .getSystemCapabilities()
       .then((cap) => {
-        if (cap && typeof cap.r2Available === 'boolean') {
-          setIsR2Available(cap.r2Available);
+        if (cap) {
+          if (typeof cap.r2Available === 'boolean') {
+            setIsR2Available(cap.r2Available);
+          }
+          if (cap.configured === false && Array.isArray(cap.missingSecrets) && cap.missingSecrets.length > 0) {
+            setSystemConfigErrors(cap.missingSecrets);
+          } else {
+            setSystemConfigErrors([]);
+          }
         }
       })
       .catch(() => {});
@@ -299,6 +308,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     isInitializingAuth,
     isR2Available,
     setIsR2Available,
+    systemConfigErrors,
     isVaultUnlocked: activeVmk !== null,
     lockVault,
     logoutAccount,

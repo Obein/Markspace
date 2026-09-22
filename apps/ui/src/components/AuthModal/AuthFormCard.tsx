@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, Key, Fingerprint, Copy, Check, ShieldAlert, Sparkles } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
+import { useApp } from '../../context/AppContext';
 import { UseAuthModalFormReturn } from './useAuthModalForm';
 import { AuthCardHeader } from './components/AuthCardHeader';
 
@@ -10,6 +11,7 @@ export interface AuthFormCardProps {
 
 export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
   const { t } = useI18n();
+  const { systemConfigErrors } = useApp();
   const {
     isRegisterMode,
     isTransitioning,
@@ -59,6 +61,24 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
 
       {/* Main Form Content Area */}
       <div className="flex-1 flex flex-col justify-center my-auto py-2">
+        {/* System Secrets Configuration Warning Banner */}
+        {systemConfigErrors && systemConfigErrors.length > 0 && (
+          <div className="mb-3 p-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs flex items-start gap-2.5 font-mono animate-in fade-in duration-200">
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className="flex-1 text-[11px] leading-relaxed">
+              <div className="font-bold text-amber-300">服务端机密配置异常</div>
+              <div className="text-zinc-300 mt-1 space-y-0.5">
+                {systemConfigErrors.map((err, i) => (
+                  <div key={i} className="text-red-300">• {err}</div>
+                ))}
+              </div>
+              <div className="text-[10px] text-amber-400/80 mt-1.5 font-sans">
+                请在 Cloudflare 控制台（Workers &gt; 设置 &gt; 变量和机密）配置对应机密（长度需 ≥ 30 字符）。
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Security Alert Toast if triggered by Nonce Violation */}
         {securityAlert && (
           <div className="mb-3 p-2 rounded-xl bg-red-500/15 border border-red-500/30 text-red-200 text-xs flex items-start gap-2 font-mono animate-in fade-in duration-150">

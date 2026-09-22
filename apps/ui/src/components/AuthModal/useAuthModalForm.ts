@@ -54,6 +54,7 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
     unlockAllVaultsWithUmk,
     securityAlert,
     clearSecurityAlert,
+    systemConfigErrors,
   } = useApp();
   const { t } = useI18n();
 
@@ -122,6 +123,11 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
       e.preventDefault();
       setErrorMsg(null);
       clearSecurityAlert();
+
+      if (systemConfigErrors && systemConfigErrors.length > 0) {
+        setErrorMsg(`服务端机密配置异常（需 ≥ 30 字符）：${systemConfigErrors.join('; ')}。请先配置环境变量。`);
+        return;
+      }
 
       const cleanUsername = usernameInput.trim().toLowerCase();
       const unixUserRegex = /^[a-z_][a-z0-9_-]{4,31}$/;

@@ -39,20 +39,32 @@ export class JwtTokenService implements ITokenService {
     return new TextDecoder().decode(bytes);
   }
 
+  private readonly hmacKeyCache = new Map<string, CryptoKey>();
+
   private async getHmacKey(secret: string): Promise<CryptoKey> {
-    if (!secret || secret.trim().length === 0) {
+    const trimmed = (secret || '').trim();
+    if (trimmed.length < 30) {
       throw new Error(
-        'CONFIG_ERROR: JWT_SECRET environment secret is missing or empty. Please set JWT_SECRET in Cloudflare Dashboard -> Settings -> Variables and Secrets.'
+        `CONFIG_ERROR: JWT_SECRET environment secret must be at least 30 characters long (current: ${trimmed.length}). Please set JWT_SECRET in Cloudflare Dashboard -> Settings -> Variables and Secrets.`
       );
     }
+
+    if (this.hmacKeyCache.has(trimmed)) {
+      return this.hmacKeyCache.get(trimmed)!;
+    }
+
     const encoder = new TextEncoder();
-    return crypto.subtle.importKey(
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(trimmed));
+    const key = await crypto.subtle.importKey(
       'raw',
-      encoder.encode(secret),
+      hashBuffer,
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['sign', 'verify']
     );
+
+    this.hmacKeyCache.set(trimmed, key);
+    return key;
   }
 
   private async hashString(str: string): Promise<string> {

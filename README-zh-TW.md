@@ -260,7 +260,7 @@ npm run dev:ui
 
 | 名稱 (Name) | 類型 (Type) | 說明 (Description) | 產生命令/範例 |
 | :--- | :--- | :--- | :--- |
-| `JWT_SECRET` | **機密 (Secret / 加密)** | 使用者工作階段 JWT 鑑權簽章金鑰（建議 ≥32 字元高熵字串） | `openssl rand -base64 32` (或密碼產生器隨機字串) |
+| `JWT_SECRET` | **機密 (Secret / 加密)** | 使用者工作階段 JWT 鑑權簽章金鑰（要求 ≥30 字元高熵字串，經 SHA-256 衍生） | `openssl rand -base64 32` (或密碼產生器隨機字串) |
 | `MASTER_ENCRYPTION_KEY` | **機密 (Secret / 加密)** | 獨立/歷史主加密金鑰（要求 ≥30 字元，預設作為 `v0` 版本） | `openssl rand -base64 32` |
 | `MASTER_ENCRYPTION_KEYS` | **機密 (Secret / 加密)** | 多版本金鑰輪換 JSON 映射（例如 `{"1":"k1...","2":"k2..."}`） | 扁平 JSON 映射（每項金鑰 ≥30 字元），系統自動採用最大數字版本作為最新加密金鑰 |
 | `ENVIRONMENT` | **變數 (Variable / 明文)** | 運行環境識別標記 | `production` |

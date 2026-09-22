@@ -59,6 +59,12 @@ export interface SystemConfig {
   maxAuditLogsPerUser: number;
 }
 
+export interface SystemCapabilities {
+  r2Available: boolean;
+  configured?: boolean;
+  missingSecrets?: string[];
+}
+
 export interface AuditLogResponse {
   id: string;
   userId: string;
@@ -294,9 +300,8 @@ export interface IApiClient {
   getNodeHistory(id: string): Promise<NodeVersionResponse[]>;
   getVersionContent(id: string, timestamp: number): Promise<{ body: ArrayBuffer; encryptedDek: string; commitHash: string }>;
   revertNodeVersion(id: string, timestamp: number): Promise<VaultNodeResponse>;
-
   // System Capabilities
-  getSystemCapabilities(): Promise<{ r2Available: boolean }>;
+  getSystemCapabilities(): Promise<SystemCapabilities>;
 
   // Admin Management Endpoints
   adminListUsers(): Promise<UserAdminSummary[]>;

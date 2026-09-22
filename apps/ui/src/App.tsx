@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import {
   AuthModal,
   EditorCanvas,
@@ -21,6 +22,7 @@ export const AppContent: React.FC = () => {
     apiClient,
     isAuthenticated,
     isInitializingAuth,
+    systemConfigErrors,
     isVaultUnlocked,
     username,
     role,
@@ -200,6 +202,18 @@ export const AppContent: React.FC = () => {
     <div className={`flex w-full h-full overflow-hidden ${isDark ? 'dark bg-[#09090B]' : 'bg-[#F4F4F5]'}`}>
       {/* Toast Notification Container */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
+      {/* System Configuration Warning Banner for Authenticated Sessions */}
+      {systemConfigErrors && systemConfigErrors.length > 0 && isAuthenticated && (
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-950/90 border-b border-amber-500/40 text-amber-200 px-4 py-1.5 flex items-center justify-between text-xs backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="font-semibold text-amber-300">服务端密钥配置异常：</span>
+            <span className="font-mono text-zinc-300">{systemConfigErrors.join('; ')}</span>
+          </div>
+          <span className="text-[10px] text-amber-300/80 font-sans">要求字符长度 ≥ 30 字符</span>
+        </div>
+      )}
 
       {/* Step 1: Account Login / Register Modal */}
       {!isAuthenticated && !isInitializingAuth && <AuthModal />}

@@ -26,12 +26,20 @@ export class Router {
     // 0. System Capabilities (Public)
     this.addRoute('GET', '/api/v1/system/capabilities', false, false, async (_container, ctx) => {
       const missingSecrets: string[] = [];
-      if (!ctx.env.JWT_SECRET || ctx.env.JWT_SECRET.trim().length === 0) {
-        missingSecrets.push('JWT_SECRET');
+      const jwtSecret = ctx.env.JWT_SECRET?.trim() || '';
+      if (jwtSecret.length === 0) {
+        missingSecrets.push('JWT_SECRET (未配置，至少需要 30 字符)');
+      } else if (jwtSecret.length < 30) {
+        missingSecrets.push(`JWT_SECRET (长度不足 30 字符，当前为 ${jwtSecret.length} 字符)`);
       }
-      const kekProvider = new KekProvider(ctx.env);
-      if (!kekProvider.isConfigured()) {
-        missingSecrets.push('MASTER_ENCRYPTION_KEY or MASTER_ENCRYPTION_KEYS (min 30 chars)');
+
+      try {
+        const kekProvider = new KekProvider(ctx.env);
+        if (!kekProvider.isConfigured()) {
+          missingSecrets.push('MASTER_ENCRYPTION_KEY 或 MASTER_ENCRYPTION_KEYS (未配置有效主密钥，至少需要 30 字符)');
+        }
+      } catch (err: any) {
+        missingSecrets.push(err.message?.replace('CONFIG_ERROR: ', '') || 'MASTER_ENCRYPTION_KEYS (配置错误)');
       }
 
       return new Response(
@@ -355,12 +363,20 @@ export class Router {
       if (!env.DB) {
         missing.push('DB (D1 Database binding)');
       }
-      if (!env.JWT_SECRET || env.JWT_SECRET.trim().length === 0) {
-        missing.push('JWT_SECRET (Secret for signing session JWT tokens)');
+      const jwtSecret = env.JWT_SECRET?.trim() || '';
+      if (jwtSecret.length === 0) {
+        missing.push('JWT_SECRET (Secret for signing session JWT tokens, missing)');
+      } else if (jwtSecret.length < 30) {
+        missing.push(`JWT_SECRET (Secret for signing session JWT tokens must be at least 30 characters, currently ${jwtSecret.length})`);
       }
-      const kekProvider = new KekProvider(env);
-      if (!kekProvider.isConfigured()) {
-        missing.push('MASTER_ENCRYPTION_KEY or MASTER_ENCRYPTION_KEYS (Key Encryption Key, min 30 chars for envelope encryption)');
+
+      try {
+        const kekProvider = new KekProvider(env);
+        if (!kekProvider.isConfigured()) {
+          missing.push('MASTER_ENCRYPTION_KEY or MASTER_ENCRYPTION_KEYS (Key Encryption Key, min 30 chars for envelope encryption)');
+        }
+      } catch (err: any) {
+        missing.push(err.message?.replace('CONFIG_ERROR: ', '') || 'MASTER_ENCRYPTION_KEYS (configuration error)');
       }
 
       if (missing.length > 0) {

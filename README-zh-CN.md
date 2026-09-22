@@ -260,7 +260,7 @@ npm run dev:ui
 
 | 名称 (Name) | 类型 (Type) | 说明 (Description) | 生成命令/示例 |
 | :--- | :--- | :--- | :--- |
-| `JWT_SECRET` | **机密 (Secret / 加密)** | 用户会话 JWT 鉴权签名密钥（建议 ≥32 字符高熵字符串） | `openssl rand -base64 32` (或密码生成器随机字符串) |
+| `JWT_SECRET` | **机密 (Secret / 加密)** | 用户会话 JWT 鉴权签名密钥（要求 ≥30 字符高熵字符串，经 SHA-256 派生） | `openssl rand -base64 32` (或密码生成器随机字符串) |
 | `MASTER_ENCRYPTION_KEY` | **机密 (Secret / 加密)** | 独立/历史主加密密钥（要求 ≥30 字符，默认作为 `v0` 版本） | `openssl rand -base64 32` |
 | `MASTER_ENCRYPTION_KEYS` | **机密 (Secret / 加密)** | 多版本密钥轮换 JSON 映射（例如 `{"1":"k1...","2":"k2..."}`） | 扁平 JSON 映射（每项密钥 ≥30 字符），系统自动采用最大数字版本作为最新加密密钥 |
 | `ENVIRONMENT` | **变量 (Variable / 明文)** | 运行环境标识 | `production` |

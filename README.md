@@ -260,7 +260,7 @@ In **Cloudflare Dashboard** $\rightarrow$ **Workers & Pages** $\rightarrow$ `mar
 
 | Name | Type | Description | Generation Command / Example |
 | :--- | :--- | :--- | :--- |
-| `JWT_SECRET` | **Secret (Encrypted)** | High-entropy secret (min 32 chars) for signing session JWT tokens | `openssl rand -base64 32` (or password generator) |
+| `JWT_SECRET` | **Secret (Encrypted)** | High-entropy secret (min 30 chars, derived via SHA-256) for signing session JWT tokens | `openssl rand -base64 32` (or password generator) |
 | `MASTER_ENCRYPTION_KEY` | **Secret (Encrypted)** | Legacy / standalone Key Encryption Key (min 30 chars, treated as `v0`) | `openssl rand -base64 32` |
 | `MASTER_ENCRYPTION_KEYS` | **Secret (Encrypted)** | Multi-version KEK rotation map in JSON (e.g. `{"1":"k1...","2":"k2..."}`) | Flat JSON map of keys ($\ge 30$ chars); highest numeric key is active |
 | `ENVIRONMENT` | **Variable (Plaintext)** | Execution environment identifier | `production` |
