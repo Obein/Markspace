@@ -58,7 +58,7 @@ jobs:
             echo "==> Running D1 production migrations..."
             npm run d1:migrate:prod
             echo "==> Deploying Worker and Assets to Cloudflare..."
-            npx wrangler deploy --no-build
+            npx wrangler deploy
           else
             echo "::error::CLOUDFLARE_API_TOKEN secret is not set in GitHub repository settings!"
             echo "::notice::Please navigate to GitHub repo -> Settings -> Secrets and variables -> Actions, and add CLOUDFLARE_API_TOKEN."
