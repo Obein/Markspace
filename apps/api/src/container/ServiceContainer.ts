@@ -19,12 +19,19 @@ import { NoteService } from '../services/NoteService';
 import { TotpService } from '../services/TotpService';
 import { VaultSecurityService } from '../services/VaultSecurityService';
 import { VaultService } from '../services/VaultService';
+import { PasskeyAuthService } from '../services/PasskeyAuthService';
+import { PasskeyAuthController } from '../controllers/auth/PasskeyAuthController';
+import { UserVaultController } from '../controllers/UserVaultController';
+import { D1WebAuthnRepository } from '../infrastructure/D1WebAuthnRepository';
+import { D1UserVaultRepository } from '../infrastructure/D1UserVaultRepository';
 import { Env } from '../types/env';
 
 import { D1UserStorageConfigRepository } from '../infrastructure/D1UserStorageConfigRepository';
 
 export class ServiceContainer {
   public readonly authController: AuthController;
+  public readonly passkeyAuthController: PasskeyAuthController;
+  public readonly userVaultController: UserVaultController;
   public readonly noteController: NoteController;
   public readonly mediaController: MediaController;
   public readonly vaultController: VaultController;
@@ -35,6 +42,8 @@ export class ServiceContainer {
   public readonly vaultSecurityService: VaultSecurityService;
   public readonly auditLogRepository: D1AuditLogRepository;
   public readonly userStorageConfigRepository: D1UserStorageConfigRepository;
+  public readonly webAuthnRepository: D1WebAuthnRepository;
+  public readonly userVaultRepository: D1UserVaultRepository;
 
   constructor(env: Env) {
     const userRepository = new D1UserRepository(env.DB);
@@ -43,6 +52,8 @@ export class ServiceContainer {
     const vaultNodeRepository = new VaultNodeRepository(env.DB);
     this.auditLogRepository = new D1AuditLogRepository(env.DB);
     this.userStorageConfigRepository = new D1UserStorageConfigRepository(env.DB);
+    this.webAuthnRepository = new D1WebAuthnRepository(env.DB);
+    this.userVaultRepository = new D1UserVaultRepository(env.DB);
 
     const storageService = new R2StorageService(env.BUCKET as any);
     const objectStorageService = new R2ObjectStorageService(env.BUCKET as any);
@@ -53,11 +64,19 @@ export class ServiceContainer {
     this.vaultSecurityService = new VaultSecurityService(env.DB);
 
     const authService = new AuthService(userRepository, passwordHasher, this.tokenService, this.totpService);
+    const passkeyAuthService = new PasskeyAuthService(
+      this.webAuthnRepository,
+      this.userVaultRepository,
+      userRepository,
+      this.tokenService
+    );
     const noteService = new NoteService(noteRepository, mediaRepository, storageService);
     const mediaService = new MediaService(mediaRepository, storageService);
     const vaultService = new VaultService(vaultNodeRepository, objectStorageService, userRepository);
 
     this.authController = new AuthController(authService, this.nonceService, this.auditLogRepository);
+    this.passkeyAuthController = new PasskeyAuthController(passkeyAuthService, this.auditLogRepository);
+    this.userVaultController = new UserVaultController(this.userVaultRepository, this.auditLogRepository);
     this.noteController = new NoteController(noteService);
     this.mediaController = new MediaController(mediaService);
     this.vaultController = new VaultController(

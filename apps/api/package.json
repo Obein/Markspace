@@ -13,5 +13,8 @@
     "@cloudflare/workers-types": "^5.20260823.1",
     "typescript": "^7.0.2",
     "wrangler": "^4.125.0"
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "^14.0.2"
   }
 }

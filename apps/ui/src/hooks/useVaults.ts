@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useMemo, useCallback } from 'react';
+import { startAuthentication } from '@simplewebauthn/browser';
 import { useApp } from '../context/AppContext';
+import { UserMasterKeyService } from '../crypto/UserMasterKeyService';
 import { MnemonicService } from '../crypto/MnemonicService';
-import { PasskeyCryptoService } from '../crypto/PasskeyCryptoService';
 import { TranslationKey } from '../i18n/i18nContext';
 import { VaultInfo } from '../interfaces/INoteModels';
+import { UserVaultItem } from '../interfaces/IApiClient';
 import { VaultStorageConfig } from '../services/storage/ThirdPartyStorageTypes';
-import { ThirdPartyStorageManager } from '../services/storage/ThirdPartyStorageManager';
 
 interface UseVaultsOptions {
   username: string | null;
@@ -15,19 +16,7 @@ interface UseVaultsOptions {
   onVaultDeleted?: (deletedVaultId: string, nextVaultId: string) => void;
 }
 
-function loadVaultsFromStorage(uname: string | null): VaultInfo[] {
-  if (!uname) return [];
-  try {
-    const userSpecific = localStorage.getItem(`markspace_vaults_${uname}`);
-    if (userSpecific !== null) {
-      const parsed = JSON.parse(userSpecific);
-      if (Array.isArray(parsed)) {
-        return parsed;
-      }
-    }
-  } catch (_) {}
-  return [];
-}
+const WEBAUTHN_PRF_SALT = new TextEncoder().encode('markspace-passkey-prf-v1');
 
 export function useVaults({
   username,
@@ -36,282 +25,179 @@ export function useVaults({
   onDeleteVaultNodes,
   onVaultDeleted,
 }: UseVaultsOptions) {
-  const { cryptoService, apiClient, setVaultKey, activeVaultId, setActiveVaultId } = useApp();
+  const {
+    cryptoService,
+    apiClient,
+    umk,
+    userVaults,
+    setUserVaults,
+    unlockAllVaultsWithUmk,
+    setVaultKey,
+    activeVaultId,
+    setActiveVaultId,
+  } = useApp();
 
-  const [vaults, setVaults] = useState<VaultInfo[]>(() => loadVaultsFromStorage(username));
-  const activeUserRef = useRef<string | null>(username);
+  // Map D1 UserVaultItem to UI VaultInfo
+  const vaults: VaultInfo[] = useMemo(() => {
+    return userVaults.map((uv: UserVaultItem) => ({
+      id: uv.id,
+      name: uv.name,
+      salt: uv.salt,
+      wrappedVmkByPasskey: uv.wrappedVmk,
+      createdAt: uv.createdAt || Date.now(),
+    }));
+  }, [userVaults]);
 
-  // Sync vaults from localStorage when username changes
-  useEffect(() => {
-    activeUserRef.current = username;
-    if (!username) {
-      setVaults([]);
-      setActiveVaultId('');
-      return;
-    }
-    const loaded = loadVaultsFromStorage(username);
-    setVaults(loaded);
-    if (loaded.length > 0) {
-      setActiveVaultId((prevActive: string) => {
-        if (!prevActive || !loaded.some((v) => v.id === prevActive)) {
-          return loaded[0].id;
-        }
-        return prevActive;
-      });
-    } else {
-      setActiveVaultId('');
-    }
-  }, [username, setActiveVaultId]);
-
-  // Keep vaults persisted in localStorage ONLY when active user matches loaded data
-  useEffect(() => {
-    if (username && activeUserRef.current === username) {
-      try {
-        localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(vaults));
-      } catch (_) {}
-    }
-  }, [vaults, username]);
-
-  const activeVault = vaults.find((v) => v.id === activeVaultId) || vaults[0];
+  const activeVault = useMemo(() => {
+    return vaults.find((v) => v.id === activeVaultId) || vaults[0];
+  }, [vaults, activeVaultId]);
 
   const handleCreateVault = useCallback(
     async (
       name: string,
-      customRecoveryKey?: string,
-      providedPasskeyKey?: CryptoKey,
+      _customRecoveryKey?: string,
+      _providedPasskeyKey?: CryptoKey,
       initialStorageConfig?: VaultStorageConfig
     ): Promise<{ vault: VaultInfo; recoveryKey: string; vmk: CryptoKey }> => {
-      // 1. Pure standard UUID for Vault ID
-      const vaultId = crypto.randomUUID();
+      if (!umk) {
+        throw new Error('User Master Key (UMK) is locked. Please authenticate with Passkey to create a vault.');
+      }
 
-      const salt = cryptoService.generateSalt();
+      const salt = UserMasterKeyService.generateSalt();
       const vmk = await cryptoService.generateVMK();
-      const recoveryKey = customRecoveryKey
-        ? MnemonicService.normalizeMnemonic(customRecoveryKey)
-        : MnemonicService.generateRecoveryKey(8);
+      const wrappedVmk = await UserMasterKeyService.wrapVMK(vmk, umk);
 
-      // 2. Request Server OPRF evaluation for Recovery Key
-      const recoveryBlindPoint = await cryptoService.computeOprfBlindPoint(recoveryKey, salt);
-      const recoveryOprfRes = await apiClient.setupVaultOprf(vaultId, recoveryBlindPoint);
-
-      // 3. Multi-Factor OPRF Key Derivation for Recovery Key
-      const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(
-        recoveryKey,
-        salt,
-        recoveryOprfRes.evaluatedPoint
-      );
-      const wrappedVmkByRecovery = await cryptoService.wrapVMK(vmk, recoveryKeyKey);
-
-      // 4. Passkey Key Wrapping (Mandatory & Hardware-bound)
-      let pvk = providedPasskeyKey;
-
-      if (!pvk) {
-        if (!username) {
-          throw new Error('User session is required to create a vault.');
-        }
-        if (!PasskeyCryptoService.isSupported()) {
-          throw new Error('WebAuthn / Passkeys are not supported in this browser environment.');
-        }
-        if (!PasskeyCryptoService.hasPasskey(username)) {
-          // If no passkey exists for this user, register one now
-          await PasskeyCryptoService.registerPasskey(username);
-        }
-        const passkeyRes = await PasskeyCryptoService.authenticateAndDeriveKey(username, salt);
-        pvk = passkeyRes.key;
-      }
-
-      if (!pvk) {
-        throw new Error('Passkey verification failed. A valid Passkey is required to create and encrypt your vault.');
-      }
-
-      const wrappedVmkByPasskey = await cryptoService.wrapVMK(vmk, pvk);
-
-      const newVault: VaultInfo = {
-        id: vaultId,
+      const createdItem = await apiClient.createUserVault({
         name: name.trim() || t('untitledNote'),
         salt,
-        wrappedVmkByPasskey,
-        wrappedVmkByRecovery,
-        storageConfig: initialStorageConfig,
-        createdAt: Date.now(),
-      };
-
-      if (initialStorageConfig && initialStorageConfig.provider !== 'r2') {
-        ThirdPartyStorageManager.saveVaultStorageConfig(username, vaultId, initialStorageConfig);
-        try {
-          await ThirdPartyStorageManager.saveVaultStorageConfigEncrypted(
-            apiClient,
-            username,
-            vaultId,
-            initialStorageConfig,
-            vmk
-          );
-        } catch (_) {}
-      }
-
-      setVaults((prev) => {
-        const next = [...prev, newVault];
-        if (username) {
-          try {
-            localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(next));
-          } catch (_) {}
-        }
-        return next;
+        wrappedVmk,
+        encryptedStorageConfig: initialStorageConfig ? JSON.stringify(initialStorageConfig) : null,
+        isDefault: userVaults.length === 0,
       });
 
+      setUserVaults((prev) => [...prev, createdItem]);
+      setVaultKey(createdItem.id, vmk);
+
       if (!activeVaultId) {
-        setActiveVaultId(newVault.id);
+        setActiveVaultId(createdItem.id);
       }
+
       showToast(t('createVault'), 'success');
 
-      return { vault: newVault, recoveryKey, vmk };
+      const newVaultInfo: VaultInfo = {
+        id: createdItem.id,
+        name: createdItem.name,
+        salt: createdItem.salt,
+        wrappedVmkByPasskey: createdItem.wrappedVmk,
+        storageConfig: initialStorageConfig,
+        createdAt: createdItem.createdAt || Date.now(),
+      };
+
+      return { vault: newVaultInfo, recoveryKey: '', vmk };
     },
-    [activeVaultId, apiClient, cryptoService, setActiveVaultId, showToast, t, username]
+    [umk, cryptoService, apiClient, t, userVaults.length, setUserVaults, setVaultKey, activeVaultId, setActiveVaultId, showToast]
   );
 
   const handleUnlockVaultWithPasskey = useCallback(
-    async (vaultId: string): Promise<CryptoKey> => {
-      const targetVault = vaults.find((v) => v.id === vaultId) || vaults[0];
-      if (!targetVault || !targetVault.salt) {
-        throw new Error('Vault metadata is missing or corrupted.');
-      }
-      if (!username) {
-        throw new Error('User session not active.');
+    async (_vaultId: string): Promise<CryptoKey> => {
+      const options = await apiClient.passkeyLoginOptions(username || undefined);
+
+      (options as any).extensions = {
+        prf: {
+          eval: {
+            first: WEBAUTHN_PRF_SALT,
+          },
+        },
+      };
+
+      const authResponse = await startAuthentication({ optionsJSON: options });
+      const prfFirst = (authResponse as any).clientExtensionResults?.prf?.results?.first;
+
+      if (!prfFirst || !(prfFirst instanceof ArrayBuffer)) {
+        throw new Error('This authenticator does not support WebAuthn PRF. Please unlock with your 12-word Recovery Phrase.');
       }
 
-      const { key: pvk } = await PasskeyCryptoService.authenticateAndDeriveKey(
-        username,
-        targetVault.salt
+      const keysRes = await apiClient.getUserCryptoKeys();
+      if (!keysRes?.userCryptoKeys?.wrappedUmkByPrf) {
+        throw new Error('No Passkey PRF envelope found on your account. Please unlock with your 12-word Recovery Phrase.');
+      }
+
+      const uek = await UserMasterKeyService.deriveUEKFromPrf(
+        new Uint8Array(prfFirst),
+        keysRes.userCryptoKeys.recoverySalt
+      );
+      const unlockedUmk = await UserMasterKeyService.unwrapUMK(
+        keysRes.userCryptoKeys.wrappedUmkByPrf,
+        uek
       );
 
-      if (!targetVault.wrappedVmkByPasskey) {
-        throw new Error('This vault is not bound to your Passkey. Please unlock with your 8-word Recovery Phrase.');
-      }
+      await unlockAllVaultsWithUmk(unlockedUmk, keysRes.vaults);
+      showToast('All vaults unlocked with Passkey', 'success');
 
-      const vmk = await cryptoService.unwrapVMK(targetVault.wrappedVmkByPasskey, pvk);
-      setVaultKey(vaultId, vmk);
-      return vmk;
+      // Return current active VMK
+      const currentVault = keysRes.vaults.find((v) => v.id === activeVaultId) || keysRes.vaults[0];
+      return UserMasterKeyService.unwrapVMK(currentVault.wrappedVmk, unlockedUmk);
     },
-    [vaults, username, cryptoService, setVaultKey]
+    [apiClient, username, activeVaultId, unlockAllVaultsWithUmk, showToast]
   );
 
   const handleUnlockVaultWithRecovery = useCallback(
-    async (vaultId: string, mnemonic: string): Promise<CryptoKey> => {
-      const targetVault = vaults.find((v) => v.id === vaultId) || vaults[0];
-      if (!targetVault || !targetVault.salt || !targetVault.wrappedVmkByRecovery) {
-        throw new Error('Vault recovery metadata is missing.');
+    async (_vaultId: string, mnemonic: string): Promise<CryptoKey> => {
+      const normalized = MnemonicService.normalizeMnemonic(mnemonic);
+      const words = normalized.split(/\s+/).filter(Boolean);
+      if (words.length !== 12) {
+        throw new Error('Please enter a valid 12-word BIP-39 recovery phrase.');
       }
 
-      const normalizedMnemonic = MnemonicService.normalizeMnemonic(mnemonic);
-      const recoveryBlindPoint = await cryptoService.computeOprfBlindPoint(normalizedMnemonic, targetVault.salt);
-      const recoveryOprf = await apiClient.evaluateVaultOprf(vaultId, recoveryBlindPoint);
+      const keysRes = await apiClient.getUserCryptoKeys();
+      if (!keysRes?.userCryptoKeys?.wrappedUmkByRecovery) {
+        throw new Error('User cryptographic envelope not found.');
+      }
 
-      const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(
-        normalizedMnemonic,
-        targetVault.salt,
-        recoveryOprf.evaluatedPoint
+      const rek = await UserMasterKeyService.deriveREKFromMnemonic(
+        normalized,
+        keysRes.userCryptoKeys.recoverySalt
+      );
+      const unlockedUmk = await UserMasterKeyService.unwrapUMK(
+        keysRes.userCryptoKeys.wrappedUmkByRecovery,
+        rek
       );
 
-      const vmk = await cryptoService.unwrapVMK(targetVault.wrappedVmkByRecovery, recoveryKeyKey);
+      await unlockAllVaultsWithUmk(unlockedUmk, keysRes.vaults);
+      showToast('All vaults unlocked with Recovery Phrase', 'success');
 
-      // Auto-bind Passkey if available and user is authenticated
-      if (username && PasskeyCryptoService.isSupported()) {
-        try {
-          const { key: pvk } = await PasskeyCryptoService.authenticateAndDeriveKey(
-            username,
-            targetVault.salt
-          );
-          const wrappedVmkByPasskey = await cryptoService.wrapVMK(vmk, pvk);
-          targetVault.wrappedVmkByPasskey = wrappedVmkByPasskey;
-          setVaults((prev) => {
-            const next = prev.map((v) => (v.id === vaultId ? { ...v, wrappedVmkByPasskey } : v));
-            try {
-              localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(next));
-            } catch (_) {}
-            return next;
-          });
-        } catch (_) {}
-      }
-
-      setVaultKey(vaultId, vmk);
-      return vmk;
+      const currentVault = keysRes.vaults.find((v) => v.id === activeVaultId) || keysRes.vaults[0];
+      return UserMasterKeyService.unwrapVMK(currentVault.wrappedVmk, unlockedUmk);
     },
-    [vaults, cryptoService, apiClient, username, setVaultKey]
-  );
-
-  const handleResetVaultPin = useCallback(
-    async (vaultId: string, mnemonic: string, newPin: string): Promise<boolean> => {
-      const targetVault = vaults.find((v) => v.id === vaultId);
-      if (!targetVault || !targetVault.salt || !targetVault.wrappedVmkByRecovery) {
-        throw new Error('Vault metadata is missing recovery key wrapping');
-      }
-
-      const normalizedMnemonic = MnemonicService.normalizeMnemonic(mnemonic);
-      // OPRF Evaluation for recovery key
-      const recoveryBlindPoint = await cryptoService.computeOprfBlindPoint(normalizedMnemonic, targetVault.salt);
-      const recoveryOprf = await apiClient.evaluateVaultOprf(vaultId, recoveryBlindPoint);
-
-      const recoveryKeyKey = await cryptoService.deriveKeyFromRecoveryKey(
-        normalizedMnemonic,
-        targetVault.salt,
-        recoveryOprf.evaluatedPoint
-      );
-      const vmk = await cryptoService.unwrapVMK(targetVault.wrappedVmkByRecovery, recoveryKeyKey);
-
-      // Setup OPRF for new PIN (retained code for backward-compat)
-      const newPinBlindPoint = await cryptoService.computeOprfBlindPoint(newPin, targetVault.salt);
-      const newPinOprf = await apiClient.setupVaultOprf(vaultId, newPinBlindPoint);
-
-      const newPinKey = await cryptoService.deriveKeyFromPin(
-        newPin,
-        targetVault.salt,
-        newPinOprf.evaluatedPoint
-      );
-      const newWrappedVmkByPin = await cryptoService.wrapVMK(vmk, newPinKey);
-
-      await apiClient.reportVaultPinSuccess(vaultId);
-
-      setVaults((prev) =>
-        prev.map((v) => (v.id === vaultId ? { ...v, wrappedVmkByPin: newWrappedVmkByPin } : v))
-      );
-      setVaultKey(vaultId, vmk);
-      showToast('PIN reset successfully', 'success');
-      return true;
-    },
-    [vaults, apiClient, cryptoService, setVaultKey, showToast]
+    [apiClient, activeVaultId, unlockAllVaultsWithUmk, showToast]
   );
 
   const handleRenameVault = useCallback(
-    (vaultId: string, newName: string) => {
+    async (vaultId: string, newName: string) => {
       if (!newName.trim()) return;
-      setVaults((prev) =>
+      await apiClient.updateUserVault(vaultId, { name: newName.trim() });
+      setUserVaults((prev) =>
         prev.map((v) => (v.id === vaultId ? { ...v, name: newName.trim() } : v))
       );
       showToast(t('saved'), 'success');
     },
-    [showToast, t]
+    [apiClient, setUserVaults, showToast, t]
   );
 
   const handleDeleteVault = useCallback(
     async (vaultId: string) => {
-      const vaultToDelete = vaults.find((v) => v.id === vaultId);
-      if (!vaultToDelete) return;
+      await apiClient.deleteUserVault(vaultId);
 
       if (onDeleteVaultNodes) {
         await onDeleteVaultNodes(vaultId);
       }
 
-      const updatedVaults = vaults.filter((v) => v.id !== vaultId);
-      setVaults(updatedVaults);
+      const updatedVaults = userVaults.filter((v) => v.id !== vaultId);
+      setUserVaults(updatedVaults);
 
-      if (username) {
-        try {
-          localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(updatedVaults));
-          localStorage.removeItem(`markspace_lockout_${username}_${vaultId}`);
-        } catch (_) {}
-      }
-
-      const nextVaultId = updatedVaults.length > 0 ? (activeVaultId === vaultId ? updatedVaults[0].id : activeVaultId) : '';
+      const nextVaultId = updatedVaults.length > 0
+        ? (activeVaultId === vaultId ? updatedVaults[0].id : activeVaultId)
+        : '';
       setActiveVaultId(nextVaultId);
       setVaultKey(vaultId, null);
 
@@ -320,34 +206,29 @@ export function useVaults({
       }
       showToast(t('deleteVault'), 'success');
     },
-    [vaults, username, activeVaultId, onDeleteVaultNodes, onVaultDeleted, setActiveVaultId, setVaultKey, showToast, t]
+    [apiClient, onDeleteVaultNodes, userVaults, setUserVaults, activeVaultId, setActiveVaultId, setVaultKey, onVaultDeleted, showToast, t]
   );
 
   const handleUpdateVaultStorageConfig = useCallback(
-    (vaultId: string, storageConfig: VaultStorageConfig) => {
-      setVaults((prev) => {
-        const next = prev.map((v) => (v.id === vaultId ? { ...v, storageConfig } : v));
-        if (username) {
-          try {
-            localStorage.setItem(`markspace_vaults_${username}`, JSON.stringify(next));
-          } catch (_) {}
-        }
-        return next;
-      });
+    async (vaultId: string, storageConfig: VaultStorageConfig) => {
+      const configStr = JSON.stringify(storageConfig);
+      await apiClient.updateUserVault(vaultId, { encryptedStorageConfig: configStr });
+      setUserVaults((prev) =>
+        prev.map((v) => (v.id === vaultId ? { ...v, encryptedStorageConfig: configStr } : v))
+      );
     },
-    [username]
+    [apiClient, setUserVaults]
   );
 
   return {
     vaults,
-    setVaults,
+    setVaults: setUserVaults as any,
     activeVaultId,
     setActiveVaultId,
     activeVault,
     handleCreateVault,
     handleUnlockVaultWithPasskey,
     handleUnlockVaultWithRecovery,
-    handleResetVaultPin,
     handleRenameVault,
     handleDeleteVault,
     handleUpdateVaultStorageConfig,

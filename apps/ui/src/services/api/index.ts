@@ -4,3 +4,4 @@ export * from './VaultOprfApi';
 export * from './VaultNodeApi';
 export * from './NotesApi';
 export * from './AdminApi';
+export * from './UserVaultApi';

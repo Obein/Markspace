@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { EnvelopeCryptoService } from '../crypto/EnvelopeCryptoService';
-import { IApiClient, UserRole } from '../interfaces/IApiClient';
+import { UserMasterKeyService } from '../crypto/UserMasterKeyService';
+import { IApiClient, UserRole, UserVaultItem } from '../interfaces/IApiClient';
 import { ICryptoService } from '../interfaces/ICryptoService';
 import { IHighlightService } from '../interfaces/IHighlightService';
 import { IPreviewService } from '../interfaces/IPreviewService';
@@ -16,6 +17,11 @@ interface AppContextType {
   sheetEngine: ISheetEngine;
   highlightService: IHighlightService;
   previewService: IPreviewService;
+  umk: CryptoKey | null;
+  setUmk: (key: CryptoKey | null) => void;
+  userVaults: UserVaultItem[];
+  setUserVaults: React.Dispatch<React.SetStateAction<UserVaultItem[]>>;
+  unlockAllVaultsWithUmk: (umkKey: CryptoKey, vaultsList: UserVaultItem[]) => Promise<void>;
   cmk: CryptoKey | null; // Active vault key
   setCmk: (key: CryptoKey | null) => void;
   unlockedVaultKeys: Record<string, CryptoKey>;
@@ -52,6 +58,8 @@ const previewService = new MarkdownPreviewService(highlightService, sheetEngine)
 const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [umk, setUmk] = useState<CryptoKey | null>(null);
+  const [userVaults, setUserVaults] = useState<UserVaultItem[]>([]);
   const [unlockedVaultKeys, setUnlockedVaultKeys] = useState<Record<string, CryptoKey>>({});
   const [boundVaultIps, setBoundVaultIps] = useState<Record<string, string>>({});
   const [currentClientIp, setCurrentClientIp] = useState<string | null>(null);
@@ -69,6 +77,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isR2Available, setIsR2Available] = useState<boolean>(true);
   const [securityAlert, setSecurityAlert] = useState<string | null>(null);
 
+  const unlockAllVaultsWithUmk = async (umkKey: CryptoKey, vaultsList: UserVaultItem[]) => {
+    setUmk(umkKey);
+    setUserVaults(vaultsList);
+    const newKeys: Record<string, CryptoKey> = {};
+    for (const v of vaultsList) {
+      if (v.wrappedVmk) {
+        try {
+          const vmk = await UserMasterKeyService.unwrapVMK(v.wrappedVmk, umkKey);
+          newKeys[v.id] = vmk;
+        } catch (err) {
+          console.error(`Failed to unwrap VMK for vault ${v.name}:`, err);
+        }
+      }
+    }
+    setUnlockedVaultKeys((prev) => ({ ...prev, ...newKeys }));
+    if (vaultsList.length > 0) {
+      const defaultVault = vaultsList.find((v) => v.isDefault) || vaultsList[0];
+      setActiveVaultId((prev) => (prev && vaultsList.some((v) => v.id === prev) ? prev : defaultVault.id));
+    }
+  };
+
   // Fetch System Capabilities (R2 status)
   useEffect(() => {
     apiClient
@@ -85,7 +114,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     apiClient
       .initSession()
-      .then((session) => {
+      .then(async (session) => {
         if (session) {
           setTokenState(session.accessToken);
           setUserIdState(session.user.id);
@@ -100,6 +129,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (session.user.role) {
             localStorage.setItem('markspace_user_role', session.user.role);
           }
+
+          try {
+            const keysRes = await apiClient.getUserCryptoKeys();
+            if (keysRes?.vaults) {
+              setUserVaults(keysRes.vaults);
+              if (keysRes.vaults.length > 0) {
+                const defaultVault = keysRes.vaults.find((v) => v.isDefault) || keysRes.vaults[0];
+                setActiveVaultId((prev) => (prev && keysRes.vaults.some((v) => v.id === prev) ? prev : defaultVault.id));
+              }
+            }
+          } catch (_) {}
         } else {
           setTokenState(null);
         }
@@ -206,9 +246,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const lockVault = (vaultId?: string | unknown) => {
     if (typeof vaultId === 'string' && vaultId.trim()) {
       setVaultKey(vaultId.trim(), null);
-    } else if (activeVaultId) {
-      setVaultKey(activeVaultId, null);
     } else {
+      setUmk(null);
       setUnlockedVaultKeys({});
       setBoundVaultIps({});
     }
@@ -216,6 +255,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logoutAccount = () => {
     apiClient.logout();
+    setUmk(null);
+    setUserVaults([]);
     setUnlockedVaultKeys({});
     setBoundVaultIps({});
     setActiveVaultId('');
@@ -233,6 +274,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     sheetEngine,
     highlightService,
     previewService,
+    umk,
+    setUmk,
+    userVaults,
+    setUserVaults,
+    unlockAllVaultsWithUmk,
     cmk: activeVmk,
     setCmk,
     unlockedVaultKeys,

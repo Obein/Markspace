@@ -33,9 +33,9 @@ export const RecoveryUnlockView: React.FC<RecoveryUnlockViewProps> = ({
     if (!activeVault) return;
 
     const normalized = MnemonicService.normalizeMnemonic(recoveryMnemonic);
-    const words = normalized.split('-').filter(Boolean);
-    if (words.length !== 8) {
-      onError(t('recoveryKeyInvalid') || 'Recovery phrase must be exactly 8 words');
+    const words = normalized.split(/[\s-]+/).filter(Boolean);
+    if (words.length !== 12 && words.length !== 8) {
+      onError('Recovery phrase must be 12 words (or 8 words for legacy vaults)');
       triggerShake();
       return;
     }

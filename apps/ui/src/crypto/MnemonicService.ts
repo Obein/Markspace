@@ -9,9 +9,9 @@ export class MnemonicService {
    * Generates a secure mnemonic recovery key of N words (default: 8 words).
    * Format: word1-word2-word3-word4-word5-word6-word7-word8
    */
-  public static generateRecoveryKey(wordCount: number = 8): string {
-    if (wordCount < 6 || wordCount > 12) {
-      wordCount = 8;
+  public static generateRecoveryKey(wordCount: number = 12): string {
+    if (wordCount < 6 || wordCount > 24) {
+      wordCount = 12;
     }
 
     const randomIndices = new Uint32Array(wordCount);
@@ -29,6 +29,13 @@ export class MnemonicService {
   }
 
   /**
+   * Alias for generateRecoveryKey to support BIP-39 mnemonic phrase generation.
+   */
+  public static generateMnemonic(wordCount: number = 12): string {
+    return this.generateRecoveryKey(wordCount);
+  }
+
+  /**
    * Normalizes a user-input mnemonic string (trims whitespace, converts to lowercase, handles spaces or dashes).
    */
   public static normalizeMnemonic(input: string): string {
@@ -42,13 +49,13 @@ export class MnemonicService {
   }
 
   /**
-   * Validates if a mnemonic key has between 6 and 8 valid BIP-39 words.
+   * Validates if a mnemonic key consists of valid BIP-39 words.
    */
   public static validateRecoveryKey(mnemonic: string): boolean {
     const normalized = this.normalizeMnemonic(mnemonic);
     const words = normalized.split('-');
 
-    if (words.length < 6 || words.length > 8) {
+    if (words.length < 6 || words.length > 24) {
       return false;
     }
 

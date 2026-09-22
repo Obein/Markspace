@@ -85,6 +85,43 @@ export class Router {
       container.authController.revokeSession(ctx)
     );
 
+    // 1.1 WebAuthn / Passkey Authentication Endpoints
+    this.addRoute('POST', '/api/v1/auth/passkey/register-options', false, false, (container, ctx) =>
+      container.passkeyAuthController.registerOptions(ctx)
+    );
+    this.addRoute('POST', '/api/v1/auth/passkey/register-verify', false, false, (container, ctx) =>
+      container.passkeyAuthController.registerVerify(ctx)
+    );
+    this.addRoute('POST', '/api/v1/auth/passkey/login-options', false, false, (container, ctx) =>
+      container.passkeyAuthController.loginOptions(ctx)
+    );
+    this.addRoute('POST', '/api/v1/auth/passkey/login-verify', false, false, (container, ctx) =>
+      container.passkeyAuthController.loginVerify(ctx)
+    );
+    this.addRoute('POST', '/api/v1/auth/passkey/add-credential', true, false, (container, ctx) =>
+      container.passkeyAuthController.addCredential(ctx)
+    );
+    this.addRoute('PUT', '/api/v1/auth/passkey/wrapped-umk', true, false, (container, ctx) =>
+      container.passkeyAuthController.updateWrappedUmk(ctx)
+    );
+    this.addRoute('GET', '/api/v1/auth/passkey/crypto-keys', true, false, (container, ctx) =>
+      container.passkeyAuthController.getCryptoKeys(ctx)
+    );
+
+    // 1.2 User Vaults Endpoints (Cloud-persisted multi-vault)
+    this.addRoute('GET', '/api/v1/vaults', true, false, (container, ctx) =>
+      container.userVaultController.listVaults(ctx)
+    );
+    this.addRoute('POST', '/api/v1/vaults', true, false, (container, ctx) =>
+      container.userVaultController.createVault(ctx)
+    );
+    this.addRoute('PUT', '/api/v1/vaults/:id', true, false, (container, ctx) =>
+      container.userVaultController.updateVault(ctx)
+    );
+    this.addRoute('DELETE', '/api/v1/vaults/:id', true, false, (container, ctx) =>
+      container.userVaultController.deleteVault(ctx)
+    );
+
     // 2. Legacy Notes Endpoints (Protected)
     this.addRoute('GET', '/api/v1/notes', true, false, (container, ctx) =>
       container.noteController.listNotes(ctx)

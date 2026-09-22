@@ -3,23 +3,26 @@ import {
   AuthResponse,
   IApiClient,
   NodeVersionResponse,
+  PasskeyAuthResult,
   SystemConfig,
   UserAdminSummary,
   UserRole,
+  UserVaultItem,
   VaultNodeResponse,
 } from '../interfaces/IApiClient';
 import { FileCategory, NoteItem, NoteMetadataItem } from '../interfaces/INoteModels';
-import { AdminApi, AuthApi, HttpTransport, NotesApi, VaultNodeApi, VaultOprfApi } from './api';
+import { AdminApi, AuthApi, HttpTransport, NotesApi, UserVaultApi, VaultNodeApi, VaultOprfApi } from './api';
 
 /**
  * ApiClient Facade
  * 
- * Orchestrates domain-specific API clients (Auth, Vault OPRF, Vault Nodes/CAS, Notes, Admin)
+ * Orchestrates domain-specific API clients (Auth, Vault OPRF, User Vaults, Vault Nodes/CAS, Notes, Admin)
  * while maintaining backward compatibility with the unified IApiClient interface.
  */
 export class ApiClient implements IApiClient {
   public readonly transport: HttpTransport;
   public readonly auth: AuthApi;
+  public readonly userVaults: UserVaultApi;
   public readonly vaultOprf: VaultOprfApi;
   public readonly vaultNodes: VaultNodeApi;
   public readonly notes: NotesApi;
@@ -28,6 +31,7 @@ export class ApiClient implements IApiClient {
   constructor(baseUrl: string = '/api/v1') {
     this.transport = new HttpTransport(baseUrl);
     this.auth = new AuthApi(this.transport);
+    this.userVaults = new UserVaultApi(this.transport);
     this.vaultOprf = new VaultOprfApi(this.transport);
     this.vaultNodes = new VaultNodeApi(this.transport);
     this.notes = new NotesApi(this.transport);
@@ -112,6 +116,89 @@ export class ApiClient implements IApiClient {
 
   async getAuditLogs(): Promise<AuditLogResponse[]> {
     return this.auth.getAuditLogs();
+  }
+
+  // --- WebAuthn Passkeys ---
+  async passkeyRegisterOptions(username: string): Promise<any> {
+    return this.auth.passkeyRegisterOptions(username);
+  }
+
+  async passkeyRegisterVerify(payload: {
+    username: string;
+    response: any;
+    wrappedUmkByPrf?: string;
+    wrappedUmkByRecovery: string;
+    recoverySalt: string;
+    initialVault?: {
+      name: string;
+      salt: string;
+      wrappedVmk: string;
+    };
+  }): Promise<PasskeyAuthResult> {
+    return this.auth.passkeyRegisterVerify(payload);
+  }
+
+  async passkeyLoginOptions(username?: string): Promise<any> {
+    return this.auth.passkeyLoginOptions(username);
+  }
+
+  async passkeyLoginVerify(payload: {
+    response: any;
+    username?: string;
+    rememberMe?: boolean;
+  }): Promise<PasskeyAuthResult> {
+    return this.auth.passkeyLoginVerify(payload);
+  }
+
+  async updateWrappedUmk(wrappedUmkByPrf: string): Promise<{ updated: boolean }> {
+    return this.auth.updateWrappedUmk(wrappedUmkByPrf);
+  }
+
+  async addPasskeyCredential(response: any, deviceName?: string): Promise<{ added: boolean }> {
+    return this.auth.addPasskeyCredential(response, deviceName);
+  }
+
+  async getUserCryptoKeys(): Promise<{
+    userCryptoKeys: {
+      wrappedUmkByPrf: string | null;
+      wrappedUmkByRecovery: string;
+      recoverySalt: string;
+    };
+    vaults: UserVaultItem[];
+  }> {
+    return this.auth.getUserCryptoKeys();
+  }
+
+  // --- Cloud-Persisted Multi-Vaults API ---
+  async listUserVaults(): Promise<UserVaultItem[]> {
+    return this.userVaults.listVaults();
+  }
+
+  async createUserVault(data: {
+    name: string;
+    salt: string;
+    wrappedVmk: string;
+    encryptedStorageConfig?: string | null;
+    isDefault?: boolean;
+  }): Promise<UserVaultItem> {
+    return this.userVaults.createVault(data);
+  }
+
+  async updateUserVault(
+    id: string,
+    data: {
+      name?: string;
+      salt?: string;
+      wrappedVmk?: string;
+      encryptedStorageConfig?: string | null;
+      isDefault?: boolean;
+    }
+  ): Promise<UserVaultItem> {
+    return this.userVaults.updateVault(id, data);
+  }
+
+  async deleteUserVault(id: string): Promise<void> {
+    return this.userVaults.deleteVault(id);
   }
 
   // --- Zero-Knowledge OPRF API ---

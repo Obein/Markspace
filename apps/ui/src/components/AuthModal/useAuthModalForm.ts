@@ -1,12 +1,14 @@
 import { useState, useCallback } from 'react';
+import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../i18n/i18nContext';
+import { MnemonicService } from '../../crypto/MnemonicService';
+import { UserMasterKeyService } from '../../crypto/UserMasterKeyService';
+import { PasskeyAuthResult } from '../../interfaces/IApiClient';
 
 export interface UseAuthModalFormReturn {
-  // Mode & Step
+  // Mode
   isRegisterMode: boolean;
-  loginStep: 1 | 2;
-  setLoginStep: (step: 1 | 2) => void;
   isTransitioning: boolean;
   isFormFocused: boolean;
   setIsFormFocused: (focused: boolean) => void;
@@ -15,21 +17,20 @@ export interface UseAuthModalFormReturn {
   // Form Fields
   usernameInput: string;
   setUsernameInput: (val: string) => void;
-  accountPassword: string;
-  setAccountPassword: (val: string) => void;
-  confirmPassword: string;
-  setConfirmPassword: (val: string) => void;
-  showPassword: boolean;
-  setShowPassword: (val: boolean) => void;
-  showConfirmPassword: boolean;
-  setShowConfirmPassword: (val: boolean) => void;
-  totpCode: string;
-  setTotpCode: (val: string) => void;
-  isTotpEnabledForUser: boolean;
-  loginMethod: 'totp' | 'password';
-  setLoginMethod: (method: 'totp' | 'password') => void;
   rememberMe: boolean;
   setRememberMe: (val: boolean) => void;
+
+  // 12-Word Recovery Display Step (Register)
+  generatedMnemonic: string | null;
+  copiedMnemonic: boolean;
+  copyMnemonicToClipboard: () => void;
+  handleConfirmMnemonicSaved: () => Promise<void>;
+
+  // Recovery Fallback Step (Login on non-PRF device)
+  needsRecoveryFallback: boolean;
+  recoveryInput: string;
+  setRecoveryInput: (val: string) => void;
+  handleRecoveryFallbackSubmit: (e: React.FormEvent) => Promise<void>;
 
   // Status & Feedback
   loading: boolean;
@@ -38,15 +39,11 @@ export interface UseAuthModalFormReturn {
   securityAlert: string | null;
 
   // Actions
-  handleStep1Submit: (e: React.FormEvent) => Promise<void>;
-  handleLoginSubmit: (e: React.FormEvent) => Promise<void>;
-  handleRegisterSubmit: (e: React.FormEvent) => Promise<void>;
+  handlePasskeyAuthSubmit: (e: React.FormEvent) => Promise<void>;
 }
 
-/**
- * Custom hook encapsulating state machine, prelogin validation,
- * cryptographic key derivation, and authentication flows for AuthModal.
- */
+const WEBAUTHN_PRF_SALT = new TextEncoder().encode('markspace-passkey-prf-v1');
+
 export function useAuthModalForm(): UseAuthModalFormReturn {
   const {
     apiClient,
@@ -54,214 +51,301 @@ export function useAuthModalForm(): UseAuthModalFormReturn {
     setToken,
     setUsername,
     setRole,
+    unlockAllVaultsWithUmk,
     securityAlert,
     clearSecurityAlert,
   } = useApp();
   const { t } = useI18n();
 
   const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [loginStep, setLoginStep] = useState<1 | 2>(1);
   const [usernameInput, setUsernameInput] = useState('');
-  const [accountPassword, setAccountPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [totpCode, setTotpCode] = useState('');
-  const [isTotpEnabledForUser, setIsTotpEnabledForUser] = useState(false);
-  const [loginMethod, setLoginMethod] = useState<'totp' | 'password'>('password');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Camera lens blur & scale transition state
+  // Focus & Transition State
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isFormFocused, setIsFormFocused] = useState(false);
 
-  // Step 1: Username prelogin check for both Login and Register
-  const handleStep1Submit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanUsername = usernameInput.trim().toLowerCase();
-    const unixUserRegex = /^[a-z_][a-z0-9_-]{4,31}$/;
+  // Registration Mnemonic State
+  const [generatedMnemonic, setGeneratedMnemonic] = useState<string | null>(null);
+  const [copiedMnemonic, setCopiedMnemonic] = useState(false);
+  const [pendingRegResult, setPendingRegResult] = useState<PasskeyAuthResult | null>(null);
+  const [pendingRegUmk, setPendingRegUmk] = useState<CryptoKey | null>(null);
 
-    if (!cleanUsername) {
-      setErrorMsg(t('chooseUsername'));
-      return;
+  // Non-PRF Device Fallback State
+  const [needsRecoveryFallback, setNeedsRecoveryFallback] = useState(false);
+  const [recoveryInput, setRecoveryInput] = useState('');
+  const [pendingLoginResult, setPendingLoginResult] = useState<PasskeyAuthResult | null>(null);
+  const [pendingPrfEntropy, setPendingPrfEntropy] = useState<Uint8Array | null>(null);
+
+  const switchMode = useCallback(
+    (toRegister: boolean) => {
+      setIsTransitioning(true);
+      setErrorMsg(null);
+      setGeneratedMnemonic(null);
+      setNeedsRecoveryFallback(false);
+      setRecoveryInput('');
+      setTimeout(() => {
+        setIsRegisterMode(toRegister);
+        setIsTransitioning(false);
+      }, 150);
+    },
+    []
+  );
+
+  const copyMnemonicToClipboard = useCallback(() => {
+    if (generatedMnemonic) {
+      navigator.clipboard.writeText(generatedMnemonic);
+      setCopiedMnemonic(true);
+      setTimeout(() => setCopiedMnemonic(false), 2500);
     }
+  }, [generatedMnemonic]);
 
-    if (!unixUserRegex.test(cleanUsername)) {
-      setErrorMsg(
-        t('invalidUsernameUnix') ||
-          'Username must follow Unix format (5-32 characters, lowercase letters, numbers, _, -, starting with letter or _)'
-      );
-      return;
-    }
-
+  const handleConfirmMnemonicSaved = useCallback(async () => {
+    if (!pendingRegResult || !pendingRegUmk) return;
     try {
       setLoading(true);
-      setErrorMsg(null);
-      clearSecurityAlert();
-
-      const prelogin = await apiClient.prelogin(cleanUsername);
-
-      if (isRegisterMode) {
-        // Register Mode: Verify username uniqueness
-        if (prelogin.exists) {
-          setErrorMsg(t('usernameTaken'));
-          return;
-        }
-        setLoginStep(2);
-      } else {
-        // Login Mode: Check user existence
-        if (!prelogin.exists) {
-          setErrorMsg(t('userNotFound'));
-          return;
-        }
-
-        setIsTotpEnabledForUser(prelogin.isTotpEnabled);
-        if (prelogin.isTotpEnabled) {
-          setLoginMethod('totp');
-        } else {
-          setLoginMethod('password');
-        }
-        setLoginStep(2);
-      }
+      await unlockAllVaultsWithUmk(pendingRegUmk, pendingRegResult.vaults);
+      setToken(pendingRegResult.accessToken);
+      setUsername(pendingRegResult.user.username);
+      setRole(pendingRegResult.user.role);
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'Lookup failed');
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to finalize session');
     } finally {
       setLoading(false);
     }
-  }, [usernameInput, isRegisterMode, apiClient, clearSecurityAlert, t]);
+  }, [pendingRegResult, pendingRegUmk, unlockAllVaultsWithUmk, setToken, setUsername, setRole]);
 
-  // Step 2 Login Submit
-  const handleLoginSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      setErrorMsg(null);
-
-      let res;
-      if (loginMethod === 'totp') {
-        if (!totpCode || totpCode.trim().length !== 6) {
-          setErrorMsg(t('enterTotpCode'));
-          return;
-        }
-        res = await apiClient.loginPasswordlessTotp(usernameInput.trim().toLowerCase(), totpCode.trim(), rememberMe);
-      } else {
-        if (!accountPassword) {
-          setErrorMsg(t('enterPassword'));
-          return;
-        }
-        const authToken = await cryptoService.deriveAuthToken(
-          accountPassword,
-          'markspace-account-auth-salt'
-        );
-        res = await apiClient.login(
-          usernameInput.trim().toLowerCase(),
-          authToken,
-          isTotpEnabledForUser ? totpCode.trim() : undefined,
-          rememberMe
-        );
-      }
-
-      setToken(res.accessToken || res.token || '');
-      setUsername(res.user.username);
-      setRole(res.user.role);
-    } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'Authentication failed');
-    } finally {
-      setLoading(false);
-    }
-  }, [loginMethod, totpCode, accountPassword, rememberMe, cryptoService, apiClient, usernameInput, isTotpEnabledForUser, setToken, setUsername, setRole, t]);
-
-  // Step 2 Register Submit
-  const handleRegisterSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!accountPassword || accountPassword.length < 12 || accountPassword.length > 128) {
-      setErrorMsg(
-        t('invalidPasswordUnix') ||
-          'Password must be between 12 and 128 characters (Unix format, no character restrictions)'
-      );
-      return;
-    }
-    if (accountPassword !== confirmPassword) {
-      setErrorMsg('Passwords do not match');
-      return;
-    }
-
-    try {
-      setLoading(true);
+  const handlePasskeyAuthSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
       setErrorMsg(null);
       clearSecurityAlert();
 
       const cleanUsername = usernameInput.trim().toLowerCase();
-      const authToken = await cryptoService.deriveAuthToken(
-        accountPassword,
-        'markspace-account-auth-salt'
-      );
-      const res = await apiClient.register(cleanUsername, authToken, rememberMe);
-      setToken(res.accessToken || res.token || '');
-      setUsername(res.user.username);
-      setRole(res.user.role);
-    } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'Registration failed');
-    } finally {
-      setLoading(false);
-    }
-  }, [accountPassword, confirmPassword, rememberMe, clearSecurityAlert, cryptoService, apiClient, usernameInput, setToken, setUsername, setRole, t]);
+      const unixUserRegex = /^[a-z_][a-z0-9_-]{4,31}$/;
 
-  // Camera lens zoom-blur mode switch transition
-  const switchMode = useCallback((toRegister: boolean) => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
+      if (isRegisterMode) {
+        if (!cleanUsername) {
+          setErrorMsg(t('chooseUsername') || 'Please enter a username');
+          return;
+        }
+        if (!unixUserRegex.test(cleanUsername)) {
+          setErrorMsg(
+            t('invalidUsernameUnix') ||
+              'Username must follow Unix format (5-32 characters, lowercase letters, numbers, _, -, starting with letter or _)'
+          );
+          return;
+        }
+      }
 
-    setTimeout(() => {
-      setIsRegisterMode(toRegister);
-      setLoginStep(1);
+      setLoading(true);
+
+      try {
+        if (isRegisterMode) {
+          // 1. BIP-39 12-word mnemonic & REK derivation
+          const mnemonic = MnemonicService.generateMnemonic(12);
+          const recoverySalt = UserMasterKeyService.generateSalt();
+          const rek = await UserMasterKeyService.deriveREKFromMnemonic(mnemonic, recoverySalt);
+
+          // 2. Root UMK generation & wrapping with REK
+          const umk = await UserMasterKeyService.generateUMK();
+          const wrappedUmkByRecovery = await UserMasterKeyService.wrapUMK(umk, rek);
+
+          // 3. Initial Default Vault creation & wrapping with UMK
+          const defaultVmk = await cryptoService.generateVMK();
+          const wrappedVmk = await UserMasterKeyService.wrapVMK(defaultVmk, umk);
+          const defaultVaultSalt = UserMasterKeyService.generateSalt();
+
+          // 4. Request WebAuthn Registration Options from Server
+          const options = await apiClient.passkeyRegisterOptions(cleanUsername);
+
+          // 5. Inject WebAuthn PRF extension input
+          (options as any).extensions = {
+            prf: {
+              eval: {
+                first: WEBAUTHN_PRF_SALT,
+              },
+            },
+          };
+
+          // 6. Trigger Browser WebAuthn Ceremony
+          const regResponse = await startRegistration({ optionsJSON: options });
+
+          // 7. Extract PRF output if supported by authenticator
+          const prfFirst = (regResponse as any).clientExtensionResults?.prf?.results?.first;
+          let wrappedUmkByPrf: string | undefined;
+          if (prfFirst && prfFirst instanceof ArrayBuffer) {
+            const uek = await UserMasterKeyService.deriveUEKFromPrf(new Uint8Array(prfFirst), recoverySalt);
+            wrappedUmkByPrf = await UserMasterKeyService.wrapUMK(umk, uek);
+          }
+
+          // 8. Verify with Server and commit account + UMK envelope + default vault
+          const result = await apiClient.passkeyRegisterVerify({
+            username: cleanUsername,
+            response: regResponse,
+            wrappedUmkByPrf,
+            wrappedUmkByRecovery,
+            recoverySalt,
+            initialVault: {
+              name: 'Main Vault',
+              salt: defaultVaultSalt,
+              wrappedVmk,
+            },
+          });
+
+          // 9. Show 12-Word Recovery Screen
+          setGeneratedMnemonic(mnemonic);
+          setPendingRegResult(result);
+          setPendingRegUmk(umk);
+        } else {
+          // --- Passkey Login ---
+          const options = await apiClient.passkeyLoginOptions(cleanUsername || undefined);
+
+          // Inject PRF extension evaluation
+          (options as any).extensions = {
+            prf: {
+              eval: {
+                first: WEBAUTHN_PRF_SALT,
+              },
+            },
+          };
+
+          const authResponse = await startAuthentication({ optionsJSON: options });
+          const result = await apiClient.passkeyLoginVerify({
+            response: authResponse,
+            username: cleanUsername || undefined,
+            rememberMe,
+          });
+
+          const prfFirst = (authResponse as any).clientExtensionResults?.prf?.results?.first;
+
+          if (prfFirst && prfFirst instanceof ArrayBuffer && result.userCryptoKeys.wrappedUmkByPrf) {
+            // Hardware PRF supported & UMK envelope present: Instant Auto-Unlock!
+            const uek = await UserMasterKeyService.deriveUEKFromPrf(
+              new Uint8Array(prfFirst),
+              result.userCryptoKeys.recoverySalt
+            );
+            const umk = await UserMasterKeyService.unwrapUMK(result.userCryptoKeys.wrappedUmkByPrf, uek);
+
+            await unlockAllVaultsWithUmk(umk, result.vaults);
+            setToken(result.accessToken);
+            setUsername(result.user.username);
+            setRole(result.user.role);
+          } else {
+            // Non-PRF device or new browser: Prompt for 12-Word Recovery Phrase
+            setPendingLoginResult(result);
+            setPendingPrfEntropy(prfFirst && prfFirst instanceof ArrayBuffer ? new Uint8Array(prfFirst) : null);
+            setNeedsRecoveryFallback(true);
+          }
+        }
+      } catch (err: unknown) {
+        setErrorMsg(err instanceof Error ? err.message : 'Passkey operation failed');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [
+      isRegisterMode,
+      usernameInput,
+      rememberMe,
+      apiClient,
+      cryptoService,
+      clearSecurityAlert,
+      t,
+      unlockAllVaultsWithUmk,
+      setToken,
+      setUsername,
+      setRole,
+    ]
+  );
+
+  const handleRecoveryFallbackSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!pendingLoginResult) return;
+
+      const normalized = MnemonicService.normalizeMnemonic(recoveryInput);
+      const words = normalized.split(/\s+/).filter(Boolean);
+      if (words.length !== 12) {
+        setErrorMsg('Please enter a valid 12-word recovery phrase');
+        return;
+      }
+
+      setLoading(true);
       setErrorMsg(null);
-      setAccountPassword('');
-      setConfirmPassword('');
-      setShowPassword(false);
-      setShowConfirmPassword(false);
-      setTotpCode('');
-      setRememberMe(false);
 
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 50);
-    }, 180);
-  }, [isTransitioning]);
+      try {
+        // Derive REK from user-entered 12-word mnemonic
+        const rek = await UserMasterKeyService.deriveREKFromMnemonic(
+          normalized,
+          pendingLoginResult.userCryptoKeys.recoverySalt
+        );
+        const umk = await UserMasterKeyService.unwrapUMK(
+          pendingLoginResult.userCryptoKeys.wrappedUmkByRecovery,
+          rek
+        );
+
+        // If this device supports PRF, re-wrap and bind UMK so subsequent logins auto-unlock!
+        if (pendingPrfEntropy) {
+          try {
+            const uek = await UserMasterKeyService.deriveUEKFromPrf(
+              pendingPrfEntropy,
+              pendingLoginResult.userCryptoKeys.recoverySalt
+            );
+            const newWrappedUmk = await UserMasterKeyService.wrapUMK(umk, uek);
+            await apiClient.updateWrappedUmk(newWrappedUmk);
+          } catch (bindErr) {
+            console.warn('Failed to bind PRF to new device', bindErr);
+          }
+        }
+
+        // Auto-unlock all user vaults and enter workspace
+        await unlockAllVaultsWithUmk(umk, pendingLoginResult.vaults);
+        setToken(pendingLoginResult.accessToken);
+        setUsername(pendingLoginResult.user.username);
+        setRole(pendingLoginResult.user.role);
+      } catch (err: unknown) {
+        setErrorMsg(err instanceof Error ? err.message : 'Invalid recovery phrase. Unable to decrypt vault root key.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [
+      pendingLoginResult,
+      recoveryInput,
+      pendingPrfEntropy,
+      apiClient,
+      unlockAllVaultsWithUmk,
+      setToken,
+      setUsername,
+      setRole,
+    ]
+  );
 
   return {
     isRegisterMode,
-    loginStep,
-    setLoginStep,
     isTransitioning,
     isFormFocused,
     setIsFormFocused,
     switchMode,
     usernameInput,
     setUsernameInput,
-    accountPassword,
-    setAccountPassword,
-    confirmPassword,
-    setConfirmPassword,
-    showPassword,
-    setShowPassword,
-    showConfirmPassword,
-    setShowConfirmPassword,
-    totpCode,
-    setTotpCode,
-    isTotpEnabledForUser,
-    loginMethod,
-    setLoginMethod,
     rememberMe,
     setRememberMe,
+    generatedMnemonic,
+    copiedMnemonic,
+    copyMnemonicToClipboard,
+    handleConfirmMnemonicSaved,
+    needsRecoveryFallback,
+    recoveryInput,
+    setRecoveryInput,
+    handleRecoveryFallbackSubmit,
     loading,
     errorMsg,
     setErrorMsg,
     securityAlert,
-    handleStep1Submit,
-    handleLoginSubmit,
-    handleRegisterSubmit,
+    handlePasskeyAuthSubmit,
   };
 }

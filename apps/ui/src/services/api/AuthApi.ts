@@ -1,4 +1,4 @@
-import { ActiveSession, AuditLogResponse, AuthResponse } from '../../interfaces/IApiClient';
+import { ActiveSession, AuditLogResponse, AuthResponse, PasskeyAuthResult, UserVaultItem } from '../../interfaces/IApiClient';
 import { HttpTransport } from './HttpTransport';
 
 export class AuthApi {
@@ -129,6 +129,88 @@ export class AuthApi {
 
   async getAuditLogs(): Promise<AuditLogResponse[]> {
     return this.transport.request<AuditLogResponse[]>('/auth/audit-logs', {
+      method: 'GET',
+    });
+  }
+
+  // --- WebAuthn Passkeys ---
+  async passkeyRegisterOptions(username: string): Promise<any> {
+    return this.transport.request<any>('/auth/passkey/register-options', {
+      method: 'POST',
+      body: JSON.stringify({ username }),
+    });
+  }
+
+  async passkeyRegisterVerify(payload: {
+    username: string;
+    response: any;
+    wrappedUmkByPrf?: string;
+    wrappedUmkByRecovery: string;
+    recoverySalt: string;
+    initialVault?: {
+      name: string;
+      salt: string;
+      wrappedVmk: string;
+    };
+  }): Promise<PasskeyAuthResult> {
+    const data = await this.transport.request<PasskeyAuthResult>('/auth/passkey/register-verify', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    this.transport.setToken(data.accessToken, data.expiresIn || 900);
+    return data;
+  }
+
+  async passkeyLoginOptions(username?: string): Promise<any> {
+    return this.transport.request<any>('/auth/passkey/login-options', {
+      method: 'POST',
+      body: JSON.stringify({ username }),
+    });
+  }
+
+  async passkeyLoginVerify(payload: {
+    response: any;
+    username?: string;
+    rememberMe?: boolean;
+  }): Promise<PasskeyAuthResult> {
+    const data = await this.transport.request<PasskeyAuthResult>('/auth/passkey/login-verify', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    this.transport.setToken(data.accessToken, data.expiresIn || 900);
+    return data;
+  }
+
+  async updateWrappedUmk(wrappedUmkByPrf: string): Promise<{ updated: boolean }> {
+    return this.transport.request<{ updated: boolean }>('/auth/passkey/wrapped-umk', {
+      method: 'PUT',
+      body: JSON.stringify({ wrappedUmkByPrf }),
+    });
+  }
+
+  async addPasskeyCredential(response: any, deviceName?: string): Promise<{ added: boolean }> {
+    return this.transport.request<{ added: boolean }>('/auth/passkey/add-credential', {
+      method: 'POST',
+      body: JSON.stringify({ response, deviceName }),
+    });
+  }
+
+  async getUserCryptoKeys(): Promise<{
+    userCryptoKeys: {
+      wrappedUmkByPrf: string | null;
+      wrappedUmkByRecovery: string;
+      recoverySalt: string;
+    };
+    vaults: UserVaultItem[];
+  }> {
+    return this.transport.request<{
+      userCryptoKeys: {
+        wrappedUmkByPrf: string | null;
+        wrappedUmkByRecovery: string;
+        recoverySalt: string;
+      };
+      vaults: UserVaultItem[];
+    }>('/auth/passkey/crypto-keys', {
       method: 'GET',
     });
   }

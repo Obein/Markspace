@@ -12,6 +12,8 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
+import { useApp } from '../../context/AppContext';
+import { startRegistration } from '@simplewebauthn/browser';
 import { PasskeyCryptoService, PasskeyRegistrationResult } from '../../crypto/PasskeyCryptoService';
 import { Card, Badge, ConfirmCard, Button } from '../common';
 
@@ -20,8 +22,9 @@ export interface PasskeySectionProps {
   userId: string | null;
 }
 
-export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId }) => {
+export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId: _userId }) => {
   const { t } = useI18n();
+  const { apiClient } = useApp();
   const [credentials, setCredentials] = useState<PasskeyRegistrationResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -51,7 +54,10 @@ export const PasskeySection: React.FC<PasskeySectionProps> = ({ username, userId
 
     try {
       setLoading(true);
-      const res = await PasskeyCryptoService.registerPasskey(username, userId || undefined);
+      const options = await apiClient.passkeyRegisterOptions(username);
+      const regResponse = await startRegistration({ optionsJSON: options });
+      await apiClient.addPasskeyCredential(regResponse);
+      const res = PasskeyCryptoService.recordCredential(username, regResponse.id);
       loadCredentials();
       setSuccessMsg(
         t('passkeyRegisteredSuccess') || `Passkey "${res.name}" registered and bound!`

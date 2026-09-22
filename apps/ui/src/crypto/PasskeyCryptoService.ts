@@ -228,6 +228,35 @@ export class PasskeyCryptoService {
   }
 
   /**
+   * Record a registered Passkey credential from server / WebAuthn ceremony
+   */
+  public static recordCredential(username: string, credentialId: string, customName?: string): PasskeyRegistrationResult {
+    const existingList = this.getStoredCredentials(username);
+    const passkeyName =
+      customName?.trim() ||
+      (existingList.length === 0
+        ? this.getDefaultPasskeyName()
+        : `${this.getDefaultPasskeyName()} (${existingList.length + 1})`);
+
+    const result: PasskeyRegistrationResult = {
+      id: credentialId,
+      credentialId,
+      rawIdHex: '',
+      name: passkeyName,
+      type: 'public-key',
+      createdAt: Date.now(),
+      lastUsedAt: Date.now(),
+    };
+
+    const updatedList = existingList.some((c) => c.credentialId === credentialId)
+      ? existingList.map((c) => (c.credentialId === credentialId ? result : c))
+      : [...existingList, result];
+
+    localStorage.setItem(`markspace_passkeys_${username}`, JSON.stringify(updatedList));
+    return result;
+  }
+
+  /**
    * Rename a registered Passkey
    */
   public static renamePasskey(username: string, credentialId: string, newName: string): boolean {

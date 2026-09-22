@@ -6,9 +6,7 @@ import { UnlockModalProps } from './UnlockModal.types';
 import { PasskeyUnlockView } from './PasskeyUnlockView';
 import { RecoveryUnlockView } from './RecoveryUnlockView';
 import { CreateVaultView } from './CreateVaultView';
-import { SetupPasskeyView } from './SetupPasskeyView';
 import { ThirdPartyStoragePanel } from './ThirdPartyStoragePanel';
-import { PasskeyCryptoService } from '../../crypto/PasskeyCryptoService';
 
 /**
  * UnlockModal Orchestrator Component.
@@ -34,51 +32,29 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
     setActiveVaultId,
     isAuthenticated,
     isVaultUnlocked,
-    userId,
     username,
     logoutAccount,
   } = useApp();
   const { t } = useI18n();
 
-  // Mode: 'setup-passkey' | 'passkey' | 'recovery' | 'create'
-  const [mode, setMode] = useState<'setup-passkey' | 'passkey' | 'recovery' | 'create'>(() => {
-    if (username && !PasskeyCryptoService.hasPasskey(username)) {
-      return 'setup-passkey';
-    }
+  // Mode: 'passkey' | 'recovery' | 'create'
+  const [mode, setMode] = useState<'passkey' | 'recovery' | 'create'>(() => {
     return vaults.length === 0 ? 'create' : 'passkey';
   });
 
-  const prevUsernameRef = React.useRef<string | null>(username);
-  const prevVaultsLengthRef = React.useRef<number>(vaults.length);
-
-  // Automatically enforce Passkey setup or adjust mode when vaults or user changes
   useEffect(() => {
-    const isUserChanged = prevUsernameRef.current !== username;
-    const isVaultsLoaded = prevVaultsLengthRef.current === 0 && vaults.length > 0;
-    prevUsernameRef.current = username;
-    prevVaultsLengthRef.current = vaults.length;
-
-    if (username) {
-      if (!PasskeyCryptoService.hasPasskey(username)) {
-        if (mode !== 'setup-passkey') {
-          setMode('setup-passkey');
-        }
-      } else if (vaults.length === 0) {
-        if (mode !== 'create' && mode !== 'setup-passkey') {
-          setMode('create');
-        }
-      } else if (isUserChanged || isVaultsLoaded) {
-        // When existing vaults are loaded or user logs in with vaults, default to passkey unlock
-        setMode('passkey');
-      }
+    if (vaults.length === 0) {
+      setMode('create');
+    } else if (mode === 'create') {
+      setMode('passkey');
     }
-  }, [username, vaults.length, mode]);
+  }, [vaults.length]);
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [shake, setShake] = useState(false);
 
   const activeVault = vaults.find((v) => v.id === activeVaultId) || vaults[0];
-  const isCreateMode = mode === 'create' || (vaults.length === 0 && mode !== 'setup-passkey');
+  const isCreateMode = mode === 'create' || vaults.length === 0;
 
   if (!isAuthenticated || isVaultUnlocked) return null;
 
@@ -110,11 +86,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
               className="w-4 h-4 rounded object-contain"
             />
             <span className="font-mono text-zinc-700 dark:text-zinc-300 font-medium">
-              {mode === 'setup-passkey'
-                ? t('setupPasskeyTitle') || 'Passkey Setup'
-                : isCreateMode
-                ? 'Setup Vault'
-                : 'Vault Locked'}
+              {isCreateMode ? 'Setup Vault' : 'Vault Locked'}
             </span>
           </div>
           {onOpenProfile && (
@@ -137,7 +109,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
         )}
 
         {/* Vault Switcher & Management bar (When multiple vaults exist and in unlock mode) */}
-        {!isCreateMode && mode !== 'setup-passkey' && vaults.length > 0 && activeVault && (
+        {!isCreateMode && vaults.length > 0 && activeVault && (
           <div className="mb-5 flex items-center justify-between gap-2 p-1.5 rounded-xl bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10">
             <select
               value={activeVault.id}
@@ -156,11 +128,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                 type="button"
                 onClick={() => {
                   setErrorMsg(null);
-                  if (username && !PasskeyCryptoService.hasPasskey(username)) {
-                    setMode('setup-passkey');
-                  } else {
-                    setMode('create');
-                  }
+                  setMode('create');
                 }}
                 className="p-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-primaryColor-600 dark:text-primaryColor-400 hover:text-primaryColor-700 dark:hover:text-primaryColor-300 transition cursor-pointer"
                 title={t('newVault') || 'New Vault'}
@@ -191,17 +159,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
         )}
 
         {/* View Mode Dispatcher */}
-        {mode === 'setup-passkey' ? (
-          <SetupPasskeyView
-            username={username || ''}
-            userId={userId}
-            onPasskeySetupComplete={() => {
-              setErrorMsg(null);
-              setMode(vaults.length === 0 ? 'create' : 'passkey');
-            }}
-            onError={setErrorMsg}
-          />
-        ) : isCreateMode ? (
+        {isCreateMode ? (
           <CreateVaultView
             vaultsCount={vaults.length}
             onCreateVault={onCreateVault}
@@ -271,7 +229,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
       </div>
 
       {/* Third-Party Storage Expandable Panel */}
-      {!isCreateMode && mode !== 'setup-passkey' && activeVault && (
+      {!isCreateMode && activeVault && (
         <ThirdPartyStoragePanel
           username={username}
           activeVaultId={activeVault.id}

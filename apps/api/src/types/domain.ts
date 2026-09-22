@@ -56,9 +56,14 @@ export interface AuditLogEntity {
     | 'ADMIN_DELETE_USER'
     | 'ADMIN_UPDATE_ROLE'
     | 'ADMIN_UPDATE_QUOTA'
-    | 'ADMIN_UPDATE_POLICY'
     | 'USER_IDLE_DESTROYED'
-    | 'GEO_ANOMALY_SESSION_TERMINATED';
+    | 'GEO_ANOMALY_SESSION_TERMINATED'
+    | 'ADMIN_UPDATE_POLICY'
+    | 'PASSKEY_REGISTER'
+    | 'PASSKEY_LOGIN'
+    | 'VAULT_CREATE'
+    | 'VAULT_UPDATE'
+    | 'VAULT_DELETE';
   authMethod: string;
   ipAddress: string;
   userAgent: string;

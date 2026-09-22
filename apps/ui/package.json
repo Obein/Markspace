@@ -25,6 +25,7 @@
     "@lezer/php": "^1.0.5",
     "@lezer/python": "^1.1.19",
     "@lezer/rust": "^1.0.2",
+    "@simplewebauthn/browser": "^14.0.0",
     "@types/katex": "^0.16.8",
     "katex": "^0.18.4",
     "lucide-react": "^1.33.0",

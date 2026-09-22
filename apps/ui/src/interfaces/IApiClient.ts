@@ -13,6 +13,34 @@ export interface AuthResponse {
   token?: string; // Backward compatibility alias
 }
 
+export interface UserVaultItem {
+  id: string;
+  name: string;
+  salt: string;
+  wrappedVmk: string;
+  encryptedStorageConfig: string | null;
+  isDefault: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export interface PasskeyAuthResult {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  user: {
+    id: string;
+    username: string;
+    role: UserRole;
+  };
+  userCryptoKeys: {
+    wrappedUmkByPrf: string | null;
+    wrappedUmkByRecovery: string;
+    recoverySalt: string;
+  };
+  vaults: UserVaultItem[];
+}
+
 export interface UserAdminSummary {
   id: string;
   username: string;
@@ -54,6 +82,11 @@ export interface AuditLogResponse {
     | 'ADMIN_UPDATE_ROLE'
     | 'ADMIN_UPDATE_QUOTA'
     | 'ADMIN_UPDATE_POLICY'
+    | 'PASSKEY_REGISTER'
+    | 'PASSKEY_LOGIN'
+    | 'VAULT_CREATE'
+    | 'VAULT_UPDATE'
+    | 'VAULT_DELETE'
     | 'GEO_ANOMALY_SESSION_TERMINATED';
   authMethod: string;
   ipAddress: string;
@@ -127,6 +160,58 @@ export interface IApiClient {
   register(username: string, authToken: string, rememberMe?: boolean): Promise<AuthResponse>;
   login(username: string, authToken: string, totpCode?: string, rememberMe?: boolean): Promise<AuthResponse>;
   loginPasswordlessTotp(username: string, totpCode: string, rememberMe?: boolean): Promise<AuthResponse>;
+
+  // WebAuthn Passkey Authentication API
+  passkeyRegisterOptions(username: string): Promise<any>;
+  passkeyRegisterVerify(payload: {
+    username: string;
+    response: any;
+    wrappedUmkByPrf?: string;
+    wrappedUmkByRecovery: string;
+    recoverySalt: string;
+    initialVault?: {
+      name: string;
+      salt: string;
+      wrappedVmk: string;
+    };
+  }): Promise<PasskeyAuthResult>;
+  passkeyLoginOptions(username?: string): Promise<any>;
+  passkeyLoginVerify(payload: {
+    response: any;
+    username?: string;
+    rememberMe?: boolean;
+  }): Promise<PasskeyAuthResult>;
+  updateWrappedUmk(wrappedUmkByPrf: string): Promise<{ updated: boolean }>;
+  addPasskeyCredential(response: any, deviceName?: string): Promise<{ added: boolean }>;
+  getUserCryptoKeys(): Promise<{
+    userCryptoKeys: {
+      wrappedUmkByPrf: string | null;
+      wrappedUmkByRecovery: string;
+      recoverySalt: string;
+    };
+    vaults: UserVaultItem[];
+  }>;
+
+  // Cloud-Persisted Multi-Vaults API
+  listUserVaults(): Promise<UserVaultItem[]>;
+  createUserVault(data: {
+    name: string;
+    salt: string;
+    wrappedVmk: string;
+    encryptedStorageConfig?: string | null;
+    isDefault?: boolean;
+  }): Promise<UserVaultItem>;
+  updateUserVault(
+    id: string,
+    data: {
+      name?: string;
+      salt?: string;
+      wrappedVmk?: string;
+      encryptedStorageConfig?: string | null;
+      isDefault?: boolean;
+    }
+  ): Promise<UserVaultItem>;
+  deleteUserVault(id: string): Promise<void>;
 
   // TOTP 2FA Management
   setupTotp(): Promise<{ secret: string; otpauthUri: string; expiresAt: number }>;
