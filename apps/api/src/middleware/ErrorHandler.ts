@@ -39,6 +39,12 @@ export class ErrorHandler {
     ) {
       status = 400;
       code = 'BAD_REQUEST';
+    } else if (
+      message.startsWith('CONFIG_ERROR:') ||
+      message.startsWith('MISSING_REQUIRED_ENV:')
+    ) {
+      status = 500;
+      code = 'MISSING_REQUIRED_ENV';
     }
 
     const cleanMessage = message.includes(': ') ? message.split(': ').slice(1).join(': ') : message;

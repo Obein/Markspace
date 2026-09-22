@@ -40,6 +40,11 @@ export class JwtTokenService implements ITokenService {
   }
 
   private async getHmacKey(secret: string): Promise<CryptoKey> {
+    if (!secret || secret.trim().length === 0) {
+      throw new Error(
+        'CONFIG_ERROR: JWT_SECRET environment secret is missing or empty. Please set JWT_SECRET in Cloudflare Dashboard -> Settings -> Variables and Secrets.'
+      );
+    }
     const encoder = new TextEncoder();
     return crypto.subtle.importKey(
       'raw',

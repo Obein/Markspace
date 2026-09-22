@@ -24,11 +24,21 @@ export class Router {
   private setupRoutes(): void {
     // 0. System Capabilities (Public)
     this.addRoute('GET', '/api/v1/system/capabilities', false, false, async (_container, ctx) => {
+      const missingSecrets: string[] = [];
+      if (!ctx.env.JWT_SECRET || ctx.env.JWT_SECRET.trim().length === 0) {
+        missingSecrets.push('JWT_SECRET');
+      }
+      if (!ctx.env.MASTER_ENCRYPTION_KEY || ctx.env.MASTER_ENCRYPTION_KEY.trim().length === 0) {
+        missingSecrets.push('MASTER_ENCRYPTION_KEY');
+      }
+
       return new Response(
         JSON.stringify({
           success: true,
           data: {
             r2Available: Boolean(ctx.env.BUCKET),
+            configured: missingSecrets.length === 0,
+            missingSecrets,
           },
         }),
         {
@@ -335,6 +345,40 @@ export class Router {
         return env.ASSETS.fetch(new Request(new URL('/', request.url), request));
       }
       return assetRes;
+    }
+
+    // Validate required environment bindings & secrets for all functional API routes
+    if (path.startsWith('/api/') && path !== '/api/v1/system/capabilities') {
+      const missing: string[] = [];
+      if (!env.DB) {
+        missing.push('DB (D1 Database binding)');
+      }
+      if (!env.JWT_SECRET || env.JWT_SECRET.trim().length === 0) {
+        missing.push('JWT_SECRET (Secret for signing session JWT tokens)');
+      }
+      if (!env.MASTER_ENCRYPTION_KEY || env.MASTER_ENCRYPTION_KEY.trim().length === 0) {
+        missing.push('MASTER_ENCRYPTION_KEY (256-bit hex Secret for envelope encryption)');
+      }
+
+      if (missing.length > 0) {
+        const errorRes = new Response(
+          JSON.stringify({
+            success: false,
+            error: {
+              code: 'MISSING_REQUIRED_ENV',
+              message: `Server configuration error: Missing required environment variable(s) or secret(s): ${missing.join(', ')}. Please configure them in Cloudflare Dashboard -> Settings -> Variables and Secrets (or via 'npx wrangler secret put <NAME>').`,
+              missing,
+            },
+            timestamp: new Date().toISOString(),
+          }),
+          {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+        errorRes.headers.set('X-Client-IP', clientIp);
+        return SecurityHeadersMiddleware.applyHeaders(errorRes, origin);
+      }
     }
 
     try {
