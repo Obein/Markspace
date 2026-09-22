@@ -1,0 +1,57 @@
+name: Cloudflare Pages Build & Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Build WASM & Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/markspace-wasm-memory -> target
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26.7
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: 1. Run Typecheck
+        run: npm run typecheck
+
+      - name: 2. Deploy to Cloudflare Pages (on main branch only)
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then
+            npm run deploy:pages
+          else
+            echo "::error::CLOUDFLARE_API_TOKEN secret is not set in GitHub repository settings!"
+            echo "::notice::Please navigate to GitHub repo -> Settings -> Secrets and variables -> Actions, and add CLOUDFLARE_API_TOKEN."
+            exit 1
+          fi

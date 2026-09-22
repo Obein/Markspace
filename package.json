@@ -14,6 +14,7 @@
     "ui:build": "npm run build:ui",
     "build:ui": "npm run build --workspace=apps/ui",
     "build:pages": "npm run ui:build && npx esbuild apps/api/src/index.ts --bundle --outfile=apps/ui/dist/_worker.js --platform=neutral --main-fields=module,main --format=esm --minify --external:cloudflare:* --external:node:* && node -e \"const fs=require('fs'); fs.cpSync('apps/ui/dist', 'static', {recursive: true});\"",
+    "deploy:pages": "npm run build:wasm && npm run build:pages && npm run d1:migrate:prod && wrangler pages deploy static --project-name=markspace --no-bundle",
     "build:wasm": "tsx scripts/build-wasm.ts",
     "build:with-no-wasm": "npm run build:ui",
     "deploy:with-no-wasm": "npm run build:with-no-wasm && npm run d1:migrate:prod && wrangler deploy",
