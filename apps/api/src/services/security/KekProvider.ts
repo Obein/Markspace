@@ -27,18 +27,7 @@ export class KekProvider {
   }
 
   private init(env: { MASTER_ENCRYPTION_KEYS?: string; MASTER_ENCRYPTION_KEY?: string }): void {
-    // 1. Register legacy single key as version 0
-    if (env.MASTER_ENCRYPTION_KEY && env.MASTER_ENCRYPTION_KEY.trim().length > 0) {
-      const trimmed = env.MASTER_ENCRYPTION_KEY.trim();
-      if (trimmed.length < KekProvider.MIN_KEY_LENGTH) {
-        throw new Error(
-          `CONFIG_ERROR: MASTER_ENCRYPTION_KEY must be at least ${KekProvider.MIN_KEY_LENGTH} characters long (current: ${trimmed.length}).`
-        );
-      }
-      this.rawSecrets.set(0, trimmed);
-    }
-
-    // 2. Parse multi-version key map
+    // 1. Parse multi-version key map
     if (env.MASTER_ENCRYPTION_KEYS && env.MASTER_ENCRYPTION_KEYS.trim().length > 0) {
       try {
         const parsed = JSON.parse(env.MASTER_ENCRYPTION_KEYS) as Record<string, string>;
@@ -62,6 +51,18 @@ export class KekProvider {
         }
         console.warn('Failed to parse MASTER_ENCRYPTION_KEYS JSON map:', err);
       }
+    }
+
+    // 2. Register legacy / standalone MASTER_ENCRYPTION_KEY as version 0.
+    // Note: MASTER_ENCRYPTION_KEY has higher priority and will overwrite MASTER_ENCRYPTION_KEYS[0] if both exist.
+    if (env.MASTER_ENCRYPTION_KEY && env.MASTER_ENCRYPTION_KEY.trim().length > 0) {
+      const trimmed = env.MASTER_ENCRYPTION_KEY.trim();
+      if (trimmed.length < KekProvider.MIN_KEY_LENGTH) {
+        throw new Error(
+          `CONFIG_ERROR: MASTER_ENCRYPTION_KEY must be at least ${KekProvider.MIN_KEY_LENGTH} characters long (current: ${trimmed.length}).`
+        );
+      }
+      this.rawSecrets.set(0, trimmed);
     }
 
     // 3. Determine current version (highest numeric version)
