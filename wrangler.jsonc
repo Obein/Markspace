@@ -29,6 +29,11 @@
 		}
 	],
 	"vars": {
-		"ENVIRONMENT": "production"
+		"ENVIRONMENT": "production",
+		"JWT_SECRET": "",
+		"MASTER_ENCRYPTION_KEYS": {
+			"1": "k1...",
+			// "2": "k2..."
+		}
 	}
 }
