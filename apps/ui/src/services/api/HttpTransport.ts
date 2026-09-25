@@ -144,16 +144,18 @@ export class HttpTransport {
    * AOP Request Interceptor: Injects X-Nonce, Authorization, Content-Type, DPoP headers.
    */
   async getHeaders(method: string, path: string): Promise<Record<string, string>> {
+    const fullPath = path.startsWith(this.baseUrl) ? path : `${this.baseUrl}${path}`;
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
 
     const isPublicAuthPath =
-      path.startsWith('/auth/prelogin') ||
-      path.startsWith('/auth/login') ||
-      path.startsWith('/auth/register') ||
-      path.startsWith('/auth/refresh') ||
-      path.startsWith('/auth/nonce');
+      fullPath.endsWith('/auth/prelogin') ||
+      fullPath.endsWith('/auth/login') ||
+      fullPath.endsWith('/auth/register') ||
+      fullPath.endsWith('/auth/refresh') ||
+      fullPath.endsWith('/auth/nonce');
 
     if (!isPublicAuthPath) {
       const validToken = await this.getValidAccessToken();
@@ -165,7 +167,7 @@ export class HttpTransport {
     }
 
     // AOP: Ensure we have an active, non-expired anti-replay nonce before sending request
-    if (path !== '/auth/nonce') {
+    if (!fullPath.endsWith('/auth/nonce')) {
       const nonce = await this.acquireNonce();
       if (nonce) {
         headers['X-Nonce'] = nonce;
@@ -173,7 +175,7 @@ export class HttpTransport {
     }
 
     try {
-      const dpopProof = await DPoPSigner.createProof(method, path);
+      const dpopProof = await DPoPSigner.createProof(method, fullPath);
       headers['DPoP'] = dpopProof;
     } catch (err) {
       console.warn('Failed to sign DPoP proof header', err);

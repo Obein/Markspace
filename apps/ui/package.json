@@ -27,6 +27,7 @@
     "@lezer/rust": "^1.0.2",
     "@simplewebauthn/browser": "^14.0.0",
     "@types/katex": "^0.16.8",
+    "dompurify": "^3.4.16",
     "katex": "^0.18.4",
     "lucide-react": "^1.33.0",
     "marked": "^18.0.10",
@@ -38,6 +39,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/vite": "^4.3.3",
+    "@types/dompurify": "^3.0.5",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",

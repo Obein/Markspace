@@ -10,6 +10,8 @@ export interface Env {
   ASSETS?: Fetcher;
   /** JWT Secret Key for signing and verifying tokens */
   JWT_SECRET: string;
+  /** Optional comma-separated list of allowed cross-origin domains */
+  ALLOWED_ORIGINS?: string;
   /** Dynamic versioned Master Encryption Keys: MEK_v1, MEK_v2, ... */
   [key: `MEK_v${number}`]: string | undefined;
   /** Environment indicator (development, production) */

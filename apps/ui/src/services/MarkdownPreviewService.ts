@@ -1,5 +1,6 @@
 import { marked, Renderer, Tokens } from 'marked';
 import katex from 'katex';
+import DOMPurify from 'dompurify';
 import { IPreviewService } from '../interfaces/IPreviewService';
 import { IHighlightService } from '../interfaces/IHighlightService';
 import { ISheetEngine } from '../interfaces/ISheetEngine';
@@ -157,6 +158,25 @@ export class MarkdownPreviewService implements IPreviewService {
         result = result.split(`<p>${key}</p>`).join(html);
         result = result.split(key).join(html);
       });
+
+      // 10. Defense-in-depth: Sanitize the final HTML against DOM XSS while preserving KaTeX, Mermaid & custom markup
+      if (typeof window !== 'undefined') {
+        const purifyInstance =
+          typeof DOMPurify.sanitize === 'function'
+            ? DOMPurify
+            : typeof (DOMPurify as any) === 'function'
+            ? (DOMPurify as any)(window)
+            : null;
+
+        if (purifyInstance && typeof purifyInstance.sanitize === 'function') {
+          result = purifyInstance.sanitize(result, {
+            USE_PROFILES: { html: true, svg: true, mathMl: true },
+            ADD_TAGS: ['semantics', 'annotation'],
+            ADD_ATTR: ['data-copy-raw', 'data-mermaid-code', 'target'],
+            FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'base', 'head'],
+          });
+        }
+      }
 
       return result;
     } catch (err) {

@@ -30,7 +30,9 @@
     "d1:execute:prod": "echo \"y\" | wrangler d1 execute markspace-db --remote"
   },
   "devDependencies": {
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^22.13.5",
+    "jsdom": "^30.1.1",
     "tsx": "^4.19.3",
     "typescript": "^7.0.2",
     "wrangler": "^4.131.0"

@@ -331,13 +331,15 @@ export class Router {
     const path = url.pathname;
     const method = request.method;
     const origin = request.headers.get('Origin');
+    const isOriginAllowed = this.isOriginAllowed(origin, request.url, env);
+    const allowedOrigin = isOriginAllowed ? origin : null;
     const clientIp =
       request.headers.get('CF-Connecting-IP') ||
       request.headers.get('X-Forwarded-For') ||
       '127.0.0.1';
 
     if (method === 'OPTIONS') {
-      const corsRes = this.handleCorsOptions(origin);
+      const corsRes = this.handleCorsOptions(allowedOrigin);
       corsRes.headers.set('X-Client-IP', clientIp);
       return corsRes;
     }
@@ -396,7 +398,7 @@ export class Router {
           }
         );
         errorRes.headers.set('X-Client-IP', clientIp);
-        return SecurityHeadersMiddleware.applyHeaders(errorRes, origin);
+        return SecurityHeadersMiddleware.applyHeaders(errorRes, allowedOrigin);
       }
     }
 
@@ -493,7 +495,7 @@ export class Router {
         response.headers.set('X-Next-Nonce', nextNonce);
         response.headers.set('X-Client-IP', clientIp);
 
-        return SecurityHeadersMiddleware.applyHeaders(response, origin);
+        return SecurityHeadersMiddleware.applyHeaders(response, allowedOrigin);
       }
 
       const notFoundRes = new Response(
@@ -508,36 +510,73 @@ export class Router {
         }
       );
       notFoundRes.headers.set('X-Client-IP', clientIp);
-      return SecurityHeadersMiddleware.applyHeaders(notFoundRes, origin);
+      return SecurityHeadersMiddleware.applyHeaders(notFoundRes, allowedOrigin);
     } catch (error) {
       const response = ErrorHandler.handle(error);
       const container = new ServiceContainer(env);
       const nextNonce = container.nonceService.generateNonce().nonce;
       response.headers.set('X-Next-Nonce', nextNonce);
       response.headers.set('X-Client-IP', clientIp);
-      return SecurityHeadersMiddleware.applyHeaders(response, origin);
+      return SecurityHeadersMiddleware.applyHeaders(response, allowedOrigin);
     }
   }
 
-  private handleCorsOptions(origin?: string | null): Response {
+  private handleCorsOptions(allowedOrigin?: string | null): Response {
     const headers: Record<string, string> = {
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, DPoP, X-Nonce',
       'Access-Control-Expose-Headers':
         'X-Next-Nonce, DPoP, Set-Cookie, X-Encrypted-DEK, X-Commit-Hash, Content-Disposition, X-Client-IP',
+      'Vary': 'Origin',
     };
-    if (origin) {
-      headers['Access-Control-Allow-Origin'] = origin;
+    if (allowedOrigin) {
+      headers['Access-Control-Allow-Origin'] = allowedOrigin;
       headers['Access-Control-Allow-Credentials'] = 'true';
-      headers['Vary'] = 'Origin';
     }
 
     return SecurityHeadersMiddleware.applyHeaders(
       new Response(null, {
-        status: 204,
+        status: allowedOrigin ? 204 : 403,
         headers,
       }),
-      origin
+      allowedOrigin
     );
+  }
+
+  /**
+   * Validate whether an incoming request Origin is trusted.
+   * Only allows same-origin requests, localhost dev servers, or domains explicitly declared in ALLOWED_ORIGINS.
+   */
+  public isOriginAllowed(origin: string | null, requestUrl: string, env: Env): boolean {
+    if (!origin) return false;
+
+    // 1. Same-origin match with the incoming request URL
+    try {
+      const selfOrigin = new URL(requestUrl).origin;
+      if (origin.toLowerCase() === selfOrigin.toLowerCase()) {
+        return true;
+      }
+    } catch {
+      // Ignore URL parse error
+    }
+
+    // 2. Local development environments (localhost / 127.0.0.1 on any port)
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+      return true;
+    }
+
+    // 3. Explicitly configured ALLOWED_ORIGINS in environment
+    const allowedEnv = env.ALLOWED_ORIGINS;
+    if (typeof allowedEnv === 'string' && allowedEnv.trim().length > 0) {
+      const allowedList = allowedEnv
+        .split(',')
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean);
+      if (allowedList.includes(origin.toLowerCase()) || allowedList.includes('*')) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

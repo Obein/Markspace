@@ -81,7 +81,25 @@ export class DPoPVerifier {
       throw new Error(`UNAUTHORIZED: DPoP method mismatch (${payload.htm} vs ${expectedMethod})`);
     }
 
-    if (!expectedPathname.endsWith(payload.htu) && !payload.htu.endsWith(expectedPathname)) {
+    if (!payload.htu || typeof payload.htu !== 'string' || payload.htu.trim().length === 0) {
+      throw new Error('UNAUTHORIZED: DPoP proof htu claim is missing or empty');
+    }
+
+    let htuPathname: string;
+    try {
+      htuPathname = new URL(payload.htu, 'https://markspace.internal').pathname;
+    } catch {
+      throw new Error(`UNAUTHORIZED: Invalid DPoP htu claim format: ${payload.htu}`);
+    }
+
+    const normalizedHtuPath =
+      htuPathname.length > 1 && htuPathname.endsWith('/') ? htuPathname.slice(0, -1) : htuPathname;
+    const normalizedExpectedPath =
+      expectedPathname.length > 1 && expectedPathname.endsWith('/')
+        ? expectedPathname.slice(0, -1)
+        : expectedPathname;
+
+    if (normalizedHtuPath !== normalizedExpectedPath) {
       throw new Error(`UNAUTHORIZED: DPoP path mismatch (${payload.htu} vs ${expectedPathname})`);
     }
 

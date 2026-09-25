@@ -1,5 +1,5 @@
 export class SecurityHeadersMiddleware {
-  public static apply(headers: Headers, requestOrigin?: string | null): void {
+  public static apply(headers: Headers, allowedOrigin?: string | null): void {
     headers.set('Cross-Origin-Opener-Policy', 'same-origin');
     headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
     headers.set('Content-Security-Policy', "require-trusted-types-for 'script';");
@@ -10,15 +10,15 @@ export class SecurityHeadersMiddleware {
       'Access-Control-Expose-Headers',
       'X-Next-Nonce, DPoP, Set-Cookie, X-Encrypted-DEK, X-Commit-Hash, Content-Disposition, X-Client-IP'
     );
-    if (requestOrigin) {
-      headers.set('Access-Control-Allow-Origin', requestOrigin);
+    headers.set('Vary', 'Origin');
+    if (allowedOrigin) {
+      headers.set('Access-Control-Allow-Origin', allowedOrigin);
       headers.set('Access-Control-Allow-Credentials', 'true');
-      headers.set('Vary', 'Origin');
     }
   }
 
-  public static applyHeaders(response: Response, requestOrigin?: string | null): Response {
-    this.apply(response.headers, requestOrigin);
+  public static applyHeaders(response: Response, allowedOrigin?: string | null): Response {
+    this.apply(response.headers, allowedOrigin);
     return response;
   }
 }

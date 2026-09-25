@@ -179,19 +179,25 @@ export class VaultNodeCrudRepository {
     return Boolean(result && result.meta && result.meta.changes > 0);
   }
 
+  private escapeSqlLike(str: string): string {
+    return str.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+  }
+
   public async deleteDirectoryTree(userId: string, targetPath: string): Promise<VaultNodeEntity[]> {
     await VaultSchemaManager.ensureSchema(this.db);
     const prefix = targetPath.endsWith('/') ? targetPath : `${targetPath}/`;
+    const escapedPrefixPattern = `${this.escapeSqlLike(prefix)}%`;
+
     const { results } = await this.db
-      .prepare(`SELECT * FROM vault_nodes WHERE user_id = ? AND (path = ? OR path LIKE ?)`)
-      .bind(userId, targetPath, `${prefix}%`)
+      .prepare(`SELECT * FROM vault_nodes WHERE user_id = ? AND (path = ? OR path LIKE ? ESCAPE '\\')`)
+      .bind(userId, targetPath, escapedPrefixPattern)
       .all<D1VaultNodeRow>();
 
     const nodes = (results || []).map((row) => this.mapRow(row));
 
     await this.db
-      .prepare(`DELETE FROM vault_nodes WHERE user_id = ? AND (path = ? OR path LIKE ?)`)
-      .bind(userId, targetPath, `${prefix}%`)
+      .prepare(`DELETE FROM vault_nodes WHERE user_id = ? AND (path = ? OR path LIKE ? ESCAPE '\\')`)
+      .bind(userId, targetPath, escapedPrefixPattern)
       .run();
 
     return nodes;
