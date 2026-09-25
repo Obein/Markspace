@@ -256,15 +256,21 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-2.5 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 disabled:opacity-50 text-white text-xs font-bold font-mono transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-primaryColor-950/50"
+              disabled={loading || (systemConfigErrors && systemConfigErrors.length > 0)}
+              className="w-full py-2.5 rounded-xl bg-primaryColor-600 hover:bg-primaryColor-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold font-mono transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-primaryColor-950/50"
             >
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
                   <Fingerprint className="w-4 h-4 text-white" />
-                  <span>{isRegisterMode ? 'Create Passkey & Vault' : 'Sign in with Passkey'}</span>
+                  <span>
+                    {systemConfigErrors && systemConfigErrors.length > 0
+                      ? '密钥不符合规格，应用已暂停'
+                      : isRegisterMode
+                      ? 'Create Passkey & Vault'
+                      : 'Sign in with Passkey'}
+                  </span>
                 </>
               )}
             </button>
@@ -277,8 +283,9 @@ export const AuthFormCard: React.FC<AuthFormCardProps> = ({ form }) => {
         <div className="pt-2 border-t border-white/10 text-center">
           <button
             type="button"
+            disabled={Boolean(systemConfigErrors && systemConfigErrors.length > 0)}
             onClick={() => switchMode(!isRegisterMode)}
-            className="text-xs text-zinc-400 hover:text-white transition font-mono cursor-pointer"
+            className="text-xs font-mono text-zinc-400 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
           >
             {isRegisterMode
               ? (t('alreadyHaveAccount') || 'Already have an account? Sign in')
