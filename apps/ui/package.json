@@ -27,7 +27,7 @@
     "@lezer/rust": "^1.0.2",
     "@simplewebauthn/browser": "^14.0.0",
     "@types/katex": "^0.16.8",
-    "dompurify": "^3.4.16",
+    "dompurify": "^3.4.17",
     "katex": "^0.18.4",
     "lucide-react": "^1.33.0",
     "marked": "^18.0.10",
